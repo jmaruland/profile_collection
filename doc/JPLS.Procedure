@@ -1,0 +1,38 @@
+
+Development Plan and Implementation Procedure for the J-PLS Beamline
+
+Veni-Vidi-Vici Approach
+
+1. Install the JPLS server (xf12id1-ioc1) and deploy the EPICS archiver and
+MongoDB database. 
+
+2. Create the NSLS-II-JPLS github organization and the profile_collection repository:
+
+https://github.com/NSLS-II-JPLS/profile_collection
+
+3. Update the production file of NSLS-II playbooks repository with the JPLS entries,
+install the DAMA software on the JPLS server using ansible-playbook, and test
+the DAMA environment with 00-startup.py:
+
+https://github.com/NSLS-II-JPLS/profile_collection/blob/master/startup/00-startup.py
+
+4. Deploy the simulation motors on the JPLS server.
+
+5. Test the simulation motors with 20-motors.py:
+
+https://github.com/NSLS-II-JPLS/profile_collection/blob/master/startup/20-motors.py
+
+6. Implement the SPEC geometry code using PseudoPositioner:
+
+https://github.com/NSLS-II-JPLS/profile_collection/blob/master/startup/30-geometry.py
+
+7. Add BLUESKY alpha-oriented scan for running simulation motors and data acquisition
+of simulation detector (representing the beam intensity reader):
+
+https://github.com/NSLS-II-JPLS/profile_collection/blob/master/startup/90-setup.py
+
+8. Add acceptance test for the BLUESKY alpha-oriented scanning:
+
+https://github.com/NSLS-II-JPLS/profile_collection/blob/master/acceptance_tests/01_ascan.py
+
+
