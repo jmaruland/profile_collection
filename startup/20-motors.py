@@ -31,5 +31,5 @@ class SmplMotors(Device):
     r = Cpt(EpicsMotor, 'OR}Mtr')    
 
     
-dfl = XtalDflMotors('SXF:12ID1-ES{XtalDfl-Ax:', name='dfl')
-smpl = SmplMotors('SXF:12ID1-ES{Smpl-Ax:', name='smpl')
+ip = XtalDflMotors('SXF:12ID1-ES{XtalDfl-Ax:', name='ip')
+op = SmplMotors('SXF:12ID1-ES{Smpl-Ax:', name='op')
