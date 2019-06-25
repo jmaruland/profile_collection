@@ -1,3 +1,4 @@
+import time as ttime
 from ophyd import PseudoPositioner
 from ophyd import (PseudoSingle, EpicsMotor)
 from ophyd.pseudopos import (pseudo_position_argument, real_position_argument)
@@ -24,6 +25,13 @@ class Geometry(PseudoPositioner):
         self.s_Eta = 0 # inc beam upward tilt from mirror (rad) 
         self.s_trck = 0 # whether to track sample table
         super().__init__(prefix, **kwargs)   
+        # For some weird reason we need to give it some time to connect in the simulation mode
+        # (when the "SXF:..." PVs are used)
+        ttime.sleep(1)
+        for cpt in self.component_names:
+            if not getattr(self, cpt).connected:
+                raise RuntimeError(f'{self.name}.{cpt} is not connected! '
+                                   f'Make sure to connect it to use the "{self.name}" pseudopositioner.')
 
     @pseudo_position_argument
     def forward(self, pseudo_pos):
@@ -141,4 +149,4 @@ class Geometry(PseudoPositioner):
         return self.PseudoPosition(alpha=_alpha)
 
 
-geo = Geometry('XF:12ID1-ES', name='geo')
+geo = Geometry('SXF:12ID1-ES', name='geo')

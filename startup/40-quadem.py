@@ -7,9 +7,9 @@ quadem = QuadEMV33('XF:12ID1-BI{EM:1}EM1:', name='quadem')
 quadem.conf.port_name.put('EM180')
 quadem.stage_sigs['acquire_mode'] = 2
 
-for i in (1, 2, 3, 4):
+for i in [1, 2, 3, 4]:
     getattr(quadem, f'current{i}').mean_value.kind = 'normal'
 
-for i in (1, 2, 3):
+for i in [1]:
     getattr(quadem, f'current{i}').mean_value.kind = 'hinted'
 
