@@ -1,7 +1,7 @@
-from ophyd import EpicsMotor                                                                       
+from ophyd import EpicsMotor, Component as Cpt
 
 
-class EpicsMotorWithLimits(EpicsMotor): 
+class EpicsMotorWithLimits(EpicsMotor):
     low_limit = Cpt(EpicsSignal, '.LLM')
     high_limit = Cpt(EpicsSignal, '.HLM')
 
