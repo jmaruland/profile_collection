@@ -9,7 +9,8 @@ class XtalDflMotors(Device):
     th = Cpt(EpicsMotor, 'Th}Mtr')
     tth = Cpt(EpicsMotor, 'Tth}Mtr')
     chi = Cpt(EpicsMotor, 'Chi}Mtr')
-    phi = Cpt(EpicsMotor, 'Phi}Mtr')
+ #   phi = Cpt(EpicsMotor, 'Phi}Mtr')
+    phi = Cpt(EpicsMotor, 'M7}Mtr')
     phiX = Cpt(EpicsMotor, 'PhiX}Mtr')
 
     h = Cpt(EpicsMotor, 'IH}Mtr')

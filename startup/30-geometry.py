@@ -10,14 +10,15 @@ class Geometry(PseudoPositioner):
     alpha = Cpt(PseudoSingle, '', labels=['geo'])
 
     th = Cpt(EpicsMotor, '{XtalDfl-Ax:Th}Mtr', labels=['geo'])
-    phi = Cpt(EpicsMotor, '{XtalDfl-Ax:Phi}Mtr', labels=['geo'])   
+#    phi = Cpt(EpicsMotor, '{XtalDfl-Ax:Phi}Mtr', labels=['geo'])   
+    phi = Cpt(EpicsMotor, '{XtalDfl-Ax:M7}Mtr', labels=['geo'])   
     chi = Cpt(EpicsMotor, '{XtalDfl-Ax:Chi}Mtr', labels=['geo'])
     tth = Cpt(EpicsMotor, '{XtalDfl-Ax:Tth}Mtr', labels=['geo'])
     ih = Cpt(EpicsMotor, '{XtalDfl-Ax:IH}Mtr', labels=['geo'])
     ir = Cpt(EpicsMotor, '{XtalDfl-Ax:IR}Mtr', labels=['geo'])    
 
     def __init__(self, prefix, **kwargs):
-        self.wlength = 1.5 # x-ray wavelength, A       
+        self.wlength = 0.77086  # x-ray wavelength, A       
         self.s_l1 = 300 # distance crystal to input arm elevator, mm
         self.s_l2 = 850 # distance crystal to sample center, mm 
         self.s_13 = 600 # distance sample to output elevator, mm
@@ -149,4 +150,5 @@ class Geometry(PseudoPositioner):
         return self.PseudoPosition(alpha=_alpha)
 
 
-geo = Geometry('SXF:12ID1-ES', name='geo')
+#geo = Geometry('SXF:12ID1-ES', name='geo')
+geo = Geometry('XF:12ID1-ES', name='geo')
