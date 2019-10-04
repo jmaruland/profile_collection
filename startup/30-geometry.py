@@ -23,9 +23,12 @@ class Geometry(PseudoPositioner):
         self.s_l2 = 850 # distance crystal to sample center, mm 
         self.s_13 = 600 # distance sample to output elevator, mm
         self.s_qtau = 1.9236 # monochromator reciprocal lattice vector, 1/A 
-        self.s_Eta = 0.000722 # inc beam upward tilt from mirror (rad) 
+#        self.s_Eta = 0.000722 # inc beam upward tilt from mirror (rad) 
+        self.s_Eta = 0.000 # inc beam upward tilt from mirror (rad) 
         self.s_trck = 0 # whether to track sample table
         super().__init__(prefix, **kwargs)   
+        self.phi.settle_time=0.5
+        self.ih.settle_time=0.5
         # For some weird reason we need to give it some time to connect in the simulation mode
         # (when the "SXF:..." PVs are used)
         ttime.sleep(1)
@@ -35,7 +38,7 @@ class Geometry(PseudoPositioner):
                                    f'Make sure to connect it to use the "{self.name}" pseudopositioner.')
 
     @pseudo_position_argument
-    def ca(self, pseudo_pos):
+    def ab(self, pseudo_pos):
         '''Calculate a RealPosition from a given PseudoPosition
            based on the s_motors method
 
@@ -117,13 +120,13 @@ class Geometry(PseudoPositioner):
         return self.RealPosition(th=_th, phi=_phi, chi=_chi,
                                  tth=_tth, ih=_ih, ir=_ir)
 
-    def move_ca(self, pseudo_pos):
-        temp = self.ca(pseudo_pos)
-        yield from bps.mv(geo.tth, temp.tth)
-        yield from bps.mv(geo.phi, temp.phi)
-        yield from bps.mv(geo.chi, temp.chi)
-        yield from bps.mv(geo.ir, -temp.ir)
-        yield from bps.mv(geo.ih, temp.ih)
+    def move_ab(self, pseudo_pos):
+        temp = self.ab(pseudo_pos)
+        yield from bps.mv(geo.tth, temp.tth,
+                          geo.phi, temp.phi,
+                          geo.chi, temp.chi,
+                          geo.ir, -temp.ir,
+                          geo.ih, temp.ih)
 
     @real_position_argument
     def inverse(self, real_pos):
@@ -170,10 +173,11 @@ def phi_track(alpha_ini, alpha_stop, num_alpha):
     for i, alpha in enumerate(range(0, num_alpha, 1)):
         alpha_re = alpha_ini + (i*(alpha_stop - alpha_ini)/num_alpha)
         print(i, alpha_ini, alpha_re)
-        yield from geo.move_ca(alpha_re)
-        yield from bp.rel_scan([quadem],geo.phi,-0.02,0.01,60)
+        yield from geo.move_ab(alpha_re)
+        yield from bp.rel_scan([quadem],geo.phi,-0.01,0.01,40)
         print(peaks.cen['quadem_current2_mean_value'] - geo.ca(alpha_re).phi)  
         dif[0, i] = alpha_re
+
         dif[1, i] = peaks.cen['quadem_current2_mean_value'] - geo.ca(alpha_re).phi
 
     print(dif)
@@ -191,8 +195,8 @@ def ih_track(alpha_ini, alpha_stop, num_alpha):
     for i, alpha in enumerate(range(0, num_alpha, 1)):
         alpha_re = alpha_ini + (i*(alpha_stop - alpha_ini)/num_alpha)
         print(i, alpha_ini, alpha_re)
-        yield from geo.move_ca(alpha_re)
-        yield from bp.rel_scan([quadem],geo.phi,0.010,-0.010,20)
+        yield from geo.move_ab(alpha_re)
+        yield from bp.rel_scan([quadem],geo.phi,-0.010,0.010,20)
         yield from bps.mv(geo.phi,peaks.cen['quadem_current2_mean_value'])
         dif[2, i] = peaks.cen['quadem_current2_mean_value'] - geo.ca(alpha_re).phi
         yield from bp.rel_scan([quadem],geo.ih,-0.5,0.5,20)

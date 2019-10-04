@@ -32,5 +32,6 @@ class SmplMotors(Device):
     r = Cpt(EpicsMotor, 'OR}Mtr')    
 
     
+# what is the p for in ip??
 ip = XtalDflMotors('XF:12ID1-ES{XtalDfl-Ax:', name='ip')
 op = SmplMotors('XF:12ID1-ES{Smpl-Ax:', name='op')
