@@ -2,6 +2,8 @@ import numpy as np
 import time as ttime
 from ophyd import PseudoPositioner
 from ophyd import PseudoSingle, EpicsMotor
+import warnings
+
 from ophyd.pseudopos import pseudo_position_argument, real_position_argument
 from ophyd import Component as Cpt
 import bluesky.plans as bp
@@ -44,7 +46,7 @@ class Geometry(PseudoPositioner):
                 )
 
     @pseudo_position_argument
-    def ab(self, pseudo_pos):
+    def forward(self, pseudo_pos):
         """Calculate a RealPosition from a given PseudoPosition
            based on the s_motors method
 
@@ -128,21 +130,6 @@ class Geometry(PseudoPositioner):
 
         return self.RealPosition(th=_th, phi=_phi, chi=_chi, tth=_tth, ih=_ih, ir=_ir)
 
-    def move_ab(self, pseudo_pos):
-        temp = self.ab(pseudo_pos)
-        yield from bps.mv(
-            geo.tth,
-            temp.tth,
-            geo.phi,
-            temp.phi,
-            geo.chi,
-            temp.chi,
-            geo.ir,
-            -temp.ir,
-            geo.ih,
-            temp.ih,
-        )
-
     @real_position_argument
     def inverse(self, real_pos):
         """Calculate a PseudoPosition from a given RealPosition
@@ -175,6 +162,10 @@ class Geometry(PseudoPositioner):
 
         return self.PseudoPosition(alpha=_alpha)
 
+    def move_ab(self, val):
+        warnings.warn("use `yield from bps.mv(goe, val)` instead")
+        return (yield from bps.mv(self, val))
+
 
 # geo = Geometry('SXF:12ID1-ES', name='geo')
 geo = Geometry("XF:12ID1-ES", name="geo")
@@ -188,7 +179,7 @@ def phi_track(alpha_ini, alpha_stop, num_alpha):
     for i, alpha in enumerate(range(0, num_alpha, 1)):
         alpha_re = alpha_ini + (i * (alpha_stop - alpha_ini) / num_alpha)
         print(i, alpha_ini, alpha_re)
-        yield from geo.move_ab(alpha_re)
+        yield from bps.mv(geo, alpha_re)
         yield from bp.rel_scan([quadem], geo.phi, -0.01, 0.01, 40)
         print(peaks.cen["quadem_current2_mean_value"] - geo.ca(alpha_re).phi)
         dif[0, i] = alpha_re
@@ -210,7 +201,7 @@ def ih_track(alpha_ini, alpha_stop, num_alpha):
     for i, alpha in enumerate(range(0, num_alpha, 1)):
         alpha_re = alpha_ini + (i * (alpha_stop - alpha_ini) / num_alpha)
         print(i, alpha_ini, alpha_re)
-        yield from geo.move_ab(alpha_re)
+        yield from bps.mv(geo, alpha_re)
         yield from bp.rel_scan([quadem], geo.phi, -0.010, 0.010, 20)
         yield from bps.mv(geo.phi, peaks.cen["quadem_current2_mean_value"])
         dif[2, i] = peaks.cen["quadem_current2_mean_value"] - geo.ca(alpha_re).phi
