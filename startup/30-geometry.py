@@ -1,5 +1,5 @@
 import numpy as np
-import time as ttime
+
 from ophyd import PseudoPositioner
 from ophyd import PseudoSingle, EpicsMotor
 import warnings
@@ -35,15 +35,6 @@ class Geometry(PseudoPositioner):
         super().__init__(prefix, **kwargs)
         self.phi.settle_time = 0.5
         self.ih.settle_time = 0.5
-        # For some weird reason we need to give it some time to connect in the simulation mode
-        # (when the "SXF:..." PVs are used)
-        ttime.sleep(1)
-        for cpt in self.component_names:
-            if not getattr(self, cpt).connected:
-                raise RuntimeError(
-                    f"{self.name}.{cpt} is not connected! "
-                    f'Make sure to connect it to use the "{self.name}" pseudopositioner.'
-                )
 
     @pseudo_position_argument
     def forward(self, pseudo_pos):
