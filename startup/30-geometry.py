@@ -14,6 +14,7 @@ too_small = 1.0e-10
 class Geometry(PseudoPositioner):
 
     alpha = Cpt(PseudoSingle, "", labels=["geo"])
+    beta = Cpt(PseudoSingle, "", labels=["geo"])
 
     th = Cpt(EpicsMotor, "{XtalDfl-Ax:Th}Mtr", labels=["geo"])
     phi = Cpt(EpicsMotor, "{XtalDfl-Ax:Phi}Mtr", labels=["geo"])
@@ -151,14 +152,13 @@ class Geometry(PseudoPositioner):
 
         _alpha = np.arcsin(tmp) * (180.0 / np.pi)
 
-        return self.PseudoPosition(alpha=_alpha)
+        return self.PseudoPosition(alpha=_alpha, beta=0)
 
     def move_ab(self, val):
         warnings.warn("use `yield from bps.mv(goe, val)` instead")
-        return (yield from bps.mv(self, val))
+        return (yield from bps.mv(self.alpha, val))
 
 
-# geo = Geometry('SXF:12ID1-ES', name='geo')
 geo = Geometry("XF:12ID1-ES", name="geo")
 
 
