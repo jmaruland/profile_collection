@@ -8,15 +8,15 @@ from ophyd.sim import hw
 
 hw = hw()
 
+
 def ascan(start, stop, num, md=None):
-    '''
+    """
     Scan the diffractometer motors while reading the beam intensity.
-    '''
+    """
     dets = [hw.rand]
-    motor = geo # ip.th
-    cols = ['geo_alpha', 'rand'] # ip_th
+    motor = geo  # ip.th
+    cols = ["geo_alpha", "rand"]  # ip_th
 
     plan = bp.scan(dets, motor, start, stop, num, md=md)
 
     yield from plan
-
