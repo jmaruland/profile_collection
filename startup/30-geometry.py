@@ -12,17 +12,30 @@ too_small = 1.0e-10
 
 
 class Geometry(PseudoPositioner):
+    # angles
+    alpha = Cpt(PseudoSingle, "")
+    beta = Cpt(PseudoSingle, "")
 
-    alpha = Cpt(PseudoSingle, "", labels=["geo"])
-    beta = Cpt(PseudoSingle, "", labels=["geo"])
-
-    th = Cpt(EpicsMotor, "{XtalDfl-Ax:Th}Mtr", labels=["geo"])
-    phi = Cpt(EpicsMotor, "{XtalDfl-Ax:Phi}Mtr", labels=["geo"])
+    # input motors
+    th = Cpt(EpicsMotor, "{XtalDfl-Ax:Th}Mtr", doc="Θ 3-circle theta for mono")
+    #
+    phi = Cpt(EpicsMotor, "{XtalDfl-Ax:Phi}Mtr", doc="Φ-stage sets bragg angle")
     #    phi = Cpt(EpicsMotor, '{XtalDfl-Ax:M7}Mtr', labels=['geo'])
-    chi = Cpt(EpicsMotor, "{XtalDfl-Ax:Chi}Mtr", labels=["geo"])
-    tth = Cpt(EpicsMotor, "{XtalDfl-Ax:Tth}Mtr", labels=["geo"])
-    ih = Cpt(EpicsMotor, "{XtalDfl-Ax:IH}Mtr", labels=["geo"])
-    ir = Cpt(EpicsMotor, "{XtalDfl-Ax:IR}Mtr", labels=["geo"])
+    chi = Cpt(EpicsMotor, "{XtalDfl-Ax:Chi}Mtr", doc="Χ, beam steering")
+    tth = Cpt(EpicsMotor, "{XtalDfl-Ax:Tth}Mtr", doc="2Θ, spectrometer rotation")
+    ih = Cpt(EpicsMotor, "{XtalDfl-Ax:IH}Mtr", doc="input height")
+    ir = Cpt(EpicsMotorWithLimits, "{XtalDfl-Ax:IR}Mtr", doc="input rotation")
+
+    # Sample Motors
+    sh = Cpt(EpicsMotor, "bogus", doc="Sample vertical translation")
+    sth = Cpt(EpicsMotor, "bogus", doc="Sample rotation")
+
+    # output motors
+    orb = Cpt(EpicsMotor, "bogus", doc="β, output arm rotation")
+    oh = Cpt(EpicsMotor, "bogus", doc="output arm vertical rotation")
+
+    # detector positions
+    dth = Cpt(EpicsMotor, "bogus", doc="𝟅, detector rotation about sample center")
 
     def __init__(self, prefix, **kwargs):
         self.wlength = 0.77086  # x-ray wavelength, A
@@ -114,13 +127,25 @@ class Geometry(PseudoPositioner):
         _tth = np.arctan(2 * bragg * np.cos(phi) * np.cos(chi) / tmp) * (180.0 / np.pi)
 
         _ih = -self.s_l1 * ta
-        _ir = _alpha * (180.0 / np.pi)
+        _ir = np.rad2deg(_alpha)
 
         # 'th', 'phi', 'chi', 'tth', 'ih', and 'ir'
 
         # return self.RealPosition(th=_alpha)
 
-        return self.RealPosition(th=_th, phi=_phi, chi=_chi, tth=_tth, ih=_ih, ir=_ir)
+        return self.RealPosition(
+            th=_th,
+            phi=_phi,
+            chi=_chi,
+            tth=_tth,
+            ih=_ih,
+            ir=_ir,
+            orb=pseudo_pos.beta,
+            sh=0,
+            sth=0,
+            oh=0,
+            dth=0,
+        )
 
     @real_position_argument
     def inverse(self, real_pos):
@@ -152,7 +177,7 @@ class Geometry(PseudoPositioner):
 
         _alpha = np.arcsin(tmp) * (180.0 / np.pi)
 
-        return self.PseudoPosition(alpha=_alpha, beta=0)
+        return self.PseudoPosition(alpha=_alpha, beta=real_pos.orb)
 
     def move_ab(self, val):
         warnings.warn("use `yield from bps.mv(goe, val)` instead")
@@ -160,6 +185,7 @@ class Geometry(PseudoPositioner):
 
 
 geo = Geometry("XF:12ID1-ES", name="geo")
+[setattr(getattr(geo, k), "kind", "hinted") for k in geo.RealPosition._fields]
 
 
 def phi_track(alpha_ini, alpha_stop, num_alpha):
