@@ -1,13 +1,31 @@
 import numpy as np
 
 from ophyd import PseudoPositioner
-from ophyd import PseudoSingle, EpicsMotor
+from ophyd import PseudoSingle
+from ophyd import EpicsSignal
 import warnings
 
+# from ophyd import EpicsMotor
 from ophyd.pseudopos import pseudo_position_argument, real_position_argument
 from ophyd import Component as Cpt
 import bluesky.plans as bp
 import bluesky.plan_stubs as bps
+
+from ophyd.positioner import SoftPositioner
+
+
+class EpicsMotor(SoftPositioner):
+    def __init__(self, prefix, **kwargs):
+        super().__init__(**kwargs, init_pos=0)
+        self.prefix = prefix
+
+
+class EpicsMotorWithLimits(EpicsMotor):
+    # low_limit = Cpt(EpicsSignal, ".LLM")
+    # high_limit = Cpt(EpicsSignal, ".HLM")
+    ...
+
+
 too_small = 1.0e-10
 
 
