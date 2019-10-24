@@ -33,6 +33,7 @@ class Geometry(PseudoPositioner):
     # angles
     alpha = Cpt(PseudoSingle, "")
     beta = Cpt(PseudoSingle, "")
+    stth = Cpt(PseudoSingle, "")
 
     # input motors
     th = Cpt(EpicsMotor, "{XtalDfl-Ax:Th}Mtr", doc="Θ 3-circle theta for mono")
@@ -46,14 +47,11 @@ class Geometry(PseudoPositioner):
 
     # Sample Motors
     sh = Cpt(EpicsMotor, "bogus", doc="Sample vertical translation")
-    sth = Cpt(EpicsMotor, "bogus", doc="Sample rotation")
-
+    astth = Cpt(EpicsMotor, "bogus", doc="Sample rotation")
+    tblx2 = Cpt(EpicsMotor, "bogus", doc="Table 2 X")
     # output motors
     orb = Cpt(EpicsMotor, "bogus", doc="β, output arm rotation")
     oh = Cpt(EpicsMotor, "bogus", doc="output arm vertical rotation")
-
-    # detector positions
-    dth = Cpt(EpicsMotor, "bogus", doc="𝟅, detector rotation about sample center")
 
     def __init__(self, prefix, **kwargs):
         self.wlength = 0.77086  # x-ray wavelength, A
@@ -83,15 +81,19 @@ class Geometry(PseudoPositioner):
         real_position : RealPosition
             The real position output
         """
+        # by convention in this function:
+        #  - angles in degrees are not prefixed by underscores
+        #  - angles in radians are prefixed by underscores
 
-        a = pseudo_pos.alpha
-        if a > 90:
+        if pseudo_pos.alpha > 90:
             msg = f"Unobtainable position: alpha({a}) is greater than 90 degrees"
             raise ValueError(msg)
 
-        _alpha = a * (np.pi / 180.0)
+        # get pseudo positions in radians
+        _alpha = np.deg2rad(pseudo_pos.alpha)
+        _beta = np.deg2rad(pseudo_pos.beta)
+        _stth = np.deg2rad(pseudo_pos.stth)
 
-        ta = np.tan(_alpha)
         cE = np.cos(self.s_Eta)
         sE = np.sin(self.s_Eta)
 
@@ -110,59 +112,61 @@ class Geometry(PseudoPositioner):
             )
             raise ValueError(msg)
 
-        phi = (2 * bragg * bragg - np.sin(_alpha) * sE - sE * sE) / tmp
-        if np.fabs(phi) > 1:
+        aphi = (2 * bragg * bragg - np.sin(_alpha) * sE - sE * sE) / tmp
+        if np.fabs(aphi) > 1:
             msg = f"Unobtainable position: cannot find phi, lambda ({_lambda}) too big"
             raise ValueError(msg)
 
-        phi = np.arcsin(phi)
+        _phi = np.arcsin(aphi)  # radians
 
         # calculate chi
-        tmp = 2 * bragg * np.cos(phi)
+        tmp = 2 * bragg * np.cos(_phi)
         if np.fabs(tmp) < too_small:
             msg = (
                 f"Unobtainable position: cannot find chi, denominator({tmp}) too small"
             )
             raise ValueError(msg)
 
-        chi = (np.sin(_alpha) + sE) / tmp
-        if np.fabs(chi) > 1:
+        # not an angle
+        achi = (np.sin(_alpha) + sE) / tmp
+        if np.fabs(achi) > 1:
             msg = f"Unobtainable position: cannot find chi, alpha({_alpha}) too big or phi({phi}) too small"
             raise ValueError(msg)
 
-        chi = np.arcsin(chi)
+        _chi = np.arcsin(achi)  # as radians
 
         _th = 0
-        _phi = phi * (180.0 / np.pi)
-        _chi = chi * (180.0 / np.pi)
 
-        tmp = cE - 2 * bragg * np.sin(phi)
+        tmp = cE - 2 * bragg * np.sin(_phi)
         if np.fabs(tmp) < too_small:
             msg = f"Unobtainable position: cannot find tth"
             raise ValueError(msg)
 
         # maybe use atan2(y, x), instead of atan(y/x) ?
-        _tth = np.arctan(2 * bragg * np.cos(phi) * np.cos(chi) / tmp) * (180.0 / np.pi)
+        _tth = np.arctan(2 * bragg * np.cos(_phi) * np.cos(_chi) / tmp)
 
-        _ih = -self.s_l1 * ta
-        _ir = np.rad2deg(_alpha)
+        ih = -self.s_l1 * np.tan(_alpha)
 
         # 'th', 'phi', 'chi', 'tth', 'ih', and 'ir'
 
-        # return self.RealPosition(th=_alpha)
-
+        sh = self.s_l2 * np.sin(_alpha)  # + correction
+        tblx2 = self.s_l2 * np.sin(_tth) * np.cos(_chi)
+        # todo check degree vs radian
+        oh = sh + self.s_13 * np.tan(_beta)
+        # actually output theta
+        _astth = _tth + _stth
         return self.RealPosition(
-            th=_th,
-            phi=_phi,
-            chi=_chi,
-            tth=_tth,
-            ih=_ih,
-            ir=_ir,
+            th=np.rad2deg(_th),
+            phi=np.rad2deg(_phi),
+            chi=np.rad2deg(_chi),
+            tth=np.rad2deg(_tth),
+            ih=ih,
+            ir=np.rad2deg(_alpha),
             orb=pseudo_pos.beta,
-            sh=0,
-            sth=0,
-            oh=0,
-            dth=0,
+            sh=sh,
+            tblx2=tblx2,
+            astth=np.rad2deg(_astth),
+            oh=oh,
         )
 
     @real_position_argument
@@ -195,7 +199,9 @@ class Geometry(PseudoPositioner):
 
         _alpha = np.arcsin(tmp) * (180.0 / np.pi)
 
-        return self.PseudoPosition(alpha=_alpha, beta=real_pos.orb)
+        stth = real_pos.astth - real_pos.tth
+
+        return self.PseudoPosition(alpha=_alpha, beta=real_pos.orb, stth=stth)
 
     def move_ab(self, val):
         warnings.warn("use `yield from bps.mv(goe, val)` instead")
