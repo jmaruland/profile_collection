@@ -149,7 +149,7 @@ class Geometry(PseudoPositioner):
 
         # 'th', 'phi', 'chi', 'tth', 'ih', and 'ir'
 
-        sh = self.s_l2 * np.sin(_alpha)  # + correction
+        sh = -self.s_l2 * np.sin(_alpha)  # + correction
         tblx2 = self.s_l2 * np.sin(_tth) * np.cos(_chi)
         # todo check degree vs radian
         oh = sh + self.s_13 * np.tan(_beta)
