@@ -43,21 +43,22 @@ class Geometry(PseudoPositioner):
     chi = Cpt(EpicsMotor, "{XtalDfl-Ax:Chi}Mtr", doc="Χ, beam steering")
     tth = Cpt(EpicsMotor, "{XtalDfl-Ax:Tth}Mtr", doc="2Θ, spectrometer rotation")
     ih = Cpt(EpicsMotor, "{XtalDfl-Ax:IH}Mtr", doc="input height")
-    ir = Cpt(EpicsMotorWithLimits, "{XtalDfl-Ax:IR}Mtr", doc="input rotation")
+    ia = Cpt(EpicsMotorWithLimits, "{XtalDfl-Ax:IR}Mtr", doc="input rotation")
 
     # Sample Motors
     sh = Cpt(EpicsMotor, "bogus", doc="Sample vertical translation")
     astth = Cpt(EpicsMotor, "bogus", doc="Sample rotation")
     tblx2 = Cpt(EpicsMotor, "bogus", doc="Table 2 X")
     # output motors
-    orb = Cpt(EpicsMotor, "bogus", doc="β, output arm rotation")
+    oa = Cpt(EpicsMotor, "bogus", doc="β, output arm rotation")
     oh = Cpt(EpicsMotor, "bogus", doc="output arm vertical rotation")
 
     def __init__(self, prefix, **kwargs):
         self.wlength = 0.77086  # x-ray wavelength, A
         self.s_l1 = 278  # distance crystal to input arm elevator, mm
         self.s_l2 = 850  # distance crystal to sample center, mm
-        self.s_13 = 600  # distance sample to output elevator, mm
+        self.s_l3 = 600  # distance sample to output elevator, mm
+        self.s_l4 = 0    # table x offset
         self.s_qtau = 1.9236  # monochromator reciprocal lattice vector, 1/A
         #        self.s_Eta = 0.000722 # inc beam upward tilt from mirror (rad)
         self.s_Eta = 0.000  # inc beam upward tilt from mirror (rad)
@@ -149,10 +150,11 @@ class Geometry(PseudoPositioner):
 
         # 'th', 'phi', 'chi', 'tth', 'ih', and 'ir'
 
-        sh = -self.s_l2 * np.sin(_alpha)  # + correction
-        tblx2 = self.s_l2 * np.sin(_tth) * np.cos(_chi)
+        sh = -self.s_l2 * np.sin(_alpha) / np.cos(_tth)  # + correction
+        
+        tblx2 = self.s_l2 * np.sin(_tth) * np.cos(_chi) + self.s_l4
         # todo check degree vs radian
-        oh = sh + self.s_13 * np.tan(_beta)
+        oh = sh + self.s_l3 * np.tan(_beta)
         # actually output theta
         _astth = _tth + _stth
         return self.RealPosition(
@@ -161,8 +163,8 @@ class Geometry(PseudoPositioner):
             chi=np.rad2deg(_chi),
             tth=np.rad2deg(_tth),
             ih=ih,
-            ir=np.rad2deg(_alpha),
-            orb=pseudo_pos.beta,
+            ia=np.rad2deg(_alpha),
+            oa=pseudo_pos.beta,
             sh=sh,
             tblx2=tblx2,
             astth=np.rad2deg(_astth),
@@ -201,7 +203,9 @@ class Geometry(PseudoPositioner):
 
         stth = real_pos.astth - real_pos.tth
 
-        return self.PseudoPosition(alpha=_alpha, beta=real_pos.orb, stth=stth)
+        # TODO compute beta from the other motors
+
+        return self.PseudoPosition(alpha=_alpha, beta=real_pos.oa, stth=stth)
 
     def move_ab(self, val):
         warnings.warn("use `yield from bps.mv(goe, val)` instead")
@@ -209,8 +213,26 @@ class Geometry(PseudoPositioner):
 
 
 geo = Geometry("XF:12ID1-ES", name="geo")
+
+# this is how to add additional aliases
+# ih = geo.ih
+
+def cabt(*args, **kwargs): 
+    ret = geo.forward(*args, **kwargs) 
+    for k in ret._fields: 
+        print(f'{k:<6s} {getattr(ret, k):.03f}') 
+         
+
+def mabt(*args, **kwargs):
+    yield from bps.abs_set(geo, args, **kwargs, wait=True)
+    
 [setattr(getattr(geo, k), "kind", "hinted") for k in geo.RealPosition._fields]
 
+
+def my_over_night():
+    for a in np.linspace(0, 5, 1000):
+        yield from mabt(alpha=a)
+        yield from bp.count(...)
 
 def phi_track(alpha_ini, alpha_stop, num_alpha):
     # for eta in range(eta_start, eta_stop, nb_eta):
