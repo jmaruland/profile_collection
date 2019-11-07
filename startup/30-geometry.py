@@ -218,9 +218,12 @@ geo = Geometry("XF:12ID1-ES", name="geo")
 # ih = geo.ih
 
 def cabt(*args, **kwargs): 
-    ret = geo.forward(*args, **kwargs) 
+    ret = geo.forward(*args, **kwargs)
+    cur = geo.real_position
+    print('| {:<6s} |{:>9s} |{:>9s} |'.format('mtr', 'target', 'current'))
+    print('|' + '-'*30 + '|')
     for k in ret._fields: 
-        print(f'{k:<6s} {getattr(ret, k):.03f}') 
+        print(f'| {k:<6s} |{getattr(ret, k):>9.03f} |{getattr(cur, k):>9.03f} |') 
          
 
 def mabt(*args, **kwargs):
