@@ -52,10 +52,12 @@ class Geometry(PseudoPositioner):
     # output motors
     oa = Cpt(EpicsMotor, "bogus", doc="β, output arm rotation")
     oh = Cpt(EpicsMotor, "bogus", doc="output arm vertical rotation")
+    # gep,etru cps
+    L1=Cpt(EpicsSignal,'XF:12ID1:L_01',add_prefix=(),kind="config")
 
     def __init__(self, prefix, **kwargs):
         self.wlength = 0.77086  # x-ray wavelength, A
-        self.s_l1 = 278  # distance crystal to input arm elevator, mm
+      #  self.s_l1 = 278  # distance crystal to input arm elevator, mm
         self.s_l2 = 850  # distance crystal to sample center, mm
         self.s_l3 = 600  # distance sample to output elevator, mm
         self.s_l4 = 0    # table x offset
@@ -145,8 +147,8 @@ class Geometry(PseudoPositioner):
 
         # maybe use atan2(y, x), instead of atan(y/x) ?
         _tth = np.arctan(2 * bragg * np.cos(_phi) * np.cos(_chi) / tmp)
-
-        ih = -self.s_l1 * np.tan(_alpha)
+        #change this line (BEN)
+        ih = -self.L1.get() * np.tan(_alpha)
 
         # 'th', 'phi', 'chi', 'tth', 'ih', and 'ir'
 
@@ -210,6 +212,8 @@ class Geometry(PseudoPositioner):
     def move_ab(self, val):
         warnings.warn("use `yield from bps.mv(goe, val)` instead")
         return (yield from bps.mv(self.alpha, val))
+    def save_geo(self,L1):
+        return (yield from bps.mv(self.L1, L1))
 
 
 geo = Geometry("XF:12ID1-ES", name="geo")
@@ -220,7 +224,7 @@ geo = Geometry("XF:12ID1-ES", name="geo")
 def cabt(*args, **kwargs): 
     ret = geo.forward(*args, **kwargs)
     cur = geo.real_position
-    print('| {:<6s} |{:>9s} |{:>9s} |'.format('mtr', 'target', 'current'))
+    print('| {:<6s} |{:>9s} |{:>9s} |'.format('MOTOR', 'TARGET', 'CURRENT'))
     print('|' + '-'*30 + '|')
     for k in ret._fields: 
         print(f'| {k:<6s} |{getattr(ret, k):>9.03f} |{getattr(cur, k):>9.03f} |') 
@@ -237,54 +241,23 @@ def my_over_night():
         yield from mabt(alpha=a)
         yield from bp.count(...)
 
-def phi_track(alpha_ini, alpha_stop, num_alpha):
-    # for eta in range(eta_start, eta_stop, nb_eta):
-    # eta
 
-    dif = np.zeros((2, num_alpha))
-    for i, alpha in enumerate(range(0, num_alpha, 1)):
-        alpha_re = alpha_ini + (i * (alpha_stop - alpha_ini) / num_alpha)
-        print(i, alpha_ini, alpha_re)
-        yield from bps.mv(geo, alpha_re)
-        yield from bp.rel_scan([quadem], geo.phi, -0.01, 0.01, 40)
-        print(peaks.cen["quadem_current2_mean_value"] - geo.ca(alpha_re).phi)
-        dif[0, i] = alpha_re
+#The PVs are: XF:12ID1:L_01  to XF:12ID1:L_20
+#e.g., you can 
+#caget XF:12ID1:L_01 and caput XF:12ID1:L_01
 
-        dif[1, i] = peaks.cen["quadem_current2_mean_value"] - geo.ca(alpha_re).phi
+#from epics import caput,caget
+#caput(XF:12ID1:L_01,17)
+#caget(XF:12ID1:L_01)
 
-    print(dif)
-    import matplotlib.pyplot as plt
-
-    plt.figure()
-    plt.plot(dif[0, :], dif[1, :])
-    plt.show()
+#BEN , change to read from EPIcs like we did earlier.
+def param():
+    print('L1 :',geo.s_l1,'crystal to input arm elevator')
+    print("L2 :",geo.s_l2,"crystal to sample table")
+    print("L3 :",geo.s_l3,"sample to out put arm elevator")
+    print("L4 :",geo.s_l4,"table x offset")
+    print("Eta:",geo.s_Eta,"Upward angle of beam on chi circle")
 
 
-def ih_track(alpha_ini, alpha_stop, num_alpha):
-    # for ih in range(alpha_ini,alpha_stop, nb_alpha):
+    
 
-    dif = np.zeros((3, num_alpha))
-    for i, alpha in enumerate(range(0, num_alpha, 1)):
-        alpha_re = alpha_ini + (i * (alpha_stop - alpha_ini) / num_alpha)
-        print(i, alpha_ini, alpha_re)
-        yield from bps.mv(geo, alpha_re)
-        yield from bp.rel_scan([quadem], geo.phi, -0.010, 0.010, 20)
-        yield from bps.mv(geo.phi, peaks.cen["quadem_current2_mean_value"])
-        dif[2, i] = peaks.cen["quadem_current2_mean_value"] - geo.ca(alpha_re).phi
-        yield from bp.rel_scan([quadem], geo.ih, -0.5, 0.5, 20)
-        # is the next line corrct, geo.ca.
-        print(peaks.cen["quadem_current3_mean_value"] - geo.ca(alpha_re).ih)
-        dif[0, i] = alpha_re
-        dif[1, i] = peaks.cen["quadem_current3_mean_value"] - geo.ca(alpha_re).ih
-
-    print(dif)
-    import matplotlib.pyplot as plt
-
-    plt.figure()
-    plt.subplot(211)
-    plt.title("IH_track")
-    plt.plot(dif[0, :], dif[1, :])
-    plt.subplot(212)
-    plt.title("Phi_track")
-    plt.plot(dif[0, :], dif[2, :])
-    plt.show()
