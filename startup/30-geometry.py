@@ -31,9 +31,9 @@ too_small = 1.0e-10
 
 class Geometry(PseudoPositioner):
     # angles
-    alpha = Cpt(PseudoSingle, "")
-    beta = Cpt(PseudoSingle, "")
-    stth = Cpt(PseudoSingle, "")
+    alpha = Cpt(PseudoSingle, "", kind='hinted')
+    beta = Cpt(PseudoSingle, "", kind='hinted')
+    stth = Cpt(PseudoSingle, "", kind='hinted')
 
     # input motors
     th = Cpt(EpicsMotor, "{XtalDfl-Ax:Th}Mtr", doc="Θ 3-circle theta for mono")
@@ -233,9 +233,6 @@ def cabt(*args, **kwargs):
 def mabt(*args, **kwargs):
     yield from bps.abs_set(geo, args, **kwargs, wait=True)
     
-[setattr(getattr(geo, k), "kind", "hinted") for k in geo.RealPosition._fields]
-
-
 def my_over_night():
     for a in np.linspace(0, 5, 1000):
         yield from mabt(alpha=a)
