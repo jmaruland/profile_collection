@@ -31,9 +31,10 @@ too_small = 1.0e-10
 
 class Geometry(PseudoPositioner):
     # angles
-    alpha = Cpt(PseudoSingle, "", kind='hinted')
-    beta = Cpt(PseudoSingle, "", kind='hinted')
-    stth = Cpt(PseudoSingle, "", kind='hinted')
+    alpha = Cpt(PseudoSingle, "", kind="hinted")
+    beta = Cpt(PseudoSingle, "", kind="hinted")
+    stth = Cpt(PseudoSingle, "", kind="hinted")
+    # sth = Cpt(PseudoSingle, "", kind='hinted')
 
     # input motors
     th = Cpt(EpicsMotor, "{XtalDfl-Ax:Th}Mtr", doc="Θ 3-circle theta for mono")
@@ -44,26 +45,53 @@ class Geometry(PseudoPositioner):
     tth = Cpt(EpicsMotor, "{XtalDfl-Ax:Tth}Mtr", doc="2Θ, spectrometer rotation")
     ih = Cpt(EpicsMotor, "{XtalDfl-Ax:IH}Mtr", doc="input height")
     ia = Cpt(EpicsMotorWithLimits, "{XtalDfl-Ax:IR}Mtr", doc="input rotation")
+    phiX = Cpt(EpicsMotor, "{XtalDfl-Ax:PhiX}Mtr")
 
-    # Sample Motors
-    sh = Cpt(EpicsMotor, "bogus", doc="Sample vertical translation")
-    astth = Cpt(EpicsMotor, "bogus", doc="Sample rotation")
-    tblx2 = Cpt(EpicsMotor, "bogus", doc="Table 2 X")
-    # output motors
-    oa = Cpt(EpicsMotor, "bogus", doc="β, output arm rotation")
+    # Sample-detector motors
+    sh = Cpt(EpicsMotor, "{Smpl-Ax:TblY}Mtr", doc="Sample vertical translation")
+    astth = Cpt(EpicsMotor, "{Smpl-Ax:Tth}Mtr", doc="Sample-detector rotation")
+    # asth = Cpt(EpicsMotor, "{Smpl-Ax:Th}Mtr", doc="Sample rotation")
+    stblx = Cpt(EpicsMotor, "{Smpl-Ax:TblX}Mtr", doc="Sample Table X")
+
+    oa = Cpt(EpicsMotor, "{Smpl-Ax:OR}Mtr", doc="β, output arm rotation")
     oh = Cpt(EpicsMotor, "bogus", doc="output arm vertical rotation")
     # gep,etru cps
-    L1=Cpt(EpicsSignal,'XF:12ID1:L_01',add_prefix=(),kind="config")
+    L1 = Cpt(
+        EpicsSignal,
+        "XF:12ID1:L_01",
+        add_prefix=(),
+        kind="config",
+        doc="distance crystal to input arm elevator, mm",
+    )
+    L2 = Cpt(
+        EpicsSignal,
+        "XF:12ID1:L_02",
+        add_prefix=(),
+        kind="config",
+        doc="distance crystal to sample center, mm",
+    )
+    L3 = Cpt(
+        EpicsSignal,
+        "XF:12ID1:L_03",
+        add_prefix=(),
+        kind="config",
+        doc="distance sample to output elevator, mm",
+    )
+    L4 = Cpt(
+        EpicsSignal, "XF:12ID1:L_04", add_prefix=(), kind="config", doc="table x offset"
+    )
+    Eta = Cpt(
+        EpicsSignal,
+        "XF:12ID1:L_05",
+        add_prefix=(),
+        kind="config",
+        doc="inc beam upward tilt from mirror (rad)",
+    )
 
     def __init__(self, prefix, **kwargs):
         self.wlength = 0.77086  # x-ray wavelength, A
-      #  self.s_l1 = 278  # distance crystal to input arm elevator, mm
-        self.s_l2 = 850  # distance crystal to sample center, mm
-        self.s_l3 = 600  # distance sample to output elevator, mm
-        self.s_l4 = 0    # table x offset
-        self.s_qtau = 1.9236  # monochromator reciprocal lattice vector, 1/A
-        #        self.s_Eta = 0.000722 # inc beam upward tilt from mirror (rad)
-        self.s_Eta = 0.000  # inc beam upward tilt from mirror (rad)
+        self.s_qtau = 1.9236  # Ge 111 reciprocal lattice vector, 1/A
+        #  self.s_Eta = 0.000  # inc beam upward tilt from mirror (rad)
         self.s_trck = 0  # whether to track sample table
         super().__init__(prefix, **kwargs)
         self.phi.settle_time = 0.5
@@ -97,8 +125,8 @@ class Geometry(PseudoPositioner):
         _beta = np.deg2rad(pseudo_pos.beta)
         _stth = np.deg2rad(pseudo_pos.stth)
 
-        cE = np.cos(self.s_Eta)
-        sE = np.sin(self.s_Eta)
+        cE = np.cos(self.Eta.get())
+        sE = np.sin(self.Eta.get())
 
         # bragg is sin(theta_bragg)
         _lambda = self.wlength
@@ -147,16 +175,17 @@ class Geometry(PseudoPositioner):
 
         # maybe use atan2(y, x), instead of atan(y/x) ?
         _tth = np.arctan(2 * bragg * np.cos(_phi) * np.cos(_chi) / tmp)
-        #change this line (BEN)
+        # change this line (BEN)
         ih = -self.L1.get() * np.tan(_alpha)
 
         # 'th', 'phi', 'chi', 'tth', 'ih', and 'ir'
 
-        sh = -self.s_l2 * np.sin(_alpha) / np.cos(_tth)  # + correction
-        
-        tblx2 = self.s_l2 * np.sin(_tth) * np.cos(_chi) + self.s_l4
+        sh = -self.L2.get() * np.sin(_alpha) / np.cos(_tth)  # + correction
+
+        stblx = self.L2.get() * np.sin(_tth) * np.cos(_chi) + self.L4.get()
         # todo check degree vs radian
-        oh = sh + self.s_l3 * np.tan(_beta)
+        oh = sh + self.L3.get * np.tan(_beta)
+
         # actually output theta
         _astth = _tth + _stth
         return self.RealPosition(
@@ -168,7 +197,7 @@ class Geometry(PseudoPositioner):
             ia=np.rad2deg(_alpha),
             oa=pseudo_pos.beta,
             sh=sh,
-            tblx2=tblx2,
+            stblx=stblx,
             astth=np.rad2deg(_astth),
             oh=oh,
         )
@@ -196,7 +225,7 @@ class Geometry(PseudoPositioner):
         phi = real_pos.phi * (np.pi / 180.0)
         chi = real_pos.chi * (np.pi / 180.0)
 
-        tmp = 2 * bragg * np.cos(phi) * np.sin(chi) - np.sin(self.s_Eta)
+        tmp = 2 * bragg * np.cos(phi) * np.sin(chi) - np.sin(self.Eta.get())
         if np.fabs(tmp) > 1:
             msg = f"Unobtainable position: cannot find alpha"
             raise ValueError(msg)
@@ -212,49 +241,51 @@ class Geometry(PseudoPositioner):
     def move_ab(self, val):
         warnings.warn("use `yield from bps.mv(goe, val)` instead")
         return (yield from bps.mv(self.alpha, val))
-    def save_geo(self,L1):
+
+    def save_geo(self, L1):
         return (yield from bps.mv(self.L1, L1))
 
 
 geo = Geometry("XF:12ID1-ES", name="geo")
 
+
 # this is how to add additional aliases
 # ih = geo.ih
 
-def cabt(*args, **kwargs): 
+
+def cabt(*args, **kwargs):
     ret = geo.forward(*args, **kwargs)
     cur = geo.real_position
-    print('| {:<6s} |{:>9s} |{:>9s} |'.format('MOTOR', 'TARGET', 'CURRENT'))
-    print('|' + '-'*30 + '|')
-    for k in ret._fields: 
-        print(f'| {k:<6s} |{getattr(ret, k):>9.03f} |{getattr(cur, k):>9.03f} |') 
-         
+    print("| {:<6s} |{:>9s} |{:>9s} |".format("MOTOR", "TARGET", "CURRENT"))
+    print("|" + "-" * 30 + "|")
+    for k in ret._fields:
+        print(f"| {k:<6s} |{getattr(ret, k):>9.03f} |{getattr(cur, k):>9.03f} |")
+
 
 def mabt(*args, **kwargs):
     yield from bps.abs_set(geo, args, **kwargs, wait=True)
-    
+
+
 def my_over_night():
     for a in np.linspace(0, 5, 1000):
         yield from mabt(alpha=a)
         yield from bp.count(...)
 
 
-#The PVs are: XF:12ID1:L_01  to XF:12ID1:L_20
-#e.g., you can 
-#caget XF:12ID1:L_01 and caput XF:12ID1:L_01
+# The PVs are: XF:12ID1:L_01  to XF:12ID1:L_20
+# e.g., you can
+# caget XF:12ID1:L_01 and caput XF:12ID1:L_01
 
-#from epics import caput,caget
-#caput(XF:12ID1:L_01,17)
-#caget(XF:12ID1:L_01)
+# from epics import caput,caget
+# caput(XF:12ID1:L_01,17)
+# caget(XF:12ID1:L_01)
 
-#BEN , change to read from EPIcs like we did earlier.
+# BEN , change to read from EPIcs like we did earlier.
 def param():
-    print('L1 :',geo.s_l1,'crystal to input arm elevator')
-    print("L2 :",geo.s_l2,"crystal to sample table")
-    print("L3 :",geo.s_l3,"sample to out put arm elevator")
-    print("L4 :",geo.s_l4,"table x offset")
-    print("Eta:",geo.s_Eta,"Upward angle of beam on chi circle")
-
-
-    
+    print("En :", 12.39847 / geo.wlength, "keV")
+    print("L1 :", geo.L1.get(), "crystal to input arm elevator")
+    print("L2 :", geo.L2.get(), "crystal to sample table")
+    print("L3 :", geo.L3.get(), "sample to out put arm elevator")
+    print("L4 :", geo.L4.get(), "table x offset")
+    print("Eta:", geo.Eta.get(), "Upward angle of beam on chi circle")
 
