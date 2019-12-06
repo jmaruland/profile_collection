@@ -66,13 +66,10 @@ def ref1(abso, expo, alpha_ini, alpha_stop, num_alpha):
             # yield from bps.mv(geo, alpha_re)
 
             # is the next line corrct, geo.forward(alpha=alpha_re)
-            det_exposure_time(expo,expo)
-            yield from (bps.mv(S1.absorber1,abso))
-            time.sleep(expo+10)
-            pilatus100k.cam.acquire.put(True)
-            time.sleep(expo+10)
-
-            # yield from bp.scan([pilatus100k,quadem], alpha_re, 0, 0, 1)
+            yield from det_exposure_time(expo, expo)
+            
+            yield from bp.scan([pilatus100k, quadem], alpha_re, 0, 0, 1, 
+                            per_step=shutter_flash)
 
             dif[0, i] = alpha_re
             dif[1, i] = pilatus100k.stats1.total.value

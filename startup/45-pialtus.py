@@ -92,9 +92,10 @@ pilatus100k.stats2.centroid.kind = 'hinted'
 pilatus100k.cam.ensure_nonblocking()
 
 def det_exposure_time(exp_t, meas_t=1):
-    pilatus100k.cam.acquire_time.put(exp_t)
-    pilatus100k.cam.acquire_period.put(exp_t+0.2)
-    pilatus100k.cam.num_images.put(int(meas_t/exp_t))
+    yield from bps.mov(
+        pilatus100k.cam.acquire_time, exp_t,
+        pilatus100k.cam.acquire_period, exp_t+0.2,
+        pilatus100k.cam.num_images, int(meas_t/exp_t))
 
 
 

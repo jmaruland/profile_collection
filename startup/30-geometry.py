@@ -308,3 +308,9 @@ def param():
     print("L4 :", geo.L4.get(), "table x offset")
     print("Eta:", geo.Eta.get(), "Upward angle of beam on chi circle")
 
+def park():
+    # this group will move simultanouslt
+    yield from bps.mov(mtr1, 0, mtr2, 1, ...)
+    # this group will move simultanouslt
+    yield from bps.mov(mtr1, 0, mtr2, 1, ...)
+    ...
