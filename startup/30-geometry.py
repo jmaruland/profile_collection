@@ -78,13 +78,17 @@ class Geometry(PseudoPositioner):
         kind="config",
         doc="table x offset, mm",
     )
-    
+
     Eta = Cpt(
         EpicsSignal,
         "XF:12ID1:L_05",
         add_prefix=(),
         kind="config",
         doc="inc beam upward tilt from mirror (rad)",
+    )
+
+    track_mode = Cpt(
+        Signal, kind="config", doc="If the all the motors should track", value=1
     )
 
     def __init__(self, prefix, **kwargs):
@@ -114,6 +118,7 @@ class Geometry(PseudoPositioner):
         # by convention in this function:
         #  - angles in degrees are not prefixed by underscores
         #  - angles in radians are prefixed by underscores
+        track_mode = bool(self.track_mode.get())
 
         if pseudo_pos.alpha > 90:
             msg = f"Unobtainable position: alpha({a}) is greater than 90 degrees"
@@ -180,14 +185,17 @@ class Geometry(PseudoPositioner):
 
         # 'th', 'phi', 'chi', 'tth', 'ih', and 'ir'
 
-        sh = -(self.L2.get()+self.L4.get()) * np.tan(_alpha) / np.cos(_tth)  # + correction
+        sh = (
+            -(self.L2.get() + self.L4.get()) * np.tan(_alpha) / np.cos(_tth)
+        )  # + correction
 
         stblx = self.L2.get() * np.tan(_tth)
         # todo check degree vs radian
-        oh = sh + (self.L3.get()-self.L4.get()) * np.tan(_beta)
+        oh = sh + (self.L3.get() - self.L4.get()) * np.tan(_beta)
 
         # actually output theta
         _astth = _tth + _stth
+        real_pos = self.real_position
         return self.RealPosition(
             th=np.rad2deg(_th),
             phi=np.rad2deg(_phi),
@@ -195,11 +203,11 @@ class Geometry(PseudoPositioner):
             tth=np.rad2deg(_tth),
             ih=ih,
             ia=np.rad2deg(_alpha),
-            oa=pseudo_pos.beta,
-            sh=sh,
-            stblx=stblx,
-            astth=np.rad2deg(_astth),
-            oh=oh,
+            oa=pseudo_pos.beta if track_mode else real_pos.oa,
+            sh=sh if track_mode else real_pos.sh,
+            stblx=stblx if track_mode else real_pos.stblx,
+            astth=np.rad2deg(_astth) if track_mode else real_pos.astth,
+            oh=oh if track_mode else real_pos.oh,
             phix=_phix,
         )
 
@@ -248,7 +256,10 @@ class Geometry(PseudoPositioner):
 
 
 geo = Geometry("XF:12ID1-ES", name="geo")
-[setattr(getattr(geo, k).user_readback, 'kind', 'hinted') for k in geo.real_position._fields]
+[
+    setattr(getattr(geo, k).user_readback, "kind", "hinted")
+    for k in geo.real_position._fields
+]
 
 # this is how to add additional aliases
 # ih = geo.ih
@@ -256,9 +267,12 @@ geo = Geometry("XF:12ID1-ES", name="geo")
 
 def cabt(*args, **kwargs):
     ret = geo.forward(*args, **kwargs)
-     
-    print("footprint(mm)=",S2.vg.user_readback.value/((args[0]+0.001)*3.14159/180))
-    print("qz=",(4*np.pi/0.77)*np.sin(args[0]*3.14159/180))
+
+    print(
+        "footprint(mm)=",
+        S2.vg.user_readback.value / ((args[0] + 0.001) * 3.14159 / 180),
+    )
+    print("qz=", (4 * np.pi / 0.77) * np.sin(args[0] * 3.14159 / 180))
     cur = geo.real_position
     print("| {:<6s} |{:>9s} |{:>9s} |".format("MOTOR", "TARGET", "CURRENT"))
     print("|" + "-" * 30 + "|")
