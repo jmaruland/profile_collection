@@ -3,6 +3,7 @@ import numpy as np
 from ophyd import PseudoPositioner
 from ophyd import PseudoSingle
 from ophyd import EpicsMotor
+import bluesky.preprocessors as bpp
 
 
 class AbsShutter(PseudoPositioner):
@@ -38,3 +39,18 @@ class AbsShutter(PseudoPositioner):
 
 shutter = AbsShutter('XF:12ID1-ES{Slt1-Ax:X}Mtr', name='shutter')
 
+import functools
+
+@functools.wraps(bps.one_nd_step)
+def shutter_flash_scan(*args, **kwargs):
+    def cleanup_plan():
+        yield from bps.mov(shutter, 4)
+
+    def collect_plan(*args, **kwargs):
+        yield from bps.mov(shutter, 0)
+        yield from bps.one_nd_step(*args, **kwargs)
+    
+    yield from bpp.finalize_wrapper(
+        collect_plan(*args, **kwargs),
+        cleanup_plan()
+    )
