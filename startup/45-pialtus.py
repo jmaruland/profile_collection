@@ -80,5 +80,21 @@ class Pilatus(SingleTriggerV33, PilatusDetector):
 pilatus100k = Pilatus("XF:12ID1-ES{Det:P100k}", name="pilatus100k")
 pilatus100k.tiff.kind = 'normal' 
 pilatus100k.stats1.kind = 'hinted'
+pilatus100k.stats2.kind = 'hinted'
+pilatus100k.stats3.kind = 'hinted'
 pilatus100k.stats1.total.kind = 'hinted'
+pilatus100k.stats2.total.kind = 'hinted'
+pilatus100k.stats3.total.kind = 'hinted'
+#pilatus100k.stats1.kind='hinted'
+pilatus100k.stats1.centroid.x.kind = 'hinted' 
+pilatus100k.stats1.centroid.y.kind = 'hinted' 
+pilatus100k.stats2.centroid.kind = 'hinted' 
 pilatus100k.cam.ensure_nonblocking()
+
+def det_exposure_time(exp_t, meas_t=1):
+    pilatus100k.cam.acquire_time.put(exp_t)
+    pilatus100k.cam.acquire_period.put(exp_t+0.2)
+    pilatus100k.cam.num_images.put(int(meas_t/exp_t))
+
+
+

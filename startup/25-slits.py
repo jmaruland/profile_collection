@@ -13,6 +13,7 @@ class SlitsWithTopBottomInbOutb(Device):
     bottom = Cpt(EpicsMotor, "B}Mtr")
     inb = Cpt(EpicsMotor, "I}Mtr")
     outb = Cpt(EpicsMotor, "O}Mtr")
+    absorber1 = Cpt(EpicsMotor, "X}Mtr")
 
 
 S1 = SlitsWithTopBottomInbOutb("XF:12ID1-ES{Slt1-Ax:", name="S1")

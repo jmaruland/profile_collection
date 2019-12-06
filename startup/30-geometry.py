@@ -14,16 +14,9 @@ import bluesky.plan_stubs as bps
 from ophyd.positioner import SoftPositioner
 
 
-class EpicsMotor(SoftPositioner):
-    def __init__(self, prefix, **kwargs):
-        super().__init__(**kwargs, init_pos=0)
-        self.prefix = prefix
-
-
 class EpicsMotorWithLimits(EpicsMotor):
-    # low_limit = Cpt(EpicsSignal, ".LLM")
-    # high_limit = Cpt(EpicsSignal, ".HLM")
-    ...
+    low_limit = Cpt(EpicsSignal, ".LLM")
+    high_limit = Cpt(EpicsSignal, ".HLM")
 
 
 too_small = 1.0e-10
@@ -45,7 +38,7 @@ class Geometry(PseudoPositioner):
     tth = Cpt(EpicsMotor, "{XtalDfl-Ax:Tth}Mtr", doc="2Θ, spectrometer rotation")
     ih = Cpt(EpicsMotor, "{XtalDfl-Ax:IH}Mtr", doc="input height")
     ia = Cpt(EpicsMotorWithLimits, "{XtalDfl-Ax:IR}Mtr", doc="input rotation")
-    phiX = Cpt(EpicsMotor, "{XtalDfl-Ax:PhiX}Mtr")
+    phix = Cpt(EpicsMotor, "{XtalDfl-Ax:PhiX}Mtr")
 
     # Sample-detector motors
     sh = Cpt(EpicsMotor, "{Smpl-Ax:TblY}Mtr", doc="Sample vertical translation")
@@ -54,7 +47,7 @@ class Geometry(PseudoPositioner):
     stblx = Cpt(EpicsMotor, "{Smpl-Ax:TblX}Mtr", doc="Sample Table X")
 
     oa = Cpt(EpicsMotor, "{Smpl-Ax:OR}Mtr", doc="β, output arm rotation")
-    oh = Cpt(EpicsMotor, "bogus", doc="output arm vertical rotation")
+    oh = Cpt(EpicsMotor, "{Smpl-Ax:OH}Mtr", doc="output arm vertical rotation")
     # gep,etru cps
     L1 = Cpt(
         EpicsSignal,
@@ -77,9 +70,15 @@ class Geometry(PseudoPositioner):
         kind="config",
         doc="distance sample to output elevator, mm",
     )
+
     L4 = Cpt(
-        EpicsSignal, "XF:12ID1:L_04", add_prefix=(), kind="config", doc="table x offset"
+        EpicsSignal,
+        "XF:12ID1:L_04",
+        add_prefix=(),
+        kind="config",
+        doc="table x offset, mm",
     )
+    
     Eta = Cpt(
         EpicsSignal,
         "XF:12ID1:L_05",
@@ -127,6 +126,7 @@ class Geometry(PseudoPositioner):
 
         cE = np.cos(self.Eta.get())
         sE = np.sin(self.Eta.get())
+        _phix = self.phix.position
 
         # bragg is sin(theta_bragg)
         _lambda = self.wlength
@@ -180,11 +180,11 @@ class Geometry(PseudoPositioner):
 
         # 'th', 'phi', 'chi', 'tth', 'ih', and 'ir'
 
-        sh = -self.L2.get() * np.sin(_alpha) / np.cos(_tth)  # + correction
+        sh = -(self.L2.get()+self.L4.get()) * np.tan(_alpha) / np.cos(_tth)  # + correction
 
-        stblx = self.L2.get() * np.sin(_tth) * np.cos(_chi) + self.L4.get()
+        stblx = self.L2.get() * np.tan(_tth)
         # todo check degree vs radian
-        oh = sh + self.L3.get * np.tan(_beta)
+        oh = sh + (self.L3.get()-self.L4.get()) * np.tan(_beta)
 
         # actually output theta
         _astth = _tth + _stth
@@ -200,6 +200,7 @@ class Geometry(PseudoPositioner):
             stblx=stblx,
             astth=np.rad2deg(_astth),
             oh=oh,
+            phix=_phix,
         )
 
     @real_position_argument
@@ -247,7 +248,7 @@ class Geometry(PseudoPositioner):
 
 
 geo = Geometry("XF:12ID1-ES", name="geo")
-
+[setattr(getattr(geo, k).user_readback, 'kind', 'hinted') for k in geo.real_position._fields]
 
 # this is how to add additional aliases
 # ih = geo.ih
@@ -255,11 +256,15 @@ geo = Geometry("XF:12ID1-ES", name="geo")
 
 def cabt(*args, **kwargs):
     ret = geo.forward(*args, **kwargs)
+     
+    print("footprint(mm)=",S2.vg.user_readback.value/((args[0]+0.001)*3.14159/180))
+    print("qz=",(4*np.pi/0.77)*np.sin(args[0]*3.14159/180))
     cur = geo.real_position
     print("| {:<6s} |{:>9s} |{:>9s} |".format("MOTOR", "TARGET", "CURRENT"))
     print("|" + "-" * 30 + "|")
     for k in ret._fields:
         print(f"| {k:<6s} |{getattr(ret, k):>9.03f} |{getattr(cur, k):>9.03f} |")
+    print("|" + "-" * 30 + "|")
 
 
 def mabt(*args, **kwargs):
@@ -285,7 +290,7 @@ def param():
     print("En :", 12.39847 / geo.wlength, "keV")
     print("L1 :", geo.L1.get(), "crystal to input arm elevator")
     print("L2 :", geo.L2.get(), "crystal to sample table")
-    print("L3 :", geo.L3.get(), "sample to out put arm elevator")
+    print("L3 :", geo.L3.get(), "sample to output arm elevator")
     print("L4 :", geo.L4.get(), "table x offset")
     print("Eta:", geo.Eta.get(), "Upward angle of beam on chi circle")
 
