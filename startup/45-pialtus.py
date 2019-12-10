@@ -98,4 +98,9 @@ def det_exposure_time(exp_t, meas_t=1):
         pilatus100k.cam.num_images, int(meas_t/exp_t))
 
 
-
+'''
+def sample_id(*, user_name, sample_name, tray_number=None):
+    # DIRTY HACK, do not copy
+    pilatus100k.cam.file_name.put(fname)
+    pilatus100k.cam.file_number.put(1)
+'''

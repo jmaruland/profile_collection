@@ -26,6 +26,11 @@ def phi_track(alpha_ini, alpha_stop, num_alpha):
 
 def ih_track(alpha_ini, alpha_stop, num_alpha):
     # for ih in range(alpha_ini,alpha_stop, nb_alpha):
+    for i in [1,2,3]:
+        getattr(quadem, f"current{i}").mean_value.kind = "hinted"
+        
+    geo.track_mode.value=0 
+
 
     dif = np.zeros((3, num_alpha))
     for i, alpha in enumerate(range(0, num_alpha, 1)):

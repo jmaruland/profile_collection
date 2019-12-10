@@ -3,6 +3,8 @@ import numpy as np
 from ophyd import PseudoPositioner
 from ophyd import PseudoSingle
 from ophyd import EpicsSignal
+from ophyd import EpicsSignal
+
 import warnings
 
 # from ophyd import EpicsMotor
