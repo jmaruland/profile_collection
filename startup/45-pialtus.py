@@ -82,10 +82,16 @@ pilatus100k.tiff.kind = 'normal'
 pilatus100k.stats1.kind = 'hinted'
 pilatus100k.stats2.kind = 'hinted'
 pilatus100k.stats3.kind = 'hinted'
+pilatus100k.stats4.kind = 'hinted'
+
+
 pilatus100k.stats1.total.kind = 'hinted'
 pilatus100k.stats2.total.kind = 'hinted'
 pilatus100k.stats3.total.kind = 'hinted'
-#pilatus100k.stats1.kind='hinted'
+pilatus100k.stats4.total.kind = 'hinted'
+
+
+pilatus100k.stats1.kind='hinted'
 pilatus100k.stats1.centroid.x.kind = 'hinted' 
 pilatus100k.stats1.centroid.y.kind = 'hinted' 
 pilatus100k.stats2.centroid.kind = 'hinted' 

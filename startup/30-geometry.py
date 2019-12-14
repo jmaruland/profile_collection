@@ -3,7 +3,7 @@ import numpy as np
 from ophyd import PseudoPositioner
 from ophyd import PseudoSingle
 from ophyd import EpicsSignal
-from ophyd import EpicsSignal
+from ophyd import Signal
 
 import warnings
 
@@ -58,6 +58,7 @@ class Geometry(PseudoPositioner):
         kind="config",
         doc="distance crystal to input arm elevator, mm",
     )
+    
     L2 = Cpt(
         EpicsSignal,
         "XF:12ID1:L_02",
@@ -65,6 +66,7 @@ class Geometry(PseudoPositioner):
         kind="config",
         doc="distance crystal to sample center, mm",
     )
+
     L3 = Cpt(
         EpicsSignal,
         "XF:12ID1:L_03",
@@ -97,7 +99,7 @@ class Geometry(PseudoPositioner):
         self.wlength = 0.77086  # x-ray wavelength, A
         self.s_qtau = 1.9236  # Ge 111 reciprocal lattice vector, 1/A
         #  self.s_Eta = 0.000  # inc beam upward tilt from mirror (rad)
-        self.s_trck = 0  # whether to track sample table
+        self.s_trck = 0  # whether to track sample tabletime
         super().__init__(prefix, **kwargs)
         self.phi.settle_time = 0.5
         self.ih.settle_time = 0.5
@@ -303,12 +305,17 @@ def my_over_night():
 
 # BEN , change to read from EPIcs like we did earlier.
 def param():
-    print("En :", 12.39847 / geo.wlength, "keV")
-    print("L1 :", geo.L1.get(), "crystal to input arm elevator")
-    print("L2 :", geo.L2.get(), "crystal to sample table")
-    print("L3 :", geo.L3.get(), "sample to output arm elevator")
-    print("L4 :", geo.L4.get(), "table x offset")
-    print("Eta:", geo.Eta.get(), "Upward angle of beam on chi circle")
+    print("En  :", 12.39847 / geo.wlength, "keV")
+    print("L1  :", geo.L1.get(), "crystal to input arm elevator")
+    print("L2  :", geo.L2.get(), "crystal to sample table")
+    print("L3  :", geo.L3.get(), "sample to output arm elevator")
+    print("L4  :", geo.L4.get(), "table x offset")
+    print("abs1:", int(S1.absorber1.user_readback.value+0.1))
+    print("abs2:", int(S3.absorber1.user_readback.value+0.1))
+    print("Eta :", geo.Eta.get(), "Upward angle of beam on chi circle")
+    print("track:", geo.track_mode.value,":geo.track_mode.value = 0/1")
+    print("shutter:", shutter.value,":%mov shutter 0/1")
+ 
 
 def park():
     # this group will move simultanouslt
