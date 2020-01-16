@@ -110,3 +110,10 @@ def sample_id(*, user_name, sample_name, tray_number=None):
     pilatus100k.cam.file_name.put(fname)
     pilatus100k.cam.file_number.put(1)
 '''
+# define new instance with correct pv
+# pilatus100k = Pilatus("XF:12ID1-ES{Det:P100k}", name="pilatus100k")
+
+# set the read and write path templates
+# pilatus300k.tiff.write_path_template = "/disk2/jpls_data/data/pilatus300k/%Y/%m/%d/"
+# read_path_template="/nsls2/jpls/data/pilatus300k/%Y/%m/%d/"
+# set up plugins as above for 100k
