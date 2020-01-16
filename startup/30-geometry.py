@@ -83,12 +83,23 @@ class Geometry(PseudoPositioner):
         doc="table x offset, mm",
     )
 
+
+
     Eta = Cpt(
         EpicsSignal,
         "XF:12ID1:L_05",
         add_prefix=(),
         kind="config",
         doc="inc beam upward tilt from mirror (rad)",
+    )
+
+
+    SH_OFF = Cpt(
+        EpicsSignal,
+        "XF:12ID1:L_06",
+        add_prefix=(),
+        kind="config",
+        doc="sample height offset, mm",
     )
 
     track_mode = Cpt(
@@ -190,8 +201,8 @@ class Geometry(PseudoPositioner):
         # 'th', 'phi', 'chi', 'tth', 'ih', and 'ir'
 
         sh = (
-            -(self.L2.get() + self.L4.get()) * np.tan(_alpha) / np.cos(_tth)
-        )  # + correction
+            -(self.L2.get() + self.L4.get()) * np.tan(_alpha) / np.cos(_tth)) + self.SH_OFF.get()
+          # + correction
 
         stblx = self.L2.get() * np.tan(_tth)
         # todo check degree vs radian
@@ -310,6 +321,7 @@ def param():
     print("L2  :", geo.L2.get(), "crystal to sample table")
     print("L3  :", geo.L3.get(), "sample to output arm elevator")
     print("L4  :", geo.L4.get(), "table x offset")
+    print("SH_OFF :", geo.SH_OFF.get(), "sh offset")
     print("abs1:", int(S1.absorber1.user_readback.value+0.1))
     print("abs2:", int(S3.absorber1.user_readback.value+0.1))
     print("Eta :", geo.Eta.get(), "Upward angle of beam on chi circle")
