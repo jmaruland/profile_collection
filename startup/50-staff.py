@@ -98,23 +98,35 @@ def run_ref(sample_name):
 
     # to run reflectivity with various alpha, absorber1
     # sample_name, expo, alpha_ini, alpha_stop, num_alpha
-    yield from ref1_2(sample_name,5, 0.02,0.07, 5) # delta_alpha 0.01
-    yield from ref1_2(sample_name,5, 0.06,0.08, 10) # delta_alpha 0.002
-    yield from ref1_2(sample_name,5, 0.08,0.11, 3) # delta_alpha 0.01
-    yield from ref1_2(sample_name,5, 0.10,0.22, 6) # delta_alpha 0.02
-    yield from ref1_2(sample_name,5, 0.2, 0.44, 6) # delta_alpha 0.04
-    yield from ref1_2(sample_name,5, 0.4, 2.08, 21) # delta_alpha 0.08
-    yield from ref1_2(sample_name,40, 2.0, 2.6, 6) # delta_alpha 0.1
+    yield from ref1_2(sample_name,1, 0.02,0.07, 5) # delta_alpha 0.01
+    yield from ref1_2(sample_name,2, 0.06,0.08, 5) # delta_alpha 0.004
+    yield from ref1_2(sample_name,2, 0.08,0.11, 3) # delta_alpha 0.01
+    yield from ref1_2(sample_name,2, 0.10,0.22, 6) # delta_alpha 0.02
+    yield from ref1_2(sample_name,2, 0.2, 0.44, 6) # delta_alpha 0.04
+    yield from ref1_2(sample_name,2, 0.4, 2.08, 21) # delta_alpha 0.08
+    #yield from ref1_2(sample_name,10, 2.0, 2.6, 6) # delta_alpha 0.1
 
-    # yield from ref1(2, 1, 0.2, 0.44, 6) # delta_alpha = 0.04
-    # yield from ref1(2, 2, 0.4, 0.88, 6) # delta_alpha = 0.08
-    # yield from ref1(2, 4, 0.8, 1.28, 6) # delta_alpha = 0.08
-    # yield from ref1(2, 8, 1.2, 1.44, 3) # delta_alpha = 0.08
-    # yield from ref1(2, 16, 1.36, 1.52, 2) # delta_alpha = 0.08
-    # yield from ref1(2, 32, 1.44, 1.68, 3) # delta_alpha = 0.08
+def sleep_timer(cycle):
+    if cycle <= 6:
+        for i in range(10):
+            bp.time.sleep(60)
+    elif cycle <= 9:
+        for i in range(15):
+            bp.time.sleep(60)
+    else:
+        for i in range(30):
+            bp.time.sleep(60)
 
+def run_ref_nite(sample_name, cycle_num = 30):
 
-
+    run_cycle = 3 # 1 # the run number
+    while run_cycle <= cycle_num:
+        yield from sh_center()
+        sh_offset = geo.SH_OFF.get()
+        print('Run Cycle: %s' %run_cycle)
+        yield from run_ref(sample_name+'_run%s_shoff%3.2f' %(run_cycle,sh_offset))
+        sleep_timer(run_cycle)
+        run_cycle += 1
 
 def print_func():
     print(geo.alpha.position)
@@ -158,25 +170,23 @@ def abs_select(alpha):
     if alpha <= 0.1:
         abs1, abs2 = 2, 8
     elif alpha <= 0.15:
-        abs1, abs2 = 1, 6
+        abs1, abs2 = 1, 7
     elif alpha <= 0.25:
-        abs1, abs2 = 0, 5
+        abs1, abs2 = 0, 6
     elif alpha <= 0.35:
-        abs1, abs2 = 0, 4
+        abs1, abs2 = 0, 5
     elif alpha <= 0.5:
-        abs1, abs2 = 0, 3
+        abs1, abs2 = 0, 4
     elif alpha <= 0.7:
-        abs1, abs2 = 0, 2
+        abs1, abs2 = 0, 3
     elif alpha <= 1.0:
-        abs1, abs2 = 0, 1
+        abs1, abs2 = 0, 2
     elif alpha <= 3.0:
         abs1, abs2 = 0, 0
     else:
-        abs1, abs2 = 8, 8
+        abs1, abs2 = 1, 8
     return (abs1, abs2)
 
-
-    
 
 def abs_mov(alpha):
     absorber1,absorber2 = abs_select(alpha)
@@ -209,8 +219,9 @@ def ref1_2(sample_name, expo, alpha_ini, alpha_stop, num_alpha):
             bp.time.sleep(5)
             print("2")
             yield from bp.rel_scan([pilatus100k],sh,0, 0, 1, per_step=shutter_flash_scan)
-            
 
+            pilatus100k.cam.file_name.put('PPLS') # reset the file name
+            
             int_roi4 = pilatus100k.stats4.total.value
             int_roi3 = pilatus100k.stats3.total.value
             int_roi2 = pilatus100k.stats2.total.value
@@ -220,5 +231,18 @@ def ref1_2(sample_name, expo, alpha_ini, alpha_stop, num_alpha):
             print(absorber1,absorber2, expo, alpha_re, \
                   int_roi4, int_roi3, int_roi2, int_ref) 
 
-        
+#def sh_center():
+#     geo.forward(1,1,0).sh   
+#    yield from smab(0.15,0.15)
+#   
+#  shscan_cen = peaks.cen['pilatus100k_stats4_total'] # to get the center of the scan plot, HZ
+#
+#    print('offset =', shscan_cen+1.621)
+#    geo.SH_OFF.put(shscan_cen+1.621)
+
+
+
+
+
+
 

@@ -22,52 +22,98 @@ oa=geo.oa
 abs1=S1.absorber1
 abs2=S3.absorber1
 
+#THESE COMMANDS DONT WORK IN THE RUN ENGINE 
 
-#Example:
-#set_abs_value( 'XF:12ID1-ES{XtalDfl-Ax:IH}', 0 ) #set diff.yv abolute value to 0
+def set_ih(new_value):
+        old_value=geo.ih.position
+        geo.ih.set_current_position(new_value)
+        print('ih reset from',old_value,'to',new_value)
 
-def set_ih(abs_value):
-        set_abs_value( 'XF:12ID1-ES{XtalDfl-Ax:IH}', abs_value)
+def set_ia(new_value):
+        old_value=geo.ia.position
+        geo.ia.set_current_position(new_value)
+        print('ia reset from',old_value,'to',new_value)
 
-def set_ir(abs_value):
-        set_abs_value( 'XF:12ID1-ES{XtalDfl-Ax:IR}', abs_value)
+def set_phi(new_value):
+        old_value=geo.phi.position  
+        geo.phi.set_current_position(new_value)
+        print('phi reset from',old_value,'to',new_value)
 
-def set_phi(abs_value):
-        set_abs_value( 'XF:12ID1-ES{XtalDfl-Ax:Phi}', abs_value)
+def set_chi(new_value):
+        old_value=geo.chi.position
+        geo.chi.set_current_position(new_value)
+        print('chi reset from',old_value,'to',new_value)
 
-def set_chi(abs_value):
-        set_abs_value( 'XF:12ID1-ES{XtalDfl-Ax:Chi}', abs_value)
+def set_tth(new_value):
+        old_value=geo.tth.position
+        geo.tth.set_current_position(new_value)
+        print('tth reset from',old_value,'to',new_value)
 
-def set_tth(abs_value):
-        set_abs_value( 'XF:12ID1-ES{XtalDfl-Ax:Tth}', abs_value)
+def set_th(new_value):
+        old_value=geo.th.position
+        geo.th.set_current_position(new_value)
+        print('th reset from',old_value,'to',new_value)
 
-def set_th(abs_value):
-        set_abs_value( 'XF:12ID1-ES{XtalDfl-Ax:Th}', abs_value)
+def set_astth(new_value):
+        old_value=geo.astth.position
+        geo.astth.set_current_position(new_value)
+        print('astth reset from',old_value,'to',new_value)
 
-def set_astth(abs_value):
-        set_abs_value( 'XF:12ID1-ES{Smpl-Ax:Tth}', abs_value)
+def set_asth(new_value):
+        old_value=geo.asth.position
+        geo.asth.set_current_position(new_value)
+        print('asth reset from',old_value,'to',new_value)
 
-def set_asth(abs_value):
-        set_abs_value( 'XF:12ID1-ES{Smpl-Ax:Th}', abs_value)
+def set_oh(new_value):
+        old_value=geo.oh.position
+        geo.oh.set_current_position(new_value)
+        print('or reset from',old_value,'to',new_value)
 
-def set_oh(abs_value):
-        set_abs_value( 'XF:12ID1-ES{Smpl-Ax:OH}', abs_value)
+def set_oa(new_value):
+        old_value=geo.oa.position
+        geo.oa.set_current_position(new_value)
+        print('oa reset from',old_value,'to',new_value)
 
-def set_or(abs_value):
-        set_abs_value( 'XF:12ID1-ES{Smpl-Ax:OR}', abs_value)
+def set_sh(new_value):
+        old_value=geo.sh.position
+        geo.sh.set_current_position(new_value)
+        print('sh reset from',old_value,'to',new_value)
 
-def set_sh(abs_value):
-        set_abs_value( 'XF:12ID1-ES{Smpl-Ax:TblY}', abs_value)
-
-             
-
-def set_zero():
-        set_chi(0)
+def set_zero_alpha():
+        chi_nom=geo.forward(0,0,0).chi  
+        set_chi(chi_nom)
+        phi_nom=geo.forward(0,0,0).phi   
+        set_chi(phi_nom)
+        tth_nom=geo.forward(0,0,0).tth   
+        set_tth(chi_nom)
+        th_nom=geo.forward(0,0,0).th   
+        set_th(chi_nom)
         set_ih(0)
-        set_ir(0)
+        set_ia(0)
         set_sh(0)
-        set_or(0)
+        set_oa(0)
         set_oh(0)
+
+
+def sh_center(a_sh,wid_sh,npts_sh):
+    sh_nom=geo.forward(a_sh,a_sh,0).sh   
+    yield from smab(a_sh,a_sh)
+    yield from shscan(-1*wid_sh/2,wid_sh/2,npts_sh)
+    shscan_cen = peaks.cen['pilatus100k_stats4_total'] # to get the center of the scan plot, HZ
+    yield from bps.mv(geo.sh, shscan_cen)
+    yield from bps.null()
+    set_sh(sh_nom)
+#   geo.oh.set_current_position(sh_nom)
+    yield from bps.null()
+    print('sh reset from %f to %f', shscan_cen,sh_nom)
+
+#THIS DOESNT WORK FROM THE command line or from the RE.
+def dummy(sh_nom):
+        yield from bps.null()
+        set_sh(sh_nom)
+        yield from bps.null()
+
+
 
 def mab(alpha,beta):
         yield from mabt(alpha,beta,0)

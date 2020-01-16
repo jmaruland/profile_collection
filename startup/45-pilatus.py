@@ -95,7 +95,17 @@ pilatus100k.stats1.kind='hinted'
 pilatus100k.stats1.centroid.x.kind = 'hinted' 
 pilatus100k.stats1.centroid.y.kind = 'hinted' 
 pilatus100k.stats2.centroid.kind = 'hinted' 
+pilatus100k.max_value.kind='normal'
 pilatus100k.cam.ensure_nonblocking()
+
+
+# set the read and write path templates
+# pilatus300k.tiff.write_path_template = "/disk2/jpls_data/data/pilatus300k/%Y/%m/%d/"
+# read_path_template="/nsls2/jpls/data/pilatus300k/%Y/%m/%d/"
+# set up plugins as above for 100k
+
+
+
 
 def det_exposure_time(exp_t, meas_t=1):
     yield from bps.mov(
@@ -113,7 +123,3 @@ def sample_id(*, user_name, sample_name, tray_number=None):
 # define new instance with correct pv
 # pilatus100k = Pilatus("XF:12ID1-ES{Det:P100k}", name="pilatus100k")
 
-# set the read and write path templates
-# pilatus300k.tiff.write_path_template = "/disk2/jpls_data/data/pilatus300k/%Y/%m/%d/"
-# read_path_template="/nsls2/jpls/data/pilatus300k/%Y/%m/%d/"
-# set up plugins as above for 100k

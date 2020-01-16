@@ -13,3 +13,13 @@ for i in [1, 2, 3, 4]:
 # for i in [1,2,3]:
 for i in [1,2,3]:
     getattr(quadem, f"current{i}").mean_value.kind = "hinted"
+
+
+    
+quadem.integration_time.value=0.0004
+quadem.values_per_read.value=2500
+#for continuous reading
+quadem.acquire_mode.value =2
+#for diamond mode
+quadem.geometry.value=0
+
