@@ -45,6 +45,7 @@ class PilatusDetectorCamV33(PilatusDetectorCam):
     file_template = Cpt(SignalWithRBV, 'FileName', string=True)        
     file_number = Cpt(SignalWithRBV, 'FileNumber')
 
+
 class PilatusDetector(PilatusDetector):
     cam = Cpt(PilatusDetectorCamV33, 'cam1:')
     
@@ -77,34 +78,40 @@ class Pilatus(SingleTriggerV33, PilatusDetector):
         self.read_attrs = [st, 'tiff']
         getattr(self, st).kind = 'hinted'
 
+
+def set_pilatus(det):
+    det.tiff.kind = 'normal' 
+    det.stats1.kind = 'hinted'
+    det.stats2.kind = 'hinted'
+    det.stats3.kind = 'hinted'
+    det.stats4.kind = 'hinted'
+
+    det.stats1.total.kind = 'hinted'
+    det.stats2.total.kind = 'hinted'
+    det.stats3.total.kind = 'hinted'
+    det.stats4.total.kind = 'hinted'
+
+    det.stats1.kind='hinted'
+    det.stats1.centroid.x.kind = 'hinted' 
+    det.stats1.centroid.y.kind = 'hinted' 
+    det.stats2.centroid.kind = 'hinted'
+
+    pilatus100k.stats2.max_value.kind = 'normal'
+    det.cam.ensure_nonblocking()
+
 pilatus100k = Pilatus("XF:12ID1-ES{Det:P100k}", name="pilatus100k")
-pilatus100k.tiff.kind = 'normal' 
-pilatus100k.stats1.kind = 'hinted'
-pilatus100k.stats2.kind = 'hinted'
-pilatus100k.stats3.kind = 'hinted'
-pilatus100k.stats4.kind = 'hinted'
+set_pilatus(pilatus100k)
 
 
-pilatus100k.stats1.total.kind = 'hinted'
-pilatus100k.stats2.total.kind = 'hinted'
-pilatus100k.stats3.total.kind = 'hinted'
-pilatus100k.stats4.total.kind = 'hinted'
+#ToDo: Check if this work + create path to folders
 
+'''
+pilatus300k = Pilatus("XF:12ID1-ES{Det:P300k}", name="pilatus300k")
+write_path_template="/disk2/jpls_data/data/pilatus300k/%Y/%m/%d/",
+read_path_template="/nsls2/jpls/data/pilatus300k/%Y/%m/%d/",
 
-pilatus100k.stats1.kind='hinted'
-pilatus100k.stats1.centroid.x.kind = 'hinted' 
-pilatus100k.stats1.centroid.y.kind = 'hinted' 
-pilatus100k.stats2.centroid.kind = 'hinted' 
-pilatus100k.max_value.kind='normal'
-pilatus100k.cam.ensure_nonblocking()
-
-
-# set the read and write path templates
-# pilatus300k.tiff.write_path_template = "/disk2/jpls_data/data/pilatus300k/%Y/%m/%d/"
-# read_path_template="/nsls2/jpls/data/pilatus300k/%Y/%m/%d/"
-# set up plugins as above for 100k
-
-
+set_pilatus(pilatus300k)
+'''
 
 
 def det_exposure_time(exp_t, meas_t=1):
@@ -120,6 +127,3 @@ def sample_id(*, user_name, sample_name, tray_number=None):
     pilatus100k.cam.file_name.put(fname)
     pilatus100k.cam.file_number.put(1)
 '''
-# define new instance with correct pv
-# pilatus100k = Pilatus("XF:12ID1-ES{Det:P100k}", name="pilatus100k")
-
