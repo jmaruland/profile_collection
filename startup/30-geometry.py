@@ -84,7 +84,6 @@ class Geometry(PseudoPositioner):
     )
 
 
-
     Eta = Cpt(
         EpicsSignal,
         "XF:12ID1:L_05",
@@ -102,18 +101,31 @@ class Geometry(PseudoPositioner):
         doc="sample height offset, mm",
     )
 
+    Energy = Cpt(
+        EpicsSignal,
+        "XF:12ID1:L_07",
+        add_prefix=(),
+        kind="config",
+        doc="energy (kev)",
+    )
+
     track_mode = Cpt(
         Signal, kind="config", doc="If the all the motors should track", value=1
     )
 
     def __init__(self, prefix, **kwargs):
-        self.wlength = 0.77086  # x-ray wavelength, A
+       # self.wlength = 0.77086  # x-ray wavelength, A
+       #self.wlength = 0.770088  # x-ray wavelength, A
+        #self.wlength = 1.2834  # x-ray wavelength, A
+       # WHY DOES THE FOLLOWING NOT WORK
+        #print(self.Energy)
+        #self.wlength = 12.39842/self.Energy
         self.s_qtau = 1.9236  # Ge 111 reciprocal lattice vector, 1/A
         #  self.s_Eta = 0.000  # inc beam upward tilt from mirror (rad)
         self.s_trck = 0  # whether to track sample tabletime
         super().__init__(prefix, **kwargs)
-        self.phi.settle_time = 0.5
-        self.ih.settle_time = 0.5
+        #self.phi.settle_time = 0.5
+        #self.ih.settle_time = 0.5
 
     @pseudo_position_argument
     def forward(self, pseudo_pos):
@@ -149,7 +161,13 @@ class Geometry(PseudoPositioner):
         _phix = self.phix.position
 
         # bragg is sin(theta_bragg)
+        self.wlength = 12.39842/self.Energy.get()
         _lambda = self.wlength
+
+        # COMMENT,  THIS MIGHT NOT UPDATE IN TIME
+        #_lambda = 12.39842 / self.wlength.get()
+
+
         bragg = self.s_qtau * _lambda * 1.0 / (4.0 * np.pi)
         if np.fabs(bragg) > 1:
             msg = f"Unobtainable position: cannot find bragg angle, lambda ({_lambda}) too big"
@@ -241,6 +259,7 @@ class Geometry(PseudoPositioner):
             The pseudo position output
         """
 
+        self.wlength = 12.39842/self.Energy.get()
         bragg = self.s_qtau * self.wlength * 1.0 / (4.0 * np.pi)
         if np.fabs(bragg) > 1:
             msg = f"Unobtainable position: cannot find bragg angle, lambda ({_lambda}) too big"
@@ -282,12 +301,14 @@ geo = Geometry("XF:12ID1-ES", name="geo")
 
 def cabt(*args, **kwargs):
     ret = geo.forward(*args, **kwargs)
-
+    print("wavelength", geo.wlength)
     print(
         "footprint(mm)=",
         S2.vg.user_readback.value / ((args[0] + 0.001) * 3.14159 / 180),
     )
-    print("qz=", (4 * np.pi / 0.77) * np.sin(args[0] * 3.14159 / 180))
+    print("qz=", (4 * np.pi /geo.wlength.real) * np.sin(args[0] * 3.14159 / 180))
+    
+
     cur = geo.real_position
     print("| {:<6s} |{:>9s} |{:>9s} |".format("MOTOR", "TARGET", "CURRENT"))
     print("|" + "-" * 30 + "|")
@@ -313,10 +334,10 @@ def my_over_night():
 # from epics import caput,caget
 # caput(XF:12ID1:L_01,17)
 # caget(XF:12ID1:L_01)
-
 # BEN , change to read from EPIcs like we did earlier.
+
 def param():
-    print("En  :", 12.39847 / geo.wlength, "keV")
+    #print("En  :", 12.39842 / geo.wlength, "keV")
     print("L1  :", geo.L1.get(), "crystal to input arm elevator")
     print("L2  :", geo.L2.get(), "crystal to sample table")
     print("L3  :", geo.L3.get(), "sample to output arm elevator")
@@ -327,6 +348,9 @@ def param():
     print("Eta :", geo.Eta.get(), "Upward angle of beam on chi circle")
     print("track:", geo.track_mode.value,":geo.track_mode.value = 0/1")
     print("shutter:", shutter.value,":%mov shutter 0/1")
+    print("En  :", geo.Energy.get(), "keV")
+    print(" wavelength: ", 12.39842/geo.Energy.get(),"Angstroms")
+
  
 
 def park():
