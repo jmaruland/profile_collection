@@ -79,7 +79,7 @@ class Pilatus(SingleTriggerV33, PilatusDetector):
         getattr(self, st).kind = 'hinted'
 
 
-def set_pilatus(det):
+def set_detector(det):
     det.tiff.kind = 'normal' 
     det.stats1.kind = 'hinted'
     det.stats2.kind = 'hinted'
@@ -100,19 +100,14 @@ def set_pilatus(det):
     det.cam.ensure_nonblocking()
 
 pilatus100k = Pilatus("XF:12ID1-ES{Det:P100k}", name="pilatus100k")
-set_pilatus(pilatus100k)
+set_detector(pilatus100k)
 
 
 #ToDo: Check if this work + create path to folders
-
-'''
 pilatus300k = Pilatus("XF:12ID1-ES{Det:P300k}", name="pilatus300k")
 write_path_template="/disk2/jpls_data/data/pilatus300k/%Y/%m/%d/",
 read_path_template="/nsls2/jpls/data/pilatus300k/%Y/%m/%d/",
-
-set_pilatus(pilatus300k)
-'''
-
+set_detector(pilatus300k)
 
 def det_exposure_time(exp_t, meas_t=1):
     yield from bps.mov(
@@ -127,3 +122,5 @@ def sample_id(*, user_name, sample_name, tray_number=None):
     pilatus100k.cam.file_name.put(fname)
     pilatus100k.cam.file_number.put(1)
 '''
+pil1m_roi2 = EpicsSignal('XF:12ID1-ES{Det:P100k}Stats1:Total_RBV', name= 'test')                                                                                   
+#pilatus100k.set_primary_roi(2)        

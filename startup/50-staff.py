@@ -40,7 +40,7 @@ def ih_track(alpha_ini, alpha_stop, num_alpha):
         yield from bp.rel_scan([quadem], geo.phi, -0.010, 0.010, 20)
         yield from bps.mv(geo.phi, peaks.cen["quadem_current2_mean_value"])
         dif[2, i] = peaks.cen["quadem_current2_mean_value"] - geo.forward(alpha=alpha_re).phi
-        yield from bp.rel_scan([quadem], geo.ih, -0.5, 0.5, 40)
+        yield from bp.rel_scan([quadem], geo.ih, -0.4, 0.4, 20)
         # is the next line corrct, geo.forward(alpha=alpha_re)
         print(peaks.cen["quadem_current3_mean_value"] - geo.forward(alpha=alpha_re).ih)
         dif[0, i] = alpha_re
@@ -231,14 +231,7 @@ def ref1_2(sample_name, expo, alpha_ini, alpha_stop, num_alpha):
             print(absorber1,absorber2, expo, alpha_re, \
                   int_roi4, int_roi3, int_roi2, int_ref) 
 
-#def sh_center():
-#     geo.forward(1,1,0).sh   
-#    yield from smab(0.15,0.15)
-#   
-#  shscan_cen = peaks.cen['pilatus100k_stats4_total'] # to get the center of the scan plot, HZ
-#
-#    print('offset =', shscan_cen+1.621)
-#    geo.SH_OFF.put(shscan_cen+1.621)
+
 
 
 

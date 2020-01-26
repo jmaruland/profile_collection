@@ -27,7 +27,7 @@ abs2=S3.absorber1
 def set_ih(new_value):
         old_value=geo.ih.position
         geo.ih.set_current_position(new_value)
-        print('ih reset from',old_value,'to',new_value)
+        print('ih reset from',old_value,'to_%3.2f'%new_value)
 
 def set_ia(new_value):
         old_value=geo.ia.position
@@ -96,24 +96,37 @@ def set_zero_alpha():
 
 
 def sh_center(a_sh,wid_sh,npts_sh):
-    sh_nom=geo.forward(a_sh,a_sh,0).sh   
-    yield from smab(a_sh,a_sh)
-    yield from shscan(-1*wid_sh/2,wid_sh/2,npts_sh)
-    shscan_cen = peaks.cen['pilatus100k_stats4_total'] # to get the center of the scan plot, HZ
-    yield from bps.mv(geo.sh, shscan_cen)
-    yield from bps.null()
-    set_sh(sh_nom)
-#   geo.oh.set_current_position(sh_nom)
-    yield from bps.null()
-    print('sh reset from %f to %f', shscan_cen,sh_nom)
+        sh_nom=geo.forward(a_sh,a_sh,0).sh  
+        geo_offset_old= geo.SH_OFF.value
+        yield from smab(a_sh,a_sh)
+        yield from shscan(-1*wid_sh/2,wid_sh/2,npts_sh)
+        shscan_cen = peaks.cen['pilatus100k_stats4_total'] # to get the center of the scan plot, HZ
+        geo_offset_new=shscan_cen-sh_nom
+        geo_offset_diff = geo_offset_new-geo_offset_old
+ #      Do we put an if statement here to only move it it is about 2/3 of the width       
+        yield from bps.mv(geo.sh, shscan_cen)
+        yield from bps.null()
+        geo.SH_OFF.value=geo_offset_new
+        yield from bps.null()
+        print('sh reset from %f to %f', shscan_cen,sh_nom)
 
 #THIS DOESNT WORK FROM THE command line or from the RE.
 def dummy(sh_nom):
+        geo.SH_OFF.put(sh_nom)
         yield from bps.null()
-        set_sh(sh_nom)
+        geo.SH_OFF.vaule=sh_num
+        #geo.SH_OFF.put(sh_nom)
+        #set_sh(sh_nom)
         yield from bps.null()
 
-
+#def sh_center():
+#     geo.forward(1,1,0).sh   
+#    yield from smab(0.15,0.15)
+#   
+#  shscan_cen = peaks.cen['pilatus100k_stats4_total'] # to get the center of the scan plot, HZ
+#
+#    print('offset =', shscan_cen+1.621)
+#    geo.SH_OFF.put(shscan_cen+1.621)
 
 def mab(alpha,beta):
         yield from mabt(alpha,beta,0)
@@ -144,7 +157,26 @@ def shscan(start,end,steps):
         end2 = 2*end
         yield from bp.rel_scan([pilatus100k],sh,start,end,oh,start2,end2,steps, per_step=shutter_flash_scan)
 
-
+def park():
+        yield from bps.mov(shutter,0)
+        yield from mab(0,0)
+#this parks the two tables.
+        yield from bps.mov(stblx,823)
+        yield from bps.mov(tab1.x,272)
+        yield from bps.mov(ih,100)
+#this moves the th and two theta
+        yield from bps.mov(sth,20)
+        yield from bps.mov(stth,30)
+        yield from bps.mov(sth,40)
+        yield from bps.mov(stth,50)
+        yield from bps.mov(sth,60)
+        yield from bps.mov(stth,70)
+        yield from bps.mov(sth,80)
+        yield from bps.mov(stth,90)
+        yield from bps.mov(sth,90)
+#this moves the height of the crystal 
+        yield from bps.mov(tab1.x,272)
+    
 
 
 
