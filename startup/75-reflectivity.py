@@ -30,7 +30,9 @@ def reflection_scan(alpha_start, alpha_stop, num, energy=9660, exp_time=1, md=No
         det_exposure_time(0.1, 0.1)
 
         #Take the pre-count data
+        yield from bps.mv(shutter,1)
         ret = yield from bps.trigger_and_read(area_dets, name='precount')
+        yield from bps.mv(shutter,0)
         
         if ret is None:
             # in simulation mode
@@ -56,27 +58,107 @@ def reflection_scan(alpha_start, alpha_stop, num, energy=9660, exp_time=1, md=No
         #set the exposure time to the define exp_time for the measurment
         det_exposure_time(exp_time, exp_time)
         exposure_time.value = exp_time
-
+        yield from bps.mv(shutter,1)
+        yield from bps.sleep(1) # add this because the QuadEM I0
         yield from bps.trigger_and_read(all_area_dets + [attenuation_factor_signal] + [exposure_time], name='primary')
+        yield from bps.mv(shutter,0)
+    
+    #Bluesky command to stop recording metadata
+    yield from close_run()
+    bec.enable_plots()
+    yield from bps.mv(abs2, 5)
+    print('The reflectivity scan is over')
+
+def expert_reflection_scan(energy=9660, md=None):
+
+    # yield from bps.mvr(geo.stblx2, -1) # move stable X2
+    alpha_start, alpha_stop, num, exp_time = 0.01, 0.2, 21, 1
+    yield from reflection_scan(alpha_start, alpha_stop, num, energy=energy, exp_time=exp_time, md=md)
+
+    yield from bps.mvr(geo.stblx2, -1) # move stable X2
+    alpha_start, alpha_stop, num, exp_time = 0.2, 0.6, 21, 1
+    yield from reflection_scan(alpha_start, alpha_stop, num, energy=energy, exp_time=exp_time, md=md)
+
+    yield from bps.mvr(geo.stblx2, -1) # move stable X2
+    alpha_start, alpha_stop, num, exp_time = 0.6, 1, 21, 1
+    yield from reflection_scan(alpha_start, alpha_stop, num, energy=energy, exp_time=exp_time, md=md)
+    
+    yield from bps.mvr(geo.stblx2, -1) # move stable X2
+    alpha_start, alpha_stop, num, exp_time = 1, 2, 21, 1
+    yield from reflection_scan(alpha_start, alpha_stop, num, energy=energy, exp_time=exp_time, md=md)
+    
+    yield from bps.mvr(geo.stblx2, -1) # move stable X2
+    alpha_start, alpha_stop, num, exp_time = 2, 4, 21, 10
+    yield from reflection_scan(alpha_start, alpha_stop, num, energy=energy, exp_time=exp_time, md=md)
+
+
+@bpp.stage_decorator(all_area_dets)
+def gid(energy=9660, exp_time=0.1, md=None):
+    #Bluesky command to record metadata
+    base_md = {'plan_name': 'gid',
+                'exposure_time': exp_time,
+                'energy': energy,
+            # ...
+           }
+    base_md.update(md or {})
+    bec.disable_plots()
+    yield from bps.open_run(md=base_md)
+    
+    #creation of a fignal to record the attenuation
+    attenuation_factor_signal = Signal(name='attenuation', value = 1)
+    exposure_time = Signal(name='exposure_time', value = 1)
+
+    #Move the default attenuator in for the precount
+    def_att = yield from put_default_absorbers(energy)
+
+    #set the exposure time to 0.1 for the precount
+    det_exposure_time(0.1, 0.1)
+
+    #move to the good geometry position
+    yield from bps.mv(shutter,0)
+    yield from mabt(0.1,1,0.6) # gid poistion with beam stop
+    yield from bps.sleep(5)
+    yield from bps.mv(shutter,1)
+
+    #Take the pre-count data
+    ret = yield from bps.trigger_and_read(area_dets, name='precount')
+    yield from bps.mv(shutter,0)
+
+    yield from set_attenuator(0)
+    attenuation_factor_signal.value = 1
+
+    #set the exposure time to the define exp_time for the measurment
+    det_exposure_time(exp_time, exp_time)
+    exposure_time.value = exp_time
+    yield from bps.mvr(geo.stblx2, -1) # move stable X2
+    print(exposure_time.value)
+    yield from bps.mv(shutter,1)
+    yield from bps.sleep(0.5) # add this because the QuadEM I0
+    yield from bps.trigger_and_read(all_area_dets + [attenuation_factor_signal] + [exposure_time], name='primary')
+    yield from bps.mv(shutter,0)
+
+    yield from bps.mv(abs2, 4)
+    yield from mabt(0.1,1,0) # gid poistion without beam stop
+    yield from bps.sleep(5)
+    exposure_time.value = 1
+    yield from bps.mv(shutter,1)
+    yield from bps.sleep(0.5) # add this because the QuadEM I0
+    yield from bps.trigger_and_read(all_area_dets + [attenuation_factor_signal] + [exposure_time], name='primary')
+    yield from bps.mv(shutter,0)
+
+    yield from mabt(0.1,1,-0.6) # gid poistion without beam stop
+    yield from bps.sleep(5)
+    exposure_time.value = 1
+    yield from bps.mv(shutter,1)
+    yield from bps.sleep(0.5) # add this because the QuadEM I0
+    yield from bps.trigger_and_read(all_area_dets + [attenuation_factor_signal] + [exposure_time], name='primary')
+    yield from bps.mv(shutter,0)
 
     #Bluesky command to stop recording metadata
     yield from close_run()
     bec.enable_plots()
-
-    print('The reflectivity scan is over')
-
-def expert_reflection_scan(energy=9660, md=None):
-    #alpha_start, alpha_stop, num, exp_time = 0.01, 0.2, 20, 1
-    #yield from reflection_scan(alpha_start, alpha_stop, num, energy=energy, exp_time=exp_time, md=md)
-
-    #alpha_start, alpha_stop, num, exp_time = 0.2, 1, 20, 1
-    #yield from reflection_scan(alpha_start, alpha_stop, num, energy=energy, exp_time=exp_time, md=md)
-
-    #alpha_start, alpha_stop, num, exp_time = 1, 2, 20, 1
-    #yield from reflection_scan(alpha_start, alpha_stop, num, energy=energy, exp_time=exp_time, md=md)
-
-    alpha_start, alpha_stop, num, exp_time = 2, 4, 20, 10
-    yield from reflection_scan(alpha_start, alpha_stop, num, energy=energy, exp_time=exp_time, md=md)
+    yield from bps.mv(abs2, 5)
+    print('The gid is over')
 
 
 #ToDo: need to enter the good values here

@@ -16,7 +16,7 @@ ia=geo.ia
 x2=geo.stblx
 sh=geo.sh
 astth=geo.astth
-#asth=geo.sth
+asth=geo.asth
 oh=geo.oh
 oa=geo.oa
 abs1=S1.absorber1
@@ -25,6 +25,7 @@ abs2=S3.absorber1
 #THESE COMMANDS DONT WORK IN THE RUN ENGINE 
 
 def set_ih(new_value):
+    # yield Msg('reset_user_position', geo.ih, new_value)
         old_value=geo.ih.position
         geo.ih.set_current_position(new_value)
         print('ih reset from',old_value,'to_%3.2f'%new_value)
@@ -83,14 +84,13 @@ def set_zero_alpha():
         chi_nom=geo.forward(0,0,0).chi  
         set_chi(chi_nom)
         phi_nom=geo.forward(0,0,0).phi   
-        set_chi(phi_nom)
+        set_phi(phi_nom)
         tth_nom=geo.forward(0,0,0).tth   
-        set_tth(chi_nom)
-        th_nom=geo.forward(0,0,0).th   
-        set_th(chi_nom)
+        set_tth(tth_nom)
+        sh_nom=geo.forward(0,0,0).sh   
+        set_sh(sh_nom)
         set_ih(0)
         set_ia(0)
-        set_sh(0)
         set_oa(0)
         set_oh(0)
 
@@ -159,29 +159,33 @@ def shscan(start,end,steps):
 
 def park():
         yield from bps.mov(shutter,0)
-        yield from mab(0,0)
+   #     yield from mab(0,0)
 #this parks the two tables.
-        yield from bps.mov(stblx,823)
-        yield from bps.mov(tab1.x,272)
+        yield from bps.mov(geo.stblx,820)
+        yield from bps.mov(tab1.x,270)
         yield from bps.mov(ih,100)
+
 #this moves the th and two theta
-        yield from bps.mov(sth,20)
-        yield from bps.mov(stth,30)
-        yield from bps.mov(sth,40)
-        yield from bps.mov(stth,50)
-        yield from bps.mov(sth,60)
-        yield from bps.mov(stth,70)
-        yield from bps.mov(sth,80)
-        yield from bps.mov(stth,90)
-        yield from bps.mov(sth,90)
+        yield from bps.mov(geo.th,20,geo.tth,30)
+        yield from bps.mov(geo.th,40,geo.tth,50)
+        yield from bps.mov(geo.th,60,geo.tth,70)
+        yield from bps.mov(geo.th,90,geo.tth,70)
 #this moves the height of the crystal 
-        yield from bps.mov(tab1.x,272)
+        yield from bps.mov(tab1.y,-70)
     
 
 
 
 
+# def gid:
+#         yield from bps.mv(shutter,0)
+#         yield from mabt(0.1,1,0.6)
+#         yield from bps.mv(shutter,1)
+#         yield from bps.trigger_and_read(all_area_dets + [attenuation_factor_signal] + [exposure_time], name='primary')
+#         yield from bps.mv(shutter,0)
 
+
+    
 
 
 

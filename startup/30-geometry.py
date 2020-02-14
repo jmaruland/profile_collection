@@ -24,6 +24,13 @@ class EpicsMotorWithLimits(EpicsMotor):
 too_small = 1.0e-10
 
 
+class DetectorOffsets(Device):
+    mode = Cpt(EpicsSignal, "L_14", kind="config")
+    det1 = Cpt(EpicsSignal, "L_11", kind="config")
+    det2 = Cpt(EpicsSignal, "L_12", kind="config")
+    det3 = Cpt(EpicsSignal, "L_13", kind="config")
+
+
 class Geometry(PseudoPositioner):
     # angles
     alpha = Cpt(PseudoSingle, "", kind="hinted")
@@ -47,6 +54,7 @@ class Geometry(PseudoPositioner):
     astth = Cpt(EpicsMotor, "{Smpl-Ax:Tth}Mtr", doc="Sample-detector rotation")
     # asth = Cpt(EpicsMotor, "{Smpl-Ax:Th}Mtr", doc="Sample rotation")
     stblx = Cpt(EpicsMotor, "{Smpl-Ax:TblX}Mtr", doc="Sample Table X")
+    stblx2 = Cpt(EpicsMotor, "{Smpl-Ax:X}Mtr", doc="Sample Table X2")
 
     oa = Cpt(EpicsMotor, "{Smpl-Ax:OR}Mtr", doc="β, output arm rotation")
     oh = Cpt(EpicsMotor, "{Smpl-Ax:OH}Mtr", doc="output arm vertical rotation")
@@ -58,7 +66,7 @@ class Geometry(PseudoPositioner):
         kind="config",
         doc="distance crystal to input arm elevator, mm",
     )
-    
+
     L2 = Cpt(
         EpicsSignal,
         "XF:12ID1:L_02",
@@ -83,7 +91,6 @@ class Geometry(PseudoPositioner):
         doc="table x offset, mm",
     )
 
-
     Eta = Cpt(
         EpicsSignal,
         "XF:12ID1:L_05",
@@ -91,7 +98,6 @@ class Geometry(PseudoPositioner):
         kind="config",
         doc="inc beam upward tilt from mirror (rad)",
     )
-
 
     SH_OFF = Cpt(
         EpicsSignal,
@@ -102,30 +108,33 @@ class Geometry(PseudoPositioner):
     )
 
     Energy = Cpt(
-        EpicsSignal,
-        "XF:12ID1:L_07",
-        add_prefix=(),
-        kind="config",
-        doc="energy (kev)",
+        EpicsSignal, "XF:12ID1:L_07", add_prefix=(), kind="config", doc="energy (kev)",
     )
 
     track_mode = Cpt(
         Signal, kind="config", doc="If the all the motors should track", value=1
     )
 
+    detector_offests = Cpt(
+        DetectorOffsets,
+        "XF:12ID1:",
+        kind="config",
+        doc="offests from tth of each dector center",
+    )
+
     def __init__(self, prefix, **kwargs):
-       # self.wlength = 0.77086  # x-ray wavelength, A
-       #self.wlength = 0.770088  # x-ray wavelength, A
-        #self.wlength = 1.2834  # x-ray wavelength, A
-       # WHY DOES THE FOLLOWING NOT WORK
-        #print(self.Energy)
-        #self.wlength = 12.39842/self.Energy
+        # self.wlength = 0.77086  # x-ray wavelength, A
+        # self.wlength = 0.770088  # x-ray wavelength, A
+        # self.wlength = 1.2834  # x-ray wavelength, A
+        # WHY DOES THE FOLLOWING NOT WORK
+        # print(self.Energy)
+        # self.wlength = 12.39842/self.Energy
         self.s_qtau = 1.9236  # Ge 111 reciprocal lattice vector, 1/A
         #  self.s_Eta = 0.000  # inc beam upward tilt from mirror (rad)
         self.s_trck = 0  # whether to track sample tabletime
         super().__init__(prefix, **kwargs)
-        #self.phi.settle_time = 0.5
-        #self.ih.settle_time = 0.5
+        # self.phi.settle_time = 0.5
+        # self.ih.settle_time = 0.5
 
     @pseudo_position_argument
     def forward(self, pseudo_pos):
@@ -159,14 +168,14 @@ class Geometry(PseudoPositioner):
         cE = np.cos(self.Eta.get())
         sE = np.sin(self.Eta.get())
         _phix = self.phix.position
+        _stblx2 = self.stblx2.position
 
         # bragg is sin(theta_bragg)
-        self.wlength = 12.39842/self.Energy.get()
+        self.wlength = 12.39842 / self.Energy.get()
         _lambda = self.wlength
 
         # COMMENT,  THIS MIGHT NOT UPDATE IN TIME
-        #_lambda = 12.39842 / self.wlength.get()
-
+        # _lambda = 12.39842 / self.wlength.get()
 
         bragg = self.s_qtau * _lambda * 1.0 / (4.0 * np.pi)
         if np.fabs(bragg) > 1:
@@ -219,14 +228,18 @@ class Geometry(PseudoPositioner):
         # 'th', 'phi', 'chi', 'tth', 'ih', and 'ir'
 
         sh = (
-            -(self.L2.get() + self.L4.get()) * np.tan(_alpha) / np.cos(_tth)) + self.SH_OFF.get()
-          # + correction
+            -(self.L2.get() + self.L4.get()) * np.tan(_alpha) / np.cos(_tth)
+        ) + self.SH_OFF.get()
+        # + correction
 
         stblx = self.L2.get() * np.tan(_tth)
         # todo check degree vs radian
         oh = sh + (self.L3.get() - self.L4.get()) * np.tan(_beta)
 
         # actually output theta
+        det_offset = getttr(
+            self.detector_offests, f"det{int(self.detector_offests.mode.get())}"
+        ).get()
         _astth = _tth + _stth
         real_pos = self.real_position
         return self.RealPosition(
@@ -242,6 +255,7 @@ class Geometry(PseudoPositioner):
             astth=np.rad2deg(_astth) if track_mode else real_pos.astth,
             oh=oh if track_mode else real_pos.oh,
             phix=_phix,
+            stblx2=_stblx2,
         )
 
     @real_position_argument
@@ -259,7 +273,7 @@ class Geometry(PseudoPositioner):
             The pseudo position output
         """
 
-        self.wlength = 12.39842/self.Energy.get()
+        self.wlength = 12.39842 / self.Energy.get()
         bragg = self.s_qtau * self.wlength * 1.0 / (4.0 * np.pi)
         if np.fabs(bragg) > 1:
             msg = f"Unobtainable position: cannot find bragg angle, lambda ({_lambda}) too big"
@@ -306,8 +320,7 @@ def cabt(*args, **kwargs):
         "footprint(mm)=",
         S2.vg.user_readback.value / ((args[0] + 0.001) * 3.14159 / 180),
     )
-    print("qz=", (4 * np.pi /geo.wlength.real) * np.sin(args[0] * 3.14159 / 180))
-    
+    print("qz=", (4 * np.pi / geo.wlength.real) * np.sin(args[0] * 3.14159 / 180))
 
     cur = geo.real_position
     print("| {:<6s} |{:>9s} |{:>9s} |".format("MOTOR", "TARGET", "CURRENT"))
@@ -336,22 +349,22 @@ def my_over_night():
 # caget(XF:12ID1:L_01)
 # BEN , change to read from EPIcs like we did earlier.
 
+
 def param():
-    #print("En  :", 12.39842 / geo.wlength, "keV")
+    # print("En  :", 12.39842 / geo.wlength, "keV")
     print("L1  :", geo.L1.get(), "crystal to input arm elevator")
     print("L2  :", geo.L2.get(), "crystal to sample table")
     print("L3  :", geo.L3.get(), "sample to output arm elevator")
     print("L4  :", geo.L4.get(), "table x offset")
     print("SH_OFF :", geo.SH_OFF.get(), "sh offset")
-    print("abs1:", int(S1.absorber1.user_readback.value+0.1))
-    print("abs2:", int(S3.absorber1.user_readback.value+0.1))
+    print("abs1:", int(S1.absorber1.user_readback.value + 0.1))
+    print("abs2:", int(S3.absorber1.user_readback.value + 0.1))
     print("Eta :", geo.Eta.get(), "Upward angle of beam on chi circle")
-    print("track:", geo.track_mode.value,":geo.track_mode.value = 0/1")
-    print("shutter:", shutter.value,":%mov shutter 0/1")
+    print("track:", geo.track_mode.value, ":geo.track_mode.value = 0/1")
+    print("shutter:", shutter.value, ":%mov shutter 0/1")
     print("En  :", geo.Energy.get(), "keV")
-    print(" wavelength: ", 12.39842/geo.Energy.get(),"Angstroms")
+    print(" wavelength: ", 12.39842 / geo.Energy.get(), "Angstroms")
 
- 
 
 def park():
     # this group will move simultanouslt
