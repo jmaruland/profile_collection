@@ -10,8 +10,9 @@ RE.subscribe(publisher)
 # Optional: set any metadata that rarely changes.
 RE.md["beamline_id"] = "JPLS"
 
+
 # THIS NEEDS TO MOVE UPSTREAM
-async def restst_user_position(msg):
+async def reset_user_position(msg):
     obj = msg.obj
     (val,) = msg.args
 
@@ -19,5 +20,5 @@ async def restst_user_position(msg):
     obj.set_current_position(val)
     print(f"{obj.name} reset from {old_value} to {val}")
 
-RE.register_command("reset_user_position", restst_user_position)
 
+RE.register_command("reset_user_position", reset_user_position)
