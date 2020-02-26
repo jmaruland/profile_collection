@@ -25,10 +25,36 @@ too_small = 1.0e-10
 
 
 class DetectorOffsets(Device):
-    mode = Cpt(EpicsSignal, "L_14", kind="config")
-    det1 = Cpt(EpicsSignal, "L_11", kind="config")
-    det2 = Cpt(EpicsSignal, "L_12", kind="config")
-    det3 = Cpt(EpicsSignal, "L_13", kind="config")
+    det_mode= Cpt(
+        EpicsSignal,
+        "XF:12ID1:L_14",
+        add_prefix=(),
+        kind="config"
+        )
+    det_1= Cpt(
+        EpicsSignal,
+        "XF:12ID1:L_11",
+        add_prefix=(),
+        kind="config"
+        )
+    det_2= Cpt(
+        EpicsSignal,
+        "XF:12ID1:L_12",
+        add_prefix=(),
+        kind="config"
+        )
+    det_3= Cpt(
+        EpicsSignal,
+        "XF:12ID1:L_13",
+        add_prefix=(),
+        kind="config"
+        )
+
+
+    #mode = Cpt(EpicsSignal, "L_14", kind="config")
+    #det1 = Cpt(EpicsSignal, "L_11", kind="config")
+    #det2 = Cpt(EpicsSignal, "L_12", kind="config")
+    #det3 = Cpt(EpicsSignal, "L_13", kind="config")
 
 
 class Geometry(PseudoPositioner):
@@ -237,10 +263,17 @@ class Geometry(PseudoPositioner):
         oh = sh + (self.L3.get() - self.L4.get()) * np.tan(_beta)
 
         # actually output theta
-        det_offset = getttr(
-            self.detector_offests, f"det{int(self.detector_offests.mode.get())}"
-        ).get()
-        _astth = _tth + _stth
+        det_mode = int(self.detector_offests.det_mode.get())
+
+        det_dict = {
+            1: 'det_1',
+            2: 'det_2',
+            3: 'det_3',
+        }
+
+        _tth_offset = np.deg2rad(getattr(self.detector_offests, det_dict[det_mode]).get())
+
+        _astth = _tth + _stth + _tth_offset
         real_pos = self.real_position
         return self.RealPosition(
             th=np.rad2deg(_th),
@@ -303,7 +336,10 @@ class Geometry(PseudoPositioner):
         return (yield from bps.mv(self.L1, L1))
 
 
-geo = Geometry("XF:12ID1-ES", name="geo")
+#geo = Geometry("XF:12ID1-ES", name="geo")
+# Prefix the PV with "S" for simulations
+geo = Geometry("SXF:12ID1-ES", name="geo")
+
 [
     setattr(getattr(geo, k).user_readback, "kind", "hinted")
     for k in geo.real_position._fields
