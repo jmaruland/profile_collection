@@ -16,85 +16,70 @@ ia=geo.ia
 x2=geo.stblx
 sh=geo.sh
 astth=geo.astth
-asth=geo.asth
+#asth=geo.asth
 oh=geo.oh
 oa=geo.oa
 abs1=S1.absorber1
 abs2=S3.absorber1
 
-#THESE COMMANDS DONT WORK IN THE RUN ENGINE 
+#THESE COMMANDSONLY WORK IN THE RUN ENGINE 
 
 def set_ih(new_value):
-    # yield Msg('reset_user_position', geo.ih, new_value)
-        old_value=geo.ih.position
-        geo.ih.set_current_position(new_value)
-        print('ih reset from',old_value,'to_%3.2f'%new_value)
-
+        yield Msg('reset_user_position', geo.ih, new_value)
+ 
 def set_ia(new_value):
-        old_value=geo.ia.position
-        geo.ia.set_current_position(new_value)
-        print('ia reset from',old_value,'to',new_value)
+        yield Msg('reset_user_position', geo.ia, new_value)
 
 def set_phi(new_value):
-        old_value=geo.phi.position  
-        geo.phi.set_current_position(new_value)
-        print('phi reset from',old_value,'to',new_value)
+        yield Msg('reset_user_position', geo.phi, new_value)
 
 def set_chi(new_value):
-        old_value=geo.chi.position
-        geo.chi.set_current_position(new_value)
-        print('chi reset from',old_value,'to',new_value)
+        yield Msg('reset_user_position', geo.chi, new_value)
 
 def set_tth(new_value):
-        old_value=geo.tth.position
-        geo.tth.set_current_position(new_value)
-        print('tth reset from',old_value,'to',new_value)
-
+        yield Msg('reset_user_position', geo.tth, new_value)
+     
 def set_th(new_value):
-        old_value=geo.th.position
-        geo.th.set_current_position(new_value)
-        print('th reset from',old_value,'to',new_value)
-
+        yield Msg('reset_user_position', geo.th, new_value)
+       
 def set_astth(new_value):
-        old_value=geo.astth.position
-        geo.astth.set_current_position(new_value)
-        print('astth reset from',old_value,'to',new_value)
+        yield Msg('reset_user_position', geo.astth, new_value)
 
 def set_asth(new_value):
-        old_value=geo.asth.position
-        geo.asth.set_current_position(new_value)
-        print('asth reset from',old_value,'to',new_value)
+        yield Msg('reset_user_position', geo.asth, new_value)
 
 def set_oh(new_value):
-        old_value=geo.oh.position
-        geo.oh.set_current_position(new_value)
-        print('or reset from',old_value,'to',new_value)
+        yield Msg('reset_user_position', geo.oh, new_value)
 
 def set_oa(new_value):
-        old_value=geo.oa.position
-        geo.oa.set_current_position(new_value)
-        print('oa reset from',old_value,'to',new_value)
+        yield Msg('reset_user_position', geo.oa, new_value)
 
 def set_sh(new_value):
-        old_value=geo.sh.position
-        geo.sh.set_current_position(new_value)
-        print('sh reset from',old_value,'to',new_value)
+        yield Msg('reset_user_position', geo.sh, new_value)
 
+
+# NEEDS TO BE FIXED
 def set_zero_alpha():
         chi_nom=geo.forward(0,0,0).chi  
-        set_chi(chi_nom)
+        yield from set_chi(chi_nom)
         phi_nom=geo.forward(0,0,0).phi   
-        set_phi(phi_nom)
+        yield from set_phi(phi_nom)
         tth_nom=geo.forward(0,0,0).tth   
-        set_tth(tth_nom)
+        yield from set_tth(tth_nom)
         sh_nom=geo.forward(0,0,0).sh   
-        set_sh(sh_nom)
-        set_ih(0)
-        set_ia(0)
-        set_oa(0)
-        set_oh(0)
+        yield from set_sh(sh_nom)
+        yield from set_ih(0)
+        yield from set_ia(0)
+        yield from set_oa(0)
+        yield from set_oh(0)
 
 
+def dummy():
+        RE(set_sh(0.174))
+
+
+
+# NEEDS TO BE FIXED
 def sh_center(a_sh,wid_sh,npts_sh):
         sh_nom=geo.forward(a_sh,a_sh,0).sh  
         geo_offset_old= geo.SH_OFF.value
@@ -110,23 +95,6 @@ def sh_center(a_sh,wid_sh,npts_sh):
         yield from bps.null()
         print('sh reset from %f to %f', shscan_cen,sh_nom)
 
-#THIS DOESNT WORK FROM THE command line or from the RE.
-def dummy(sh_nom):
-        geo.SH_OFF.put(sh_nom)
-        yield from bps.null()
-        geo.SH_OFF.vaule=sh_num
-        #geo.SH_OFF.put(sh_nom)
-        #set_sh(sh_nom)
-        yield from bps.null()
-
-#def sh_center():
-#     geo.forward(1,1,0).sh   
-#    yield from smab(0.15,0.15)
-#   
-#  shscan_cen = peaks.cen['pilatus100k_stats4_total'] # to get the center of the scan plot, HZ
-#
-#    print('offset =', shscan_cen+1.621)
-#    geo.SH_OFF.put(shscan_cen+1.621)
 
 def mab(alpha,beta):
         yield from mabt(alpha,beta,0)
@@ -159,23 +127,32 @@ def shscan(start,end,steps):
 
 def park():
         yield from bps.mov(shutter,0)
-   #     yield from mab(0,0)
-#this parks the two tables.
+        # this parks the two tables.
         yield from bps.mov(geo.stblx,820)
         yield from bps.mov(tab1.x,270)
         yield from bps.mov(ih,100)
-
-#this moves the th and two theta
+        # this moves the th and two theta
         yield from bps.mov(geo.th,20,geo.tth,30)
         yield from bps.mov(geo.th,40,geo.tth,50)
         yield from bps.mov(geo.th,60,geo.tth,70)
         yield from bps.mov(geo.th,90,geo.tth,70)
-#this moves the height of the crystal 
+        # this moves the height of the crystal 
         yield from bps.mov(tab1.y,-70)
-    
 
-
-
+def unpark():
+        yield from bps.mov(shutter,0)
+        # this restores the height of the crystal 
+        yield from bps.mov(tab1.y,0)
+        #this restores the th and two theta
+        yield from bps.mov(geo.th,60,geo.tth,70)
+        yield from bps.mov(geo.th,40,geo.tth,50)
+        yield from bps.mov(geo.th,20,geo.tth,30)
+        yield from bps.mov(geo.th,0,geo.tth,20)
+        #this restores the two tables.
+        yield from bps.mov(ih,0)
+        yield from bps.mov(tab1.x,0)
+        yield from bps.mov(geo.stblx,250)
+        
 
 # def gid:
 #         yield from bps.mv(shutter,0)

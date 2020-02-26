@@ -97,6 +97,8 @@ def set_detector(det):
     det.stats2.centroid.kind = 'hinted'
 
     pilatus100k.stats2.max_value.kind = 'normal'
+    pilatus100k.stats4.max_value.kind = 'normal'
+
     det.cam.ensure_nonblocking()
 
 pilatus100k = Pilatus("XF:12ID1-ES{Det:P100k}", name="pilatus100k")
@@ -104,10 +106,10 @@ set_detector(pilatus100k)
 
 
 #ToDo: Check if this work + create path to folders
-pilatus300k = Pilatus("XF:12ID1-ES{Det:P300k}", name="pilatus300k")
-write_path_template="/disk2/jpls_data/data/pilatus300k/%Y/%m/%d/",
-read_path_template="/nsls2/jpls/data/pilatus300k/%Y/%m/%d/",
-set_detector(pilatus300k)
+#pilatus300k = Pilatus("XF:12ID1-ES{Det:P300k}", name="pilatus300k")
+#write_path_template="/disk2/jpls_data/data/pilatus300k/%Y/%m/%d/",
+#read_path_template="/nsls2/jpls/data/pilatus300k/%Y/%m/%d/",
+#set_detector(pilatus300k)
 
 def det_exposure_time(exp_t, meas_t=1):
     yield from bps.mov(
