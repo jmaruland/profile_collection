@@ -16,6 +16,10 @@ import bluesky.plan_stubs as bps
 from ophyd.positioner import SoftPositioner
 
 
+class UserError(Exception):
+    ...
+
+
 class EpicsMotorWithLimits(EpicsMotor):
     low_limit = Cpt(EpicsSignal, ".LLM")
     high_limit = Cpt(EpicsSignal, ".HLM")
@@ -270,6 +274,11 @@ class Geometry(PseudoPositioner):
             2: 'det_2',
             3: 'det_3',
         }
+
+        if det_mode not in det_dict:
+            raise UserError(f'The "det_mode={det_mode}" you are trying to use '
+                            f'is not supported. Use one of {list(det_dict.keys())} '
+                            f'for the det_mode.')
 
         _tth_offset = np.deg2rad(getattr(self.detector_offests, det_dict[det_mode]).get())
 
