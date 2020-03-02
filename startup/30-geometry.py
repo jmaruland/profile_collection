@@ -31,9 +31,9 @@ too_small = 1.0e-10
 class DetectorOffsets(Device):
     det_mode= Cpt(
         EpicsSignal,
-        "XF:12ID1:L_14",
+        "XF:12ID1:DetMode",
         add_prefix=(),
-        kind="config"
+        kind="config",
         )
     det_1= Cpt(
         EpicsSignal,
@@ -142,14 +142,19 @@ class Geometry(PseudoPositioner):
     )
 
     track_mode = Cpt(
-        Signal, kind="config", doc="If the all the motors should track", value=1
+        EpicsSignal,
+        "XF:12ID1:TrackMode",
+        add_prefix=(),
+        kind="config",
+        doc="track mode, mm",
     )
 
-    detector_offests = Cpt(
+    detector_offsets = Cpt(
         DetectorOffsets,
         "XF:12ID1:",
+        add_prefix=(),
         kind="config",
-        doc="offests from tth of each dector center",
+        doc="offsets from tth of each detector center",
     )
 
     def __init__(self, prefix, **kwargs):
@@ -267,7 +272,7 @@ class Geometry(PseudoPositioner):
         oh = sh + (self.L3.get() - self.L4.get()) * np.tan(_beta)
 
         # actually output theta
-        det_mode = int(self.detector_offests.det_mode.get())
+        det_mode = int(self.detector_offsets.det_mode.get())
 
         det_dict = {
             1: 'det_1',
@@ -280,7 +285,7 @@ class Geometry(PseudoPositioner):
                             f'is not supported. Use one of {list(det_dict.keys())} '
                             f'for the det_mode.')
 
-        _tth_offset = np.deg2rad(getattr(self.detector_offests, det_dict[det_mode]).get())
+        _tth_offset = np.deg2rad(getattr(self.detector_offsets, det_dict[det_mode]).get())
 
         _astth = _tth + _stth + _tth_offset
         real_pos = self.real_position
@@ -405,11 +410,11 @@ def param():
     print("abs1:", int(S1.absorber1.user_readback.value + 0.1))
     print("abs2:", int(S3.absorber1.user_readback.value + 0.1))
     print("Eta :", geo.Eta.get(), "Upward angle of beam on chi circle")
-    print("track:", geo.track_mode.value, ":geo.track_mode.value = 0/1")
+    print("track_mode:", geo.track_mode.get(), ":geo.track_mode.value = 0/1")
+    print("detector_mode:", geo.detector_offsets.det_mode.get(), "detector_mode(1,2,3)")
     print("shutter:", shutter.value, ":%mov shutter 0/1")
     print("En  :", geo.Energy.get(), "keV")
     print(" wavelength: ", 12.39842 / geo.Energy.get(), "Angstroms")
-
 
 def park():
     # this group will move simultanouslt
