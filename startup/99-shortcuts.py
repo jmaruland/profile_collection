@@ -137,7 +137,7 @@ def park():
         yield from bps.mov(geo.th,60,geo.tth,70)
         yield from bps.mov(geo.th,90,geo.tth,70)
         # this moves the height of the crystal 
-        yield from bps.mov(tab1.y,-70)
+        yield from bps.mov(tab1.y,-70) # the low limit is -68.32
 
 def unpark():
         yield from bps.mov(shutter,0)
