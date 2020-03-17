@@ -19,11 +19,8 @@ def phi_track(alpha_ini, alpha_stop, num_alpha):
         dif[1, i] = peaks.cen["tetramm_current2_mean_value"] - geo.forward(alpha=alpha_re).phi
         #dif[1, i] = peaks.cen["quadem_current3_mean_value"] - geo.forward(alpha=alpha_re).phi
 
-
-
     print(dif)
     import matplotlib.pyplot as plt
-
     plt.figure()
     plt.plot(dif[0, :], dif[1, :])
     plt.show()

@@ -111,6 +111,7 @@ set_detector(pilatus100k)
 #read_path_template="/nsls2/jpls/data/pilatus300k/%Y/%m/%d/",
 #set_detector(pilatus300k)
 
+
 def det_exposure_time(exp_t, meas_t=1):
     yield from bps.mov(
         pilatus100k.cam.acquire_time, exp_t,
