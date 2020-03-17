@@ -262,9 +262,11 @@ class Geometry(PseudoPositioner):
 
         # 'th', 'phi', 'chi', 'tth', 'ih', and 'ir'
 
+
+        #SH_OFFSET IS TURNED OFF FOR NOW SINCE IT IS MULTIUPLIED BY ZERO.
         sh = (
             -(self.L2.get() + self.L4.get()) * np.tan(_alpha) / np.cos(_tth)
-        ) + self.SH_OFF.get()
+        ) + 0*self.SH_OFF.get()
         # + correction
 
         stblx = self.L2.get() * np.tan(_tth)
@@ -378,7 +380,6 @@ def cabt(*args, **kwargs):
     for k in ret._fields:
         print(f"| {k:<6s} |{getattr(ret, k):>9.03f} |{getattr(cur, k):>9.03f} |")
     print("|" + "-" * 30 + "|")
-
 
 def mabt(*args, **kwargs):
     yield from bps.abs_set(geo, args, **kwargs, wait=True)

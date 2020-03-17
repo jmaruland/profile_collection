@@ -68,6 +68,8 @@ shutter = EpicsSignal("XF:12ID1-ECAT:EL2124-00-DO1", name="shutter")
 
 
 
+
+
 def att_setup():
     """
     defining physical configuration of PLS attenuator system
