@@ -110,7 +110,7 @@ def expert_reflection_scan(energy=9660, md=None):
     print('5th set done')
 
     #Bluesky command to stop recording metadata
-    yield from close_run()
+    yield from bps.close_run()
     bec.enable_plots()
     yield from bps.mv(abs2, 5)
     print('The reflectivity scan is over')
