@@ -1,6 +1,6 @@
 print(f'Loading {__file__}')
 
-from ophyd import (Device, EpicsSignal, EpicsSignalRO, Signal,
+from ophyd import (Device, EpicsSignal, EpicsSignalRO, EpicsMotor, Signal,
                    Component as Cpt, DeviceStatus)
 
 
@@ -19,8 +19,9 @@ class TwoButtonShutter(Device):
     # user facing commands
     open_str = 'Insert'
     close_str = 'Retract'
-    #!!these commands are correct with open_str = 'Insert'  close_str = 'Retract'for FOILS ONLY, to trigger gatevalevs this has to be swapped!!!
-    #to check with Bluesky guys!!!
+
+    # !!these commands are correct with open_str = 'Insert'  close_str = 'Retract'for FOILS ONLY, to trigger gatevalevs this has to be swapped!!!
+    # to check with Bluesky guys!!!
 
     def set(self, val):
         if self._set_st is not None:
@@ -46,6 +47,7 @@ class TwoButtonShutter(Device):
 
         cmd_enums = cmd_sig.enum_strs
         count = 0
+
         def cmd_retry_cb(value, timestamp, **kwargs):
             nonlocal count
             value = cmd_enums[int(value)]
@@ -57,7 +59,7 @@ class TwoButtonShutter(Device):
                 st._finished(success=False)
             if value == 'None':
                 if not st.done:
-                    time.sleep(.5)
+                    yield from bps.sleep(.5)
                     cmd_sig.set(1)
                     ts = datetime.datetime.fromtimestamp(timestamp).strftime(_time_fmtstr)
                     print('** ({}) Had to reactuate shutter while {}ing'.format(ts, val))
@@ -67,8 +69,6 @@ class TwoButtonShutter(Device):
         cmd_sig.subscribe(cmd_retry_cb, run=False)
         cmd_sig.set(1)
         self.status.subscribe(shutter_cb)
-
-
         return st
 
     def __init__(self, *args, **kwargs):
@@ -76,46 +76,34 @@ class TwoButtonShutter(Device):
         self._set_st = None
         self.read_attrs = ['status']
 
+
 ph_shutter = TwoButtonShutter('XF:12IDA-PPS:2{PSh}', name='ph_shutter')
+
+manual_PID_disable_pitch = EpicsSignal('XF:12IDB-BI:2{EM:BPM3}fast_pidY_incalc.CLCN', name='manual_PID_disable_pitch')
+manual_PID_disable_roll = EpicsSignal('XF:12IDB-BI:2{EM:BPM3}fast_pidX_incalc.CLCN', name='manual_PID_disable_roll')
+
 
 def shopen():
     yield from bps.mv(ph_shutter, 'Insert')
-    time.sleep(1)
+    yield from bps.sleep(1)
     yield from bps.mv(manual_PID_disable_pitch, '0')
     yield from bps.mv(manual_PID_disable_roll, '0')
-        
+
+
 def shclose():
-    yield from bps.mv(manual_PID_disable_pitch,'1')
+    yield from bps.mv(manual_PID_disable_pitch, '1')
     yield from bps.mv(manual_PID_disable_roll, '1')
-    time.sleep(1)
-    yield from bps.mv (ph_shutter, 'Retract')
+    yield from bps.sleep(1)
+    yield from bps.mv(ph_shutter, 'Retract')
 
 
-class SMIFastShutter(Device): 
-    open_cpt = Cpt(EpicsSignal, 'XF:12IDC-ES:2{PSh:ES}pz:sh:open') 
-    close_cpt = Cpt(EpicsSignal, 'XF:12IDC-ES:2{PSh:ES}pz:sh:close')
-    status_pv = Cpt(EpicsSignalRO, 'XF:12IDA-BI:2{EM:BPM1}DAC3') 
-    status = Cpt(Signal, value='') 
-
-    def check_status(self):
-        if int(self.status_pv.get()) == 7: 
-            self.status.put('Closed') 
-        elif int(self.status_pv.get()) == 0:
-            self.status.put('Open') 
-        else:
-            raise RuntimeError(f'Shutter "{self.name}" is in a weird state.')
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.check_status()
-
-    def open(self): 
-        self.open_cpt.put(1) 
-        self.check_status()
-             
-    def close(self): 
-        self.close_cpt.put(1) 
-        self.check_status()
-
-fs = SMIFastShutter('', name='fs')
+def feedback(action=None):
+    allowed_actions = ['on', 'off']
+    assert action in allowed_actions, f'Wrong action: {mode}, must choose: {" or ".join(allowed_actions)}'
+    if action == 'off':
+        manual_PID_disable_pitch.set('1')
+        manual_PID_disable_roll.set('1')
+    elif action == 'on':
+        manual_PID_disable_pitch.set('0')
+        manual_PID_disable_roll.set('0')
 
