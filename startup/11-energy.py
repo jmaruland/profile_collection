@@ -9,7 +9,7 @@ from ophyd.ophydobj import StatusBase, MoveStatus
 from ophyd.pseudopos import (pseudo_position_argument, real_position_argument)
 from ophyd import Component as Cpt
 from scipy.interpolate import InterpolatedUnivariateSpline
-
+import math
 ANG_OVER_EV = 12398.42  # A*eV
 # TODO move inside energy class
 D_Si111 = 3.1293
