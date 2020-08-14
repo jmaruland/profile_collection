@@ -354,7 +354,7 @@ class Geometry(PseudoPositioner):
 
 #geo = Geometry("XF:12ID1-ES", name="geo")
 # Prefix the PV with "S" for simulations
-geo = Geometry("SXF:12ID1-ES", name="geo")
+geo = Geometry("XF:12ID1-ES", name="geo")
 
 [
     setattr(getattr(geo, k).user_readback, "kind", "hinted")

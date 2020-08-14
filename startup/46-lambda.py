@@ -48,7 +48,7 @@ class Lambda(SingleTriggerV33, LambdaDetector):
     stats4 = Cpt(StatsPluginV33, 'Stats4:', read_attrs=['total'])
 
 
-lambda_det = Lambda('XF:12ID1-ES{Det:Lambda}', name='lambda_det')
-lambda_det.tiff.kind = 'hinted'
-lambda_det.stats1.kind = 'hinted'
-lambda_det.stats1.total.kind = 'hinted'
+#lambda_det = Lambda('XF:12ID1-ES{Det:Lambda}', name='lambda_det')
+#lambda_det.tiff.kind = 'hinted'
+#lambda_det.stats1.kind = 'hinted'
+#lambda_det.stats1.total.kind = 'hinted'

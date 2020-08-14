@@ -21,8 +21,7 @@ oh=geo.oh
 oa=geo.oa
 abs1=S1.absorber1
 abs2=S3.absorber1
-
-#THESE COMMANDSONLY WORK IN THE RUN ENGINE 
+  
 
 def set_ih(new_value):
         yield Msg('reset_user_position', geo.ih, new_value)
