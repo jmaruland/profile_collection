@@ -16,8 +16,8 @@ for i in [2,3,4]:
 
 
     
-quadem.integration_time.value=0.02
-quadem.values_per_read.value=50
+quadem.integration_time.value=0.0004
+quadem.values_per_read.value=500
 #for continuous reading
 quadem.acquire_mode.value =2
 #for diamond mode
@@ -31,6 +31,6 @@ tetramm.stage_sigs["acquire_mode"] = 2
 for i in [1, 2, 3, 4]:
     getattr(tetramm, f"current{i}").mean_value.kind = "normal"
 
-for i in [1,2,3]:
+for i in [2,3,4]:
     getattr(tetramm, f"current{i}").mean_value.kind = "hinted"
 
