@@ -206,7 +206,8 @@ class Geometry(PseudoPositioner):
         _stblx2 = self.stblx2.position
 
         # bragg is sin(theta_bragg)
-        self.wlength = 12.39842 / self.Energy.get()
+        # self.wlength = 12.39842 / self.Energy.get()
+        self.wlength = 12.39842 / (0.001 * energy.energy.position)
         _lambda = self.wlength
 
         # COMMENT,  THIS MIGHT NOT UPDATE IN TIME
@@ -322,7 +323,9 @@ class Geometry(PseudoPositioner):
             The pseudo position output
         """
 
-        self.wlength = 12.39842 / self.Energy.get()
+        # self.wlength = 12.39842 / self.Energy.get()
+        self.wlength = 12.39842 / (0.001 * energy.energy.position)
+
         bragg = self.s_qtau * self.wlength * 1.0 / (4.0 * np.pi)
         if np.fabs(bragg) > 1:
             msg = f"Unobtainable position: cannot find bragg angle, lambda ({_lambda}) too big"
@@ -414,8 +417,11 @@ def param():
     print("track_mode:", geo.track_mode.get(), ":geo.track_mode.value = 0/1")
     print("detector_mode:", geo.detector_offsets.det_mode.get(), "detector_mode(1,2,3)")
     print("shutter:", shutter.value, ":%mov shutter 0/1")
-    print("En  :", geo.Energy.get(), "keV")
-    print(" wavelength: ", 12.39842 / geo.Energy.get(), "Angstroms")
+    # print("En  :", geo.Energy.get(), "keV")
+    # print(" wavelength: ", 12.39842 / geo.Energy.get(), "Angstroms")
+    
+    print("En  :", 0.001 * energy.energy.position, "keV")
+    print(" wavelength: ", 12.39842 / energy.energy.position, "Angstroms")
 
 def park():
     # this group will move simultanouslt
