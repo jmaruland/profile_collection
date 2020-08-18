@@ -229,12 +229,13 @@ def put_default_absorbers(energy):
 
 
 def calculate_and_set_absorbers(energy, i_max, def_att, precount_time=0.1, exp_time=1):
-    #Need to enter the attenuation of each absorber at different energies
-    i_max_pil = 10000
-    precount_time = 0.1
+    # Need to enter the attenuation of each absorber at different energies
+    i_max_det = 50000 #50000 if lambda, 500000 if pilatus
+
+    precount_time = precount_time
     print('test', def_att, i_max, precount_time)
     max_theo_precount = i_max / (def_att * precount_time)
-    att_needed = 1/(max_theo_precount / (exp_time * i_max_pil))
+    att_needed = 1/(max_theo_precount / (exp_time * i_max_det))
     print('att_needed', att_needed)
 
     best_at, attenuation_factor = best_att(att_needed, energy)
