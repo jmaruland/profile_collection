@@ -108,7 +108,7 @@ def calc_attenuation(att_mat, energy):
     elif energy > 24000 or energy < 5000:
         raise ValueError("error: energy entered is lower than 5keV or higher than 20keV")
     else:
-        print ('The energy is',energy,'eV' )  
+        print('The energy is', energy, 'eV')
 
     #load absorption of each material:
     for mat in list(set(att_mat)):
@@ -126,17 +126,18 @@ def calc_attenuation(att_mat, energy):
 
     return att_mat_value
 
+
 def calculate_att_comb(att2_thi, att2_mat, energy):
     """
     Calculate all the combination of attenuation 
     input: thickness and material of each attenuator and energy
     returns: all the combination of attenuation as an array
     """
-    #att1_mat_value = calc_attenuation(att_mat1, energy)
+    # att1_mat_value = calc_attenuation(att_mat1, energy)
     att2_mat_value = calc_attenuation(att2_mat, energy)
    
-    #define all the combination of foils
-    T_tot=np.zeros(np.shape(att2_thi))
+    # define all the combination of foils
+    T_tot = np.zeros(np.shape(att2_thi))
 
     for i, (att2_mat_value, att2_thi) in enumerate(zip(att2_mat_value, att2_thi)):
         T_tot[i] = np.exp(-1*att2_thi/att2_mat_value )
@@ -162,10 +163,11 @@ def best_att(T_target, energy):
 
     return best, T[best]
 
+
 def convert_best_att_to_pos(att_position, best_att_index):
     return att_position[best_att_index]
 
 
 path = '/home/xf12id1/Downloads/' 
 file_absorption = 'Mo_absorption.txt'
-att_position = [0, 10 , 20 , 30]
+att_position = [0, 10, 20, 30]
