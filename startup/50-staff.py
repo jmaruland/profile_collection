@@ -5,19 +5,19 @@ def phi_track(alpha_ini, alpha_stop, num_alpha):
     # for eta in range(eta_start, eta_stop, nb_eta):
     # eta
 
-    dif = np.zeros((2, num_alpha))
-    for i, alpha in enumerate(range(0, num_alpha, 1)):
+    dif = np.zeros((2, num_alpha+1))
+    for i, alpha in enumerate(range(0, num_alpha+1, 1)):
         alpha_re = alpha_ini + (i * (alpha_stop - alpha_ini) / num_alpha)
         print(i, alpha_ini, alpha_re)
         yield from bps.mv(geo, alpha_re)
-        yield from bp.rel_scan([tetramm], geo.phi, -0.01, 0.01, 40)
-        #yield from bp.rel_scan([quadem], geo.phi, -0.01, 0.01, 40)
-        print(peaks.cen["tetramm_current2_mean_value"] - geo.forward(alpha=alpha_re).phi)
-      #  print(peaks.cen["quadem_current3_mean_value"] - geo.forward(alpha=alpha_re).phi)
+       #yield from bp.rel_scan([tetramm], geo.phi, -0.01, 0.01, 40)
+        yield from bp.rel_scan([quadem], geo.phi, -0.01, 0.01, 40)
+        #print(peaks.cen["tetramm_current2_mean_value"] - geo.forward(alpha=alpha_re).phi)
+        print(peaks.cen["quadem_current3_mean_value"] - geo.forward(alpha=alpha_re).phi)
         dif[0, i] = alpha_re
 
-        dif[1, i] = peaks.cen["tetramm_current2_mean_value"] - geo.forward(alpha=alpha_re).phi
-        #dif[1, i] = peaks.cen["quadem_current3_mean_value"] - geo.forward(alpha=alpha_re).phi
+        #dif[1, i] = peaks.cen["tetramm_current2_mean_value"] - geo.forward(alpha=alpha_re).phi
+        dif[1, i] = peaks.cen["quadem_current3_mean_value"] - geo.forward(alpha=alpha_re).phi
 
     print(dif)
     import matplotlib.pyplot as plt
@@ -36,30 +36,30 @@ def ih_track(alpha_ini, alpha_stop, num_alpha):
     geo.track_mode.value=0 
 
 
-    dif = np.zeros((3, num_alpha))
-    for i, alpha in enumerate(range(0, num_alpha, 1)):
+    dif = np.zeros((3, num_alpha+1))
+    for i, alpha in enumerate(range(0, num_alpha+1, 1)):
         alpha_re = alpha_ini + (i * (alpha_stop - alpha_ini) / num_alpha)
         print(i, alpha_ini, alpha_re)
         yield from bps.mv(geo, alpha_re)
-        yield from bp.rel_scan([tetramm], geo.phi, -0.010, 0.010, 20)
-        #yield from bp.rel_scan([quadem], geo.phi, -0.010, 0.010, 20)
+        #yield from bp.rel_scan([tetramm], geo.phi, -0.010, 0.010, 20)
+        yield from bp.rel_scan([quadem], geo.phi, -0.010, 0.010, 20)
 
-        yield from bps.mv(geo.phi, peaks.cen["tetramm_current2_mean_value"])
-        #yield from bps.mv(geo.phi, peaks.cen["quadem_current3_mean_value"])
+        #yield from bps.mv(geo.phi, peaks.cen["tetramm_current2_mean_value"])
+        yield from bps.mv(geo.phi, peaks.cen["quadem_current3_mean_value"])
 
-        #dif[2, i] = peaks.cen["quadem_current3_mean_value"] - geo.forward(alpha=alpha_re).phi
-        dif[2, i] = peaks.cen["tetramm_current2_mean_value"] - geo.forward(alpha=alpha_re).phi
+        dif[2, i] = peaks.cen["quadem_current3_mean_value"] - geo.forward(alpha=alpha_re).phi
+        #dif[2, i] = peaks.cen["tetramm_current2_mean_value"] - geo.forward(alpha=alpha_re).phi
 
-        yield from bp.rel_scan([tetramm], geo.ih, -0.4, 0.4, 20)
-        #yield from bp.rel_scan([quadem], geo.ih, -0.4, 0.4, 20)
+        #yield from bp.rel_scan([tetramm], geo.ih, -0.4, 0.4, 20)
+        yield from bp.rel_scan([quadem], geo.ih, -0.4, 0.4, 20)
 
         # is the next line corrct, geo.forward(alpha=alpha_re)
-        print(peaks.cen["tetramm_current3_mean_value"] - geo.forward(alpha=alpha_re).ih)
-        #print(peaks.cen["quadem_current4_mean_value"] - geo.forward(alpha=alpha_re).ih)
+        #print(peaks.cen["tetramm_current3_mean_value"] - geo.forward(alpha=alpha_re).ih)
+        print(peaks.cen["quadem_current4_mean_value"] - geo.forward(alpha=alpha_re).ih)
 
         dif[0, i] = alpha_re
-        #dif[1, i] = peaks.cen["quadem_current4_mean_value"] - geo.forward(alpha=alpha_re).ih
-        dif[1, i] = peaks.cen["tetramm_current3_mean_value"] - geo.forward(alpha=alpha_re).ih
+        dif[1, i] = peaks.cen["quadem_current4_mean_value"] - geo.forward(alpha=alpha_re).ih
+        #dif[1, i] = peaks.cen["tetramm_current3_mean_value"] - geo.forward(alpha=alpha_re).ih
 
 
     print(dif)

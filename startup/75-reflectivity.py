@@ -5,7 +5,8 @@ all_area_dets = [pilatus100k, tetramm]
 #@bpp.stage_decorator(area_dets)
 @bpp.stage_decorator(all_area_dets)
 
-def reflection_scan(alpha_start, alpha_stop, num, energy=9660, exp_time=1, md=None):
+def reflection_scan(alpha_start, alpha_stop, num, detector = 'lambda_det', exp_time=1, md=None):
+    energy = energy.energy.position
     #creation of a signal to record the attenuation
 
     for alpha in np.linspace(alpha_start, alpha_stop, num):
@@ -29,7 +30,7 @@ def reflection_scan(alpha_start, alpha_stop, num, energy=9660, exp_time=1, md=No
             continue
         else:
             #Read the maximum count on a pixel from the detector
-            i_max = ret['pilatus100k_stats4_max_value']['value']
+            i_max = ret['%s_stats4_max_value'%detector]['value']
             #print('imax', i_max)
             
             #Adjust the absorbers to avoid saturation of detector
@@ -58,12 +59,18 @@ def reflection_scan(alpha_start, alpha_stop, num, energy=9660, exp_time=1, md=No
 
 
 
-def expert_reflection_scan(energy=9660, md=None):
+def expert_reflection_scan(md=None, detector = 'lambda_det'):
+    """
+    detector can be either lambda_det or pilatus100k for now. This is used to read the maximum count from teh used detector 
+    """
+
     #Bluesky command to record metadata
     base_md = {'plan_name': 'reflection_scan',
-                'energy': energy,
+               'detector': detector, 
+               'energy': energy.energy.position,
+               'rois': [340, 200, 190, 180]
             # ...
-           }
+            }
     base_md.update(md or {})
 
     global attenuation_factor_signal, exposure_time, monitor_count
@@ -77,35 +84,35 @@ def expert_reflection_scan(energy=9660, md=None):
 
     # yield from bps.mvr(geo.stblx2, -1) # move stable X2
     alpha_start, alpha_stop, num, exp_time = 0.01, 0.2, 21, 1
-    yield from reflection_scan(alpha_start, alpha_stop, num, energy=energy, exp_time=1, md=md)
+    yield from reflection_scan(alpha_start, alpha_stop, num, detector = detector, exp_time=1, md=md)
     
     print('1st set done')
     print('2nd set starting')
 
     yield from bps.mvr(geo.stblx2, -1) # move stable X2
     alpha_start, alpha_stop, num, exp_time = 0.2, 0.6, 21, 1
-    yield from reflection_scan(alpha_start, alpha_stop, num, energy=energy, exp_time=1, md=md)
+    yield from reflection_scan(alpha_start, alpha_stop, num, detector = detector, exp_time=1, md=md)
     
     print('2nd set done')
     print('3rd set starting')
 
     yield from bps.mvr(geo.stblx2, -1) # move stable X2
     alpha_start, alpha_stop, num, exp_time = 0.6, 1, 21, 1
-    yield from reflection_scan(alpha_start, alpha_stop, num, energy=energy, exp_time=1, md=md)
+    yield from reflection_scan(alpha_start, alpha_stop, num, detector = detector, exp_time=1, md=md)
     
     print('3rd set done')
     print('4th set starting')
 
     yield from bps.mvr(geo.stblx2, -1) # move stable X2
     alpha_start, alpha_stop, num, exp_time = 1, 2, 21, 1
-    yield from reflection_scan(alpha_start, alpha_stop, num, energy=energy, exp_time=1, md=md)
+    yield from reflection_scan(alpha_start, alpha_stop, num, detector = detector, exp_time=1, md=md)
     
     print('4th set done')
     print('5th set starting')
 
     yield from bps.mvr(geo.stblx2, -1) # move stable X2
     alpha_start, alpha_stop, num, exp_time = 2, 4, 21, 10
-    yield from reflection_scan(alpha_start, alpha_stop, num, energy=energy, exp_time=10, md=md)
+    yield from reflection_scan(alpha_start, alpha_stop, num, detector = detector, exp_time=10, md=md)
 
     print('5th set done')
 
@@ -123,7 +130,7 @@ def gid(energy=9660, exp_time=0.1, md=None):
     #Bluesky command to record metadata
     base_md = {'plan_name': 'gid',
                 # 'exposure_time': exp_time,
-                'energy': energy,
+                'energy': energy.energy.position,
             # ...
            }
     base_md.update(md or {})
