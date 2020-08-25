@@ -1,8 +1,7 @@
 import numpy as np
+import os
+from ophyd import PseudoPositioner, PseudoSingle, EpicsMotor, EpicsSignal
 
-from ophyd import PseudoPositioner
-from ophyd import PseudoSingle
-from ophyd import EpicsMotor
 import bluesky.preprocessors as bpp
 from ophyd.pseudopos import pseudo_position_argument, real_position_argument
 
@@ -65,45 +64,64 @@ def shutter_flash_scan(*args, **kwargs):
 shutter = EpicsSignal("XF:12ID1-ECAT:EL2124-00-DO1", name="shutter")
 
 
-
-
-
-
-
 def att_setup():
     """
-    defining physical configuration of PLS attenuator system
-    Only consider attenuator2 for now
-    returns:[att_thickness list], [att_material list]
-    """
-    #att1_thi =[220, 120, 1600, 800, 400, 200, 100, 50, 25, 0]
-    #att1_mat =['Mo','Mo','Mo','Mo','Mo','Mo','Mo','Mo','Mo','Mo']   
+    Defining the PLS attenuator system. Each attenuators is defined by a thickness, a material and a name
 
-    att2_thi =[0, 24.28, 49.89, 74.97, 100.4, 126.11, 151.61, 177.62]
-    att2_mat =['Mo','Mo','Mo','Mo','Mo','Mo','Mo','Mo']
-    att2_name =['att0', 'att1', 'att2', 'att3', 'att4', 'att5', 'att5', 'att7']
-
-
-    return att2_thi, att2_mat, att2_name
-
-def attenuation_interpolation(path, file, energy):
-    """
-    Interpolate the attenuation of material from 1D curve obtained from cxro files
-    input: path and file to look for and the energy at which interpolate
-    returns: attenuation of Mo as integer
+    Returns
+    -------
+    att_thi: A list containing all the attenuator thicknesses
+    att_mat: A list containing all the attenuator materials
+    att_name: A list containing all the attenuator names
+    att_name: A list of float containing the position of the attenuator motor at the beamline
     """
 
-    array = np.loadtxt(os.path.join(path, file))
+    att_thi = [0, 24.28, 49.89, 74.97, 100.4, 126.11, 151.61, 177.62]
+    att_mat = ['Mo', 'Mo', 'Mo', 'Mo', 'Mo', 'Mo', 'Mo', 'Mo']
+    att_name = ['att0', 'att1', 'att2', 'att3', 'att4', 'att5', 'att5', 'att7']
+    att_pos = [0.22, 1, 2, 3, 4, 5, 6, 7]
+
+    return att_thi, att_mat, att_name, att_pos
+
+def attenuation_interpolation(path, filename, energy):
+    """
+    Interpolate the attenuation of a material at a given energy from the 1D curve obtained from CXRO files
+
+    Parameters:
+    -----------
+    :param path: A string liking the path towards the saved txt data containing CXRO files
+    :type path: string
+    :param filename: A string with the filename under which the CXRO data is saved
+    :type filename: string
+    :param energy: the energy at which the absorption needs to be interpolated
+    :type energy: float
+
+    Returns
+    -------
+    att_ener: A float with the corresponding attenuation at a specific energy
+    """
+
+    array = np.loadtxt(os.path.join(path, filename))
     energy_cxro, attenuation_cxro = array[:, 0], array[:, 1]
     att_ener = np.interp(energy, energy_cxro, attenuation_cxro)
     return att_ener
 
 
-def calc_attenuation(att_mat, energy):     
+def calc_attenuation(att_mat, energy):
     """
-    Interpolate the attenuation of material from 1D curve obtained from cxro
-    input: path anf file to look for and the energy at which interpolate
-    returns: attenuation of Mo as integer
+    Calculate the attenuation value of all PPLS absorbers given it material and energy. This part mainly check if the
+    absorbers materials is defined and the data available, and if the picked energy is suitable for the beamline
+
+    Parameters:
+    -----------
+    :param att_mat: A list containing all the attenuator materials
+    :type att_mat: List of string
+    :param energy: the energy at which the absorption needs to be interpolated
+    :type energy: float
+
+    Returns
+    -------
+    att_mat_value: A list of float which are the attenuation coefficient of each attenuators
     """
     if energy is None:
         raise attfuncs_Exception("error: No energy is input")
@@ -129,48 +147,135 @@ def calc_attenuation(att_mat, energy):
     return att_mat_value
 
 
-def calculate_att_comb(att2_thi, att2_mat, energy):
+def calculate_att_comb(att_thi, att_mat, energy):
     """
-    Calculate all the combination of attenuation 
-    input: thickness and material of each attenuator and energy
-    returns: all the combination of attenuation as an array
+    Calculate all the combination of attenuation at PPLS beamline
+
+    Parameters:
+    -----------
+    :param att_thi: A list containing all the attenuator thicknesses
+    :type att_thi: List of string
+    :param att_mat: A list containing all the attenuator materials
+    :type att_mat: List of string
+    :param energy: the energy at which the absorption needs to be interpolated
+    :type energy: float
+
+    Returns
+    -------
+    T_coefs: A list of float which contains all the transmission coefficient of all the foils at a given energy
     """
-    # att1_mat_value = calc_attenuation(att_mat1, energy)
-    att2_mat_value = calc_attenuation(att2_mat, energy)
+    # Calculate the absorption coefficient of every foils
+    att_mat_value = calc_attenuation(att_mat, energy)
    
-    # define all the combination of foils
-    T_tot = np.zeros(np.shape(att2_thi))
+    # Define all the combination of foils
+    t_coefs = np.zeros(np.shape(att_thi))
 
-    for i, (att2_mat_value, att2_thi) in enumerate(zip(att2_mat_value, att2_thi)):
-        T_tot[i] = np.exp(-1*att2_thi/att2_mat_value )
-    return T_tot
+    # Calculate the absorption of every attenuators for a given energy and store them as a list
+    for i, (att_mat_value, att_thi) in enumerate(zip(att_mat_value, att_thi)):
+        t_coefs[i] = np.exp(-1 * att_thi / att_mat_value)
+    return t_coefs
 
 
+# ToDo: Check the T_target to constrain that it only consider T lower than a number
 def best_att(T_target, energy):
     """
-    Find the closest attenuation combination from a taget one but higher
-    input: target attenuation, attenuator thickness and material
-    returns: all the combination of attenuation as an array
+    Find the absorber combination that give the closest x-ray transmission from a taget value
+
+    Parameters:
+    -----------
+    :param T_target: The target transmission value (has to be 1 or lower)
+    :type T_target: float
+    :param energy: the energy at which the absorption needs to be interpolated
+    :type energy: float
+
+    Returns
+    -------
+    best_att: A integer which contains the attenuator that best match the targeted transmission
+    T[best_att]: A float which contains the corresponding best transmission value
+    att2_name[best_att]: A string which contains the name of the matching attenuator
+    att_pos[best_att]: A float which contains the physical position of the matching attenuator
     """
-    att2_thi, att2_mat, att2_name = att_setup()
+    att2_thi, att2_mat, att2_name, att_pos = att_setup()
     T = calculate_att_comb(att2_thi, att2_mat, energy)
     
     if T_target <= 0.99:
-        #valid_att = np.where(T <= T_target)[0]
+        # valid_att = np.where(T <= T_target)[0]
         valid_att = np.where(T)
     else:
         valid_att = np.where(T)
 
-    best = np.argmin(abs(T[valid_att]-T_target))
-    print('The required attenuation is %s the best match is %s'%(T_target, T[best]))
+    best_att = np.argmin(abs(T[valid_att]-T_target))
+    # print('The required attenuation is %s the best match is %s'%(T_target, T[best_att]))
 
-    return best, T[best], att2_name[best]
-
-
-def convert_best_att_to_pos(att_position, best_att_index):
-    return att_position[best_att_index]
+    return best_att, T[best_att], att2_name[best_att], att_pos[best_att]
 
 
-path = '/home/xf12id1/Downloads/' 
+def put_default_absorbers(energy, default_attenuation=1e-07):
+    """
+    Put a default absorbers to protect the detector. With a default_attenuation factor of 1e-07,
+    the full direct beam is attenuated enough to not damage the detector. This is used to set a default
+    attenuator during a pre-count to define what is the necessary number of attenuators for a full image.
+
+    Parameters:
+    -----------
+    :param energy: the energy at which the absorption needs to be interpolated
+    :type energy: float
+    :param default_attenuation: The default target transmission value (1e-07)
+    :type default_attenuation: float
+
+    Returns
+    -------
+    default_factor: A float corresponding to the attenuation of the default attenuator
+    """
+    default_att, default_factor, default_name, default_position = best_att(default_attenuation, energy)
+
+    if energy < 9000 and energy > 10000:
+        raise ValueError('error: the energy entered is not correct')
+
+    yield from bps.mv(abs2, default_position)
+    yield from bps.sleep(1)
+
+    return default_factor
+
+
+def calculate_and_set_absorbers(energy, i_max, att, precount_time=0.1):
+    """
+    Define the good attenuation needed based on the maximum counts recorded by the detector on an
+    image taken with a known safe number of attenuator (default attenuations). The process of 'precount'
+    is used to protect the detectors
+
+    Parameters:
+    -----------
+    :param energy: the energy at which the absorption needs to be interpolated
+    :type energy: float
+    :param i_max: The maximum counts recorded by the detector during the pre-count
+    :type i_max: float
+    :param att: The attenuation used during the pre-count
+    :type att: float
+    :param precount_time: The pre-count exposure time
+    :type precount_time: float
+
+    Returns
+    -------
+    best_at: An integer which contains the attenuator that best match the targeted transmission
+    att_factor: A float which contains the corresponding best transmission value
+    att_name: A string which contains the name of the matching attenuator
+    """
+    # i_max_det is the maximum allowed pixel count (nominal value is 1e4)
+    i_max_det = 10000  # 50000 if lambda, 500000 if pilatus
+
+    # Theoretical maximum count to be seen by the detector
+    max_theo_precount = i_max / (att * precount_time)
+
+    # The required attenuation to not saturate the detector, i.e. keep i_max < max_theo
+    att_needed = 1 / (max_theo_precount / i_max_det)
+
+    # Calculate and move the absorber to the chosen one
+    best_at, att_factor, att_name, att_pos = best_att(att_needed, energy)
+    yield from bps.mv(abs2, att_pos)
+
+    return best_at, att_factor, att_name
+
+
+path = '/home/xf12id1/Downloads/'
 file_absorption = 'Mo_absorption.txt'
-att_position = [0, 10, 20, 30]
