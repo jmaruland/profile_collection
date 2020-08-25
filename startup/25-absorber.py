@@ -79,10 +79,12 @@ def att_setup():
     #att1_thi =[220, 120, 1600, 800, 400, 200, 100, 50, 25, 0]
     #att1_mat =['Mo','Mo','Mo','Mo','Mo','Mo','Mo','Mo','Mo','Mo']   
 
-    att2_thi =[0, 25, 50, 75, 100, 125, 150, 175]
+    att2_thi =[0, 24.28, 49.89, 74.97, 100.4, 126.11, 151.61, 177.62]
     att2_mat =['Mo','Mo','Mo','Mo','Mo','Mo','Mo','Mo']
+    att2_name =['att0', 'att1', 'att2', 'att3', 'att4', 'att5', 'att5', 'att7']
 
-    return att2_thi, att2_mat
+
+    return att2_thi, att2_mat, att2_name
 
 def attenuation_interpolation(path, file, energy):
     """
@@ -150,18 +152,19 @@ def best_att(T_target, energy):
     input: target attenuation, attenuator thickness and material
     returns: all the combination of attenuation as an array
     """
-    att2_thi, att2_mat = att_setup()
+    att2_thi, att2_mat, att2_name = att_setup()
     T = calculate_att_comb(att2_thi, att2_mat, energy)
     
     if T_target <= 0.99:
-        valid_att = np.where(T >= T_target)[0]
+        #valid_att = np.where(T <= T_target)[0]
+        valid_att = np.where(T)
     else:
         valid_att = np.where(T)
 
     best = np.argmin(abs(T[valid_att]-T_target))
     print('The required attenuation is %s the best match is %s'%(T_target, T[best]))
 
-    return best, T[best]
+    return best, T[best], att2_name[best]
 
 
 def convert_best_att_to_pos(att_position, best_att_index):

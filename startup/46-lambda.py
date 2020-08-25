@@ -58,6 +58,12 @@ lambda_det.roi1.kind = 'hinted'
 lambda_det.stats1.kind = 'hinted'
 lambda_det.stats1.total.kind = 'hinted'
 
+lambda_det.stats4.total.kind = 'hinted'
+lambda_det.stats4.kind = 'hinted'
+lambda_det.stats4.total.kind = 'hinted'
+lambda_det.stats4.max_value.kind = 'normal'
+
+
 # Impose Stats1 to be ROI1 if in the future we need to exclude bad pixels
 # caput('XF:12ID1-ES{Det:Lambda}Stats1:NDArrayPort', 'ROI1')
 
