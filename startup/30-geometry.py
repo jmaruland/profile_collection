@@ -396,11 +396,7 @@ def my_over_night():
 
 # The PVs are: XF:12ID1:L_01  to XF:12ID1:L_20
 # e.g., you can
-# caget XF:12ID1:L_01 and caput XF:12ID1:L_01
 
-# from epics import caput,caget
-# caput(XF:12ID1:L_01,17)
-# caget(XF:12ID1:L_01)
 # BEN , change to read from EPIcs like we did earlier.
 
 

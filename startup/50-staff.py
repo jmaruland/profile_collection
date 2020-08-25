@@ -125,13 +125,13 @@ def run_ref(sample_name):
 def sleep_timer(cycle):
     if cycle <= 6:
         for i in range(10):
-            bp.time.sleep(60)
+            yield from bps.sleep(60)
     elif cycle <= 9:
         for i in range(15):
-            bp.time.sleep(60)
+            yield from bps.sleep(60)
     else:
         for i in range(30):
-            bp.time.sleep(60)
+            yield from bps.sleep(60)
 
 def run_ref_nite(sample_name, cycle_num = 30):
 
@@ -232,7 +232,7 @@ def ref1_2(sample_name, expo, alpha_ini, alpha_stop, num_alpha):
             pilatus100k.cam.file_name.put(sample_name_pil)
 
             print("1")
-            bp.time.sleep(5)
+            yield from bps.sleep(5)
             print("2")
             yield from bp.rel_scan([pilatus100k],sh,0, 0, 1, per_step=shutter_flash_scan)
 

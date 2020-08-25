@@ -42,7 +42,7 @@ def isotherm(wait_time=1, clear='no',color='b--',file='tmp',read='no'):
             yield from bps.mov(shutter,1)
  #           yield from bp.count([pilatus100k]) # gid
             yield from bps.mov(shutter,0)
-            time.sleep(wait_time)
+            yield from bps.sleep(wait_time)
         else:
             plt.plot(area,pressure,color)
             plt.show()

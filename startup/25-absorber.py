@@ -5,6 +5,8 @@ from ophyd import PseudoPositioner, PseudoSingle, EpicsMotor, EpicsSignal
 import bluesky.preprocessors as bpp
 from ophyd.pseudopos import pseudo_position_argument, real_position_argument
 
+print(f'Loading {__file__}')
+
 
 class AbsShutter(PseudoPositioner):
     # angles

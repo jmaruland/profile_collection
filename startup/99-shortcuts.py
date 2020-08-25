@@ -73,11 +73,6 @@ def set_zero_alpha():
         yield from set_oh(0)
 
 
-def dummy():
-        RE(set_sh(0.174))
-
-
-
 # NEEDS TO BE FIXED
 def sh_center(a_sh,wid_sh,npts_sh):
         sh_nom=geo.forward(a_sh,a_sh,0).sh  
