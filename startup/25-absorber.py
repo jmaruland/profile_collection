@@ -65,24 +65,20 @@ def shutter_flash_scan(*args, **kwargs):
 shutter = EpicsSignal("XF:12ID1-ECAT:EL2124-00-DO1", name="shutter")
 
 
-
-
-
-
-
 def att_setup():
     """
     defining physical configuration of PLS attenuator system
     Only consider attenuator2 for now
     returns:[att_thickness list], [att_material list]
     """
-    #att1_thi =[220, 120, 1600, 800, 400, 200, 100, 50, 25, 0]
-    #att1_mat =['Mo','Mo','Mo','Mo','Mo','Mo','Mo','Mo','Mo','Mo']   
+    # att1_thi =[220, 120, 1600, 800, 400, 200, 100, 50, 25, 0]
+    # att1_mat =['Mo','Mo','Mo','Mo','Mo','Mo','Mo','Mo','Mo','Mo']
 
-    att2_thi =[0, 25, 50, 75, 100, 125, 150, 175]
-    att2_mat =['Mo','Mo','Mo','Mo','Mo','Mo','Mo','Mo']
+    att2_thi = [0, 25, 50, 75, 100, 125, 150, 175]
+    att2_mat = ['Mo', 'Mo', 'Mo', 'Mo', 'Mo', 'Mo', 'Mo', 'Mo']
 
     return att2_thi, att2_mat
+
 
 def attenuation_interpolation(path, file, energy):
     """
@@ -110,7 +106,7 @@ def calc_attenuation(att_mat, energy):
     else:
         print('The energy is', energy, 'eV')
 
-    #load absorption of each material:
+    # load absorption of each material:
     for mat in list(set(att_mat)):
         if mat != 'Mo':
             raise ValueError("error: Foil material is not Mo and is not defined")

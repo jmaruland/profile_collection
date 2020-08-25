@@ -235,7 +235,7 @@ def calculate_and_set_absorbers(energy, i_max, def_att, precount_time=0.1, exp_t
     precount_time = precount_time
     print('test', def_att, i_max, precount_time)
     max_theo_precount = i_max / (def_att * precount_time)
-    att_needed = 1/(max_theo_precount / (exp_time * i_max_det))
+    att_needed = 1/(max_theo_precount / (i_max_det))
     print('att_needed', att_needed)
 
     best_at, attenuation_factor = best_att(att_needed, energy)
