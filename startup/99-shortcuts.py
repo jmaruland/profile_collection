@@ -13,7 +13,7 @@ phix=geo.phix
 ih=geo.ih
 ia=geo.ia
 
-x2=geo.stblx
+x2=geo.stblx2
 sh=geo.sh
 astth=geo.astth
 #asth=geo.asth
@@ -118,11 +118,45 @@ def smab(alpha,beta):
         yield from det_exposure_time(1,1)
         yield from bp.count([pilatus100k],num=1)
 
+def setsh_gid():
+        abs_old = abs2.position
+        yield from bps.mv(abs2,4)
+        yield from mabt(0.1,0,0)
+        yield from bps.mvr(astth,1)  
+        yield from bp.rel_scan([pilatus100k],sh,-0.15,0.15,31,per_step=shutter_flash_scan)
+        yield from bps.mv(sh,peaks.cen['pilatus100k_stats1_total'] )
+        yield from set_sh(-1.243)
+        yield from mabt(0.1,0,0)
+        # yield from bps.mvr(astth,0.5)
+        # yield from bps.mv(shutter,1) # open shutter
+        # yield from bp.count([pilatus100k]) # gid
+        # yield from bps.mv(shutter,0) # close shutter
+        # yield from bps.mvr(astth,-0.5)  
+        yield from bps.mv(abs2,0)
+        yield from bps.mv(abs1,0)
+        yield from bps.mv(shutter,1) # open shutter
+        yield from bp.count([pilatus100k]) # gid
+        yield from bps.mv(shutter,0) # close shutter
+        yield from bps.mv(abs2,abs_old)
+        yield from bps.mv(abs1,1)
+
+        yield from bps.mvr(geo.stblx2, -0.5) # move stable X2 to get a fresh spot
+        yield from bps.sleep(5) # need to sleep after move X2
+        yield from bps.mv(abs2,0)
+        yield from bps.mv(abs1,0)
+        yield from bps.mv(shutter,1) # open shutter
+        yield from bp.count([pilatus100k]) # gid
+        yield from bps.mv(shutter,0) # close shutter
+        yield from bps.mv(abs2,abs_old)
+        yield from bps.mv(abs1,1)
+
+
 
 def shscan(start,end,steps):
+        yield from det_exposure_time(1,1)
         start2=2*start
         end2 = 2*end
-        yield from bp.rel_scan([pilatus100k],sh,start,end,oh,start2,end2,steps, per_step=shutter_flash_scan)
+        yield from bp.rel_scan([lambda_det],sh,start,end,oh,start2,end2,steps, per_step=shutter_flash_scan)
 
 def park():
         yield from bps.mov(shutter,0)

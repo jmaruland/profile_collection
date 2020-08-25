@@ -11,7 +11,7 @@ for i in [1, 2, 3, 4]:
     getattr(quadem, f"current{i}").mean_value.kind = "normal"
 
 # for i in [1,2,3]:
-for i in [2,3,4]:
+for i in [1,2,3]:
     getattr(quadem, f"current{i}").mean_value.kind = "hinted"
 
 
@@ -31,6 +31,6 @@ tetramm.stage_sigs["acquire_mode"] = 2
 for i in [1, 2, 3, 4]:
     getattr(tetramm, f"current{i}").mean_value.kind = "normal"
 
-for i in [2,3,4]:
+for i in [1,2,3]:
     getattr(tetramm, f"current{i}").mean_value.kind = "hinted"
 
