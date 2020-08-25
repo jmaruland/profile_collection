@@ -3,7 +3,6 @@
 print(f'Loading {__file__}')
 
 ### Andrei - importing channel access function - sprry for that DAMA :) 12 Dec 2019
-from ophyd.control_layer import caput, caget
 
 from bluesky.plan_stubs import one_1d_step, abs_set, wait, sleep
 import time
@@ -195,7 +194,7 @@ def ps(uid='-1',det='default',suffix='default',shift=.5,logplot='off', der  = Fa
     #return x, y 
 
 
-def set_abs_value( pv_prefix, abs_value ):      
+def set_abs_value(pv_prefix, abs_value):
     """
     Use an absolute value for a PV
     Input
@@ -206,12 +205,16 @@ def set_abs_value( pv_prefix, abs_value ):
     Example:
     set_abs_value( 'XF:12ID1-ES{XtalDfl-Ax:IH}', 0 ) #set diff.yv abolute value to 0
     """    
-    pv_set = pv_prefix  + 'Mtr.VAL'
-    pv_use_button = pv_prefix + 'Mtr.SET'
-    caput( pv_use_button, 'Set')
-    old_val = caget( pv_set )
-    #import bluesky.plans as bp
-    #yield from bp.abs_set( pv_set, abs_value)  not working
-    caput( pv_set, abs_value )
-    caput( pv_use_button, 'Use')
+    pv_set = EpicsSignal(pv_prefix + 'Mtr.VAL', name="pv_set")
+    pv_use_button = EpicsSignal(pv_prefix + 'Mtr.SET', name="pv_use_button")
+
+    yield from bps.mv(pv_use_button, 'Set')
+
+    old_val = pv_set.value
+    yield from bps.mv(pv_set, abs_value)
+    yield from bps.mv(pv_use_button, 'Use')
+
     print('The absolute value of %s was changed from %s to %s.'%(pv_set, old_val, abs_value))
+
+
+
