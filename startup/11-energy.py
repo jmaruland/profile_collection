@@ -1,36 +1,35 @@
-print(f'Loading {__file__}')
-
 import warnings
 import numpy as np
 from ophyd import (PVPositioner, EpicsSignal, EpicsSignalRO, EpicsMotor,
                    Device, Signal, PseudoPositioner, PseudoSingle)
-from ophyd.utils.epics_pvs import set_and_wait
 from ophyd.ophydobj import StatusBase, MoveStatus
 from ophyd.pseudopos import (pseudo_position_argument, real_position_argument)
 from ophyd import Component as Cpt
-from scipy.interpolate import InterpolatedUnivariateSpline
 import math
+
+print(f'Loading {__file__}')
+
 ANG_OVER_EV = 12398.42  # A*eV
 # TODO move inside energy class
 D_Si111 = 3.1293
-#D_Si111 = 3.135555
 
 
 # Converters:
 def energy_to_gap(target_energy, undulator_harmonic=1):
     fundamental_energy = target_energy / float(undulator_harmonic)
     f = fundamental_energy
-    #measured fundamnetal harmonic on the 20th September 2018
-    a = 24.31415 #-53.025391 values until 20Sep'18
-    b1 = -0.08224 #0.220837
-    b2 = 1.38266e-4 #-3.537803e-4
-    b3 = -1.18903e-7 #-13.105219e-7
-    b4 = 5.90784e-11 #-1.587795e-10
-    b5 = -1.70272e-14 #4.734179e-14
-    b6 = 2.64385e-18 #-7.633003e-18
-    b7 = -1.70455e-22 #5.14881e-22
+    # Measured fundamnetal harmonic on the 20th September 2018
+    a = 24.31415
+    b1 = -0.08224
+    b2 = 1.38266e-4
+    b3 = -1.18903e-7
+    b4 = 5.90784e-11
+    b5 = -1.70272e-14
+    b6 = 2.64385e-18
+    b7 = -1.70455e-22
     gap_mm = a + b1*f + b2*f**2 + b3 * f**3 + b4 * f**4 + b5 * f**5 + b6 * f**6 + b7 * f**7
-    gap = gap_mm*1000 - 20 #-33 for 14 keV; -21 for 16.1 keV; -50 for 9540eV; -20 for 2450eV; -45 for 4050eV
+    # -33 for 14 keV; -21 for 16.1 keV; -50 for 9540eV; -20 for 2450eV; -45 for 4050eV
+    gap = gap_mm*1000 - 20
     return gap
 
 
@@ -42,6 +41,9 @@ def energy_to_bragg(target_energy, delta_bragg=0):
 def wait_all(motors_list, sleep=0.0, debug=False):
     """Wait until the last motor finished movement.
     :param motors_list: the list of all motors to wait.
+    :param sleep: time to wait.
+    :param debug:
+
     :return: None
     """
     while True:
@@ -58,7 +60,7 @@ def wait_all(motors_list, sleep=0.0, debug=False):
 
 def move_dcm(target_energy, delta_bragg=0):
     bragg_angle = energy_to_bragg(target_energy, delta_bragg)
-    dcm_gap_value = (12.5)/np.cos(bragg_angle * np.pi / 180)
+    dcm_gap_value = 12.5/np.cos(bragg_angle * np.pi / 180)
     dcm.bragg.move(bragg_angle, wait=False)
     dcm.dcmgap.move(dcm_gap_value, wait=True)
 
@@ -66,10 +68,8 @@ def move_dcm(target_energy, delta_bragg=0):
 
     print('DCM gap calculated      : {:.5f}'.format(dcm_gap_value))
     print('DCM gap from PV         : {:.5f}'.format(dcm.dcmgap.get().user_readback))
-
     print('Bragg angle calculated  : {:.5f}'.format(bragg_angle))
     print('Bragg angle from PV     : {:.5f}'.format(dcm.bragg.get().user_readback))
-
 
 
 class DCMInternals(Device):
@@ -80,12 +80,11 @@ class DCMInternals(Device):
 
 
 class Energy(PseudoPositioner):
-    # synthetic axis
+    # Synthetic axis
     energy = Cpt(PseudoSingle, kind='hinted', labels=['mono'])
-    # real motors
+    # Real motors
     dcmgap = Cpt(EpicsMotor, 'XF12ID:m66', read_attrs=['user_readback'])
     bragg = Cpt(EpicsMotor, 'XF12ID:m65', read_attrs=['user_readback'], labels=['mono'])
-#    dcmpitch = Cpt(EpicsMotor, 'XF12ID:m67', read_attrs=['readback'])
 
     ivugap = Cpt(InsertionDevice,
                  'SR:C12-ID:G1{IVU:1-Ax:Gap}-Mtr',
@@ -97,14 +96,11 @@ class Energy(PseudoPositioner):
     enabledcmgap = Cpt(Signal, value=True)
 
     # this is also the maximum harmonic that will be tried
-    target_harmonic =  Cpt(Signal, value=19)
-    harmonic =  Cpt(Signal, kind='hinted')
+    target_harmonic = Cpt(Signal, value=19)
+    harmonic = Cpt(Signal, kind='hinted')
 
     # TODO make this a derived component
-
     # TODO: if the energy.move is commanded to go to the current energy, then it will wait forever because nothing moves.
-
-    # wlambda = Cpt(Signal, value=0)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -136,10 +132,10 @@ class Energy(PseudoPositioner):
 
         target_ivu_gap = energy_to_gap(energy, self.harmonic.get())
         while not (6200 <= target_ivu_gap < 15100):
-             self.harmonic.put(self.harmonic.get() - 2)
-             if self.harmonic.get() < 1:
-                 raise RuntimeError('can not find a valid gap')
-             target_ivu_gap = energy_to_gap(energy, self.harmonic.get())
+            self.harmonic.put(self.harmonic.get() - 2)
+            if self.harmonic.get() < 1:
+                raise RuntimeError('can not find a valid gap')
+            target_ivu_gap = energy_to_gap(energy, self.harmonic.get())
 
         target_bragg_angle = energy_to_bragg(energy)
 
@@ -185,12 +181,9 @@ ivugap = energy.ivugap
 # DCM motor shortcuts. Early scans used the names at right (p2h, etc).
 dcm_gap = dcm.dcmgap  # Height in CSS # EpicsMotor('XF12ID:m66', name='p2h')
 dcm_pitch = EpicsMotor('XF12ID:m67', name='dcm_pitch')
-# dcm_roll = dcm.roll  # Roll in CSS # EpicsMotor('XF12ID:m68', name='p2r')
 bragg = dcm.bragg  # Theta in CSS  # EpicsMotor('XF12ID:m65', name='bragg')
-# dcm_x = dcm.x  # E Mono X in CSS
 
 dcm_config = DCMInternals('', name='dcm_config')
-
 bragg.read_attrs = ['user_readback']
 
 new_ivu_gap = EpicsMotor('SR:C12-ID:G1{IVU:1-Ax:Gap}-Mtr', name='new_ivu_gap')
