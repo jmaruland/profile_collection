@@ -148,7 +148,7 @@ def expert_reflection_scan(md=None, detector='lambda_det'):
     print('1st set done')
     print('2nd set starting')
 
-    # Move stable X
+    # Move stable X2
     yield from bps.mvr(geo.stblx2, -0.5)
     yield from bps.sleep(5)
     alpha_start, alpha_stop, num, exp_time, precount_time = 0.2, 0.6, 17, 2, 0.1
