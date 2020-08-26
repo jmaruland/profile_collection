@@ -64,9 +64,14 @@ lambda_det.stats4.total.kind = 'hinted'
 lambda_det.stats4.max_value.kind = 'normal'
 
 
-# Impose Stats1 to be ROI1 if in the future we need to exclude bad pixels
-# caput('XF:12ID1-ES{Det:Lambda}Stats1:NDArrayPort', 'ROI1')
+# Impose Stats4 to be ROI4 if in the future we need to exclude bad pixels
+def set_defaut_stat_roi():
+    yield from bps.mv(lambda_det.stats1.nd_array_port, 'ROI1')
+    yield from bps.mv(lambda_det.stats2.nd_array_port, 'ROI2')
+    yield from bps.mv(lambda_det.stats3.nd_array_port, 'ROI3')
+    yield from bps.mv(lambda_det.stats4.nd_array_port, 'ROI4')
 
 # Define the region of interest if required
 # lambda_det.roi1.size.x.value = 31
 # lambda_det.roi1.min_xyz.size_x.value = 100
+
