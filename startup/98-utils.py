@@ -210,7 +210,7 @@ def set_abs_value(pv_prefix, abs_value):
 
     yield from bps.mv(pv_use_button, 'Set')
 
-    old_val = pv_set.value
+    old_val = pv_set.get()
     yield from bps.mv(pv_set, abs_value)
     yield from bps.mv(pv_use_button, 'Use')
 

@@ -29,7 +29,7 @@ def isotherm(wait_time=1, clear='no',color='b--',file='tmp',read='no'):
             [area2,pressure2]=json.load(g)
             plt.plot(area2,pressure2,color)
             break
-        if shutter.value == shutter_orig:
+        if shutter.get() == shutter_orig:
             plt.plot(area,pressure,color)
             pressure_t=AD1.get()
             area_t=AD2.get()

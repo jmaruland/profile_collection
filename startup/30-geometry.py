@@ -373,7 +373,7 @@ def cabt(*args, **kwargs):
     print("wavelength", geo.wlength)
     print(
         "footprint(mm)=",
-        S2.vg.user_readback.value / ((args[0] + 0.001) * 3.14159 / 180),
+        S2.vg.user_readback.get() / ((args[0] + 0.001) * 3.14159 / 180),
     )
     print("qz=", (4 * np.pi / geo.wlength.real) * np.sin(args[0] * 3.14159 / 180))
 
@@ -407,12 +407,12 @@ def param():
     print("L3  :", geo.L3.get(), "sample to output arm elevator")
     print("L4  :", geo.L4.get(), "table x offset")
     print("SH_OFF :", geo.SH_OFF.get(), "sh offset")
-    print("abs1:", int(S1.absorber1.user_readback.value + 0.1))
-    print("abs2:", int(S3.absorber1.user_readback.value + 0.1))
+    print("abs1:", int(S1.absorber1.user_readback.get() + 0.1))
+    print("abs2:", int(S3.absorber1.user_readback.get() + 0.1))
     print("Eta :", geo.Eta.get(), "Upward angle of beam on chi circle")
-    print("track_mode:", geo.track_mode.get(), ":geo.track_mode.value = 0/1")
+    print("track_mode:", geo.track_mode.get(), ":geo.track_mode.get() = 0/1")
     print("detector_mode:", geo.detector_offsets.det_mode.get(), "detector_mode(1,2,3)")
-    print("shutter:", shutter.value, ":%mov shutter 0/1")
+    print("shutter:", shutter.get(), ":%mov shutter 0/1")
     # print("En  :", geo.Energy.get(), "keV")
     # print(" wavelength: ", 12.39842 / geo.Energy.get(), "Angstroms")
     

@@ -72,6 +72,6 @@ def set_defaut_stat_roi():
     yield from bps.mv(lambda_det.stats4.nd_array_port, 'ROI4')
 
 # Define the region of interest if required
-# lambda_det.roi1.size.x.value = 31
-# lambda_det.roi1.min_xyz.size_x.value = 100
+# lambda_det.roi1.size.x.get() = 31
+# lambda_det.roi1.min_xyz.size_x.get() = 100
 

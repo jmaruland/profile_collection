@@ -33,7 +33,7 @@ def ih_track(alpha_ini, alpha_stop, num_alpha):
         #getattr(quadem, f"current{i}").mean_value.kind = "hinted"
 
 
-    geo.track_mode.value=0 
+    yield from bps.mv(geo.track_mode, 0) 
 
 
     dif = np.zeros((3, num_alpha+1))
@@ -93,14 +93,14 @@ def ref1(abso, expo, alpha_ini, alpha_stop, num_alpha):
                             per_step=shutter_flash)
 
             dif[0, i] = alpha_re
-            dif[1, i] = pilatus100k.stats1.total.value
-            dif[2, i] = pilatus100k.stats2.total.value
-            dif[3, i] = pilatus100k.stats3.total.value
-            dif[4, i] = quadem.current3.mean_value.value
+            dif[1, i] = pilatus100k.stats1.total.get()
+            dif[2, i] = pilatus100k.stats2.total.get()
+            dif[3, i] = pilatus100k.stats3.total.get()
+            dif[4, i] = quadem.current3.mean_value.get()
 
-            print(abso, expo, geo.alpha.position, pilatus100k.stats1.total.value,\
-                 pilatus100k.stats2.total.value, pilatus100k.stats3.total.value,\
-                 quadem.current3.mean_value.value) 
+            print(abso, expo, geo.alpha.position, pilatus100k.stats1.total.get(),\
+                 pilatus100k.stats2.total.get(), pilatus100k.stats3.total.get(),\
+                 quadem.current3.mean_value.get()) 
 
     # plt.figure()
     # plt.subplot(121)
@@ -146,15 +146,15 @@ def run_ref_nite(sample_name, cycle_num = 30):
 
 def print_func():
     print(geo.alpha.position)
-    print(pilatus100k.stats1.total.value)
-    print(pilatus100k.stats2.total.value)
-    print(pilatus100k.stats3.total.value)
-    print(quadem.current3.mean_value.value)
+    print(pilatus100k.stats1.total.get())
+    print(pilatus100k.stats2.total.get())
+    print(pilatus100k.stats3.total.get())
+    print(quadem.current3.mean_value.get())
 
 def print_func1():
-    print(geo.alpha.position, pilatus100k.stats1.total.value,\
-         pilatus100k.stats2.total.value, pilatus100k.stats3.total.value,\
-         quadem.current3.mean_value.value)
+    print(geo.alpha.position, pilatus100k.stats1.total.get(),\
+         pilatus100k.stats2.total.get(), pilatus100k.stats3.total.get(),\
+         quadem.current3.mean_value.get())
 
 
 def refl_backup(j, num_alpha):
@@ -166,10 +166,10 @@ def refl_backup(j, num_alpha):
     print_func1()
 
     dif[0, j] = geo.alpha.position
-    dif[1, j] = pilatus100k.stats1.total.value
-    dif[2, j] = pilatus100k.stats2.total.value
-    dif[3, j] = pilatus100k.stats3.total.value
-    dif[4, j] = quadem.current3.mean_value.value
+    dif[1, j] = pilatus100k.stats1.total.get()
+    dif[2, j] = pilatus100k.stats2.total.get()
+    dif[3, j] = pilatus100k.stats3.total.get()
+    dif[4, j] = quadem.current3.mean_value.get()
 
     plt.figure()
     plt.subplot(121)
@@ -238,9 +238,9 @@ def ref1_2(sample_name, expo, alpha_ini, alpha_stop, num_alpha):
 
             pilatus100k.cam.file_name.put('PPLS') # reset the file name
             
-            int_roi4 = pilatus100k.stats4.total.value
-            int_roi3 = pilatus100k.stats3.total.value
-            int_roi2 = pilatus100k.stats2.total.value
+            int_roi4 = pilatus100k.stats4.total.get()
+            int_roi3 = pilatus100k.stats3.total.get()
+            int_roi2 = pilatus100k.stats2.total.get()
 
             int_ref = int_roi4 - (int_roi3 + int_roi2)*0.5
 

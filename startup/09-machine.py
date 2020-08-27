@@ -3,7 +3,6 @@ print(f'Loading {__file__}')
 from ophyd import (PVPositioner, EpicsSignal, EpicsSignalRO, EpicsMotor,
                    Device, Signal, PseudoPositioner, PseudoSingle)
 from ophyd.utils.epics_pvs import set_and_wait
-from ophyd.ophydobj import StatusBase, MoveStatus
 from ophyd.status import DeviceStatus
 from ophyd import Component as Cpt
 from ophyd import Component

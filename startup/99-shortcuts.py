@@ -76,7 +76,7 @@ def set_zero_alpha():
 # NEEDS TO BE FIXED
 def sh_center(a_sh,wid_sh,npts_sh):
         sh_nom=geo.forward(a_sh,a_sh,0).sh  
-        geo_offset_old= geo.SH_OFF.value
+        geo_offset_old= geo.SH_OFF.get()
         yield from smab(a_sh,a_sh)
         yield from shscan(-1*wid_sh/2,wid_sh/2,npts_sh)
         shscan_cen = peaks.cen['pilatus100k_stats4_total'] # to get the center of the scan plot, HZ
@@ -85,7 +85,7 @@ def sh_center(a_sh,wid_sh,npts_sh):
  #      Do we put an if statement here to only move it it is about 2/3 of the width       
         yield from bps.mv(geo.sh, shscan_cen)
         yield from bps.null()
-        geo.SH_OFF.value=geo_offset_new
+        yield from bps.mv(geo.SH_OFF, geo_offset_new)
         yield from bps.null()
         print('sh reset from %f to %f', shscan_cen,sh_nom)
 

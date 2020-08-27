@@ -18,7 +18,7 @@ def reflection_scan(alpha_start, alpha_stop, num, detector='lambda_det', precoun
 
         # Move the default attenuator in for the pre-count
         def_att = yield from put_default_absorbers(energy.energy.position,
-                                                   default_attenuation=default_attenuation.value)
+                                                   default_attenuation=default_attenuation.get())
 
         # Set the exposure time to for the pre-count
         yield from det_exposure_time(precount_time, precount_time)
@@ -36,19 +36,19 @@ def reflection_scan(alpha_start, alpha_stop, num, detector='lambda_det', precoun
             i_max = ret['%s_stats4_max_value'%detector]['value']
 
             # look at the maximum count of the pre-count and adjust the default attenuation
-            while (i_max < 100 or i_max > 200000) and default_attenuation.value < 1:
+            while (i_max < 100 or i_max > 200000) and default_attenuation.get() < 1:
                 if i_max > 200000:
                     # If i_max to high, attenuate more
-                    default_attenuation.value = default_attenuation.value / 10
+                    yield from bps.mv(default_attenuation, default_attenuation.get() / 10)
                 elif i_max < 100:
                     # If i_max to low, attenuate less
-                    default_attenuation.value = default_attenuation.value * 10
+                    yield from bps.mv(default_attenuation, default_attenuation.get() * 10)
                 else:
                     print('You should not be there!')
                     break    
 
                 def_att = yield from put_default_absorbers(energy.energy.position,
-                                                           default_attenuation=default_attenuation.value)
+                                                           default_attenuation=default_attenuation.get())
 
                 # Re-take the pre-count data
                 yield from bps.mv(shutter, 1)
@@ -66,12 +66,12 @@ def reflection_scan(alpha_start, alpha_stop, num, detector='lambda_det', precoun
                                                                                       precount_time=precount_time)
             
             # Upload the attenuation factor for the metadata
-            attenuation_factor_signal.value = attenuation_factor
-            attenuator_name_signal.value = best_att_name
+            yield from bps.mv(attenuation_factor_signal, attenuation_factor)
+            yield from bps.mv(atenuator_name_signal, best_att_name)
 
         # Set the exposure time to the define exp_time for the measurement
         yield from det_exposure_time(exp_time, exp_time)
-        exposure_time.value = exp_time
+        yield from bps.mv(exposure_time, exp_time)
 
         # ToDo: is that really usefull now
         yield from bps.mv(shutter, 1)
@@ -256,13 +256,13 @@ def gid(md=None, energy=9700, exp_time=1, detector = 'pilatus100k'):
 
     # yield from bps.mv(abs2, 0)
     yield from bps.mv(abs2, 3)# to avoid pilatus saturation
-    attenuation_factor_signal.value = 1
+    yield from bps.mv(attenuation_factor_signal, 1)
 
     # Set the exposure time to the define exp_time for the measurment
     det_exposure_time(exp_time, exp_time)
-    exposure_time.value = exp_time
+    yield from bps.mv(exposure_time, exp_time)
     yield from bps.mvr(geo.stblx2, -1) # move stable X2
-    print(exposure_time.value)
+    print(exposure_time.get())
     yield from bps.mv(shutter,1)
     yield from bps.sleep(0.5) # add this because the QuadEM I0
     yield from bps.trigger_and_read(area_dets + [geo] + [attenuation_factor_signal] + [exposure_time], name='primary')
@@ -271,7 +271,7 @@ def gid(md=None, energy=9700, exp_time=1, detector = 'pilatus100k'):
     yield from bps.mv(abs2, 5)
     yield from mabt(0.1,1.5,0) # gid poistion without beam stop
     yield from bps.sleep(5)
-    exposure_time.value = 1
+    yield from bps.mv(exposure_time, 1)
     yield from bps.mv(shutter,1)
     yield from bps.sleep(0.5) # add this because the QuadEM I0
     yield from bps.trigger_and_read(area_dets + [geo] + [attenuation_factor_signal] + [exposure_time], name='primary')
@@ -279,7 +279,7 @@ def gid(md=None, energy=9700, exp_time=1, detector = 'pilatus100k'):
 
     yield from mabt(0.1,1.5,0.76) # gid poistion without beam stop
     yield from bps.sleep(5)
-    exposure_time.value = 1
+    yield from bps.mv(exposure_time, 1)
     yield from bps.mv(shutter,1)
     yield from bps.sleep(0.5) # add this because the QuadEM I0
     yield from bps.trigger_and_read(area_dets + [geo] + [attenuation_factor_signal] + [exposure_time], name='primary')
@@ -287,7 +287,7 @@ def gid(md=None, energy=9700, exp_time=1, detector = 'pilatus100k'):
 
     yield from mabt(0.1,1.5,-0.38) # gid poistion without beam stop
     yield from bps.sleep(5)
-    exposure_time.value = 1
+    yield from bps.mv(exposure_time, 1)
     yield from bps.mv(shutter,1)
     yield from bps.sleep(0.5) # add this because the QuadEM I0
     yield from bps.trigger_and_read(area_dets + [geo] + [attenuation_factor_signal] + [exposure_time], name='primary')
@@ -295,7 +295,7 @@ def gid(md=None, energy=9700, exp_time=1, detector = 'pilatus100k'):
 
     yield from mabt(0.1,1.5,-0.76) # gid poistion without beam stop
     yield from bps.sleep(5)
-    exposure_time.value = 1
+    yield from bps.mv(exposure_time, 1)
     yield from bps.mv(shutter,1)
     yield from bps.sleep(0.5) # add this because the QuadEM I0
     yield from bps.trigger_and_read(area_dets + [geo] + [attenuation_factor_signal] + [exposure_time], name='primary')
