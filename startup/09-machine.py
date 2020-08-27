@@ -10,13 +10,13 @@ from scipy.interpolate import InterpolatedUnivariateSpline
 
 
 class Ring(Device):
-    current = EpicsSignalRO('SR:C03-BI{DCCT:1}I:Real-I', name='ring_current')
-    lifetime = EpicsSignalRO('SR:OPS-BI{DCCT:1}Lifetime-I', name='ring_lifetime')
-    energy = EpicsSignalRO('SR{}Energy_SRBend', name='ring_energy')
-    mode = EpicsSignal('SR-OPS{}Mode-Sts', name='ring_ops', string=True)
-    filltarget = EpicsSignalRO('SR-HLA{}FillPattern:DesireImA', name='ring_filltarget')
+    current = Cpt(EpicsSignalRO, 'SR:C03-BI{DCCT:1}I:Real-I')
+    lifetime = Cpt(EpicsSignalRO, 'SR:OPS-BI{DCCT:1}Lifetime-I')
+    energy = Cpt(EpicsSignalRO, 'SR{}Energy_SRBend')
+    ops = Cpt(EpicsSignal, 'SR-OPS{}Mode-Sts', string=True)
+    filltarget = Cpt(EpicsSignalRO, 'SR-HLA{}FillPattern:DesireImA')
 
-ring = Ring(name = 'ring')
+ring = Ring(name='ring')
 
 #ring_ops = EpicsSignal('SR-OPS{}Mode-Sts', name='ring_ops', string=True)
 mstr_shutter_enable = EpicsSignalRO('SR-EPS{PLC:1}Sts:MstrSh-Sts', name='mstr_shutter_enable')
@@ -97,4 +97,3 @@ class InsertionDevice(EpicsMotor):
     def move(self, *args, **kwargs):
         set_and_wait(self.brake, 1)
         return super().move(*args, **kwargs)
-
