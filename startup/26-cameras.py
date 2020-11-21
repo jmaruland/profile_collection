@@ -38,16 +38,21 @@ class StandardProsilica(SingleTrigger, ProsilicaDetector):
 class StandardProsilicaWithTIFF(StandardProsilica):
     tiff = Cpt(TIFFPluginWithFileStore,
                suffix='TIFF1:',
-               write_path_template='/tmp/%Y/%m/%d/',
-               read_path_template='/tmp/%Y/%m/%d/',
-               root='/tmp/')
+               write_path_template='/camera_data/',
+               read_path_template='/camera_data/',
+               root='/')
 
 
-FS = StandardProsilica('XF:12ID1-BI{Scr:1}', name='FS')
+FS = StandardProsilicaWithTIFF('XF:12ID1-BI{Scr:1}', name='FS')
 
+FS.image.kind = 'hinted'
+
+FS.tiff.kind = 'hinted' 
 
 FS.read_attrs = ['stats1', 'stats2', 'stats3', 'stats4']
 FS.stats1.read_attrs = ['total']
 FS.stats2.read_attrs = ['total']
 FS.stats3.read_attrs = ['total']
 FS.stats4.read_attrs = ['total']
+FS.configuration_attrs = ['cam.acquire_time']
+
