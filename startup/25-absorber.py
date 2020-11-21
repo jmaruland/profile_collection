@@ -129,8 +129,8 @@ def calc_attenuation(att_mat, energy):
         raise attfuncs_Exception("error: No energy is input")
     elif energy > 24000 or energy < 5000:
         raise ValueError("error: energy entered is lower than 5keV or higher than 20keV")
-    else:
-        print('The energy is', energy, 'eV')
+    # else:
+    #     print('The energy is', energy, 'eV')
 
     #load absorption of each material:
     for mat in list(set(att_mat)):
