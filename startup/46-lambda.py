@@ -54,9 +54,9 @@ class Lambda(SingleTriggerV33, LambdaDetector):
 lambda_det = Lambda('XF:12ID1-ES{Det:Lambda}', name='lambda_det')
 lambda_det.tiff.kind = 'hinted'
 
-lambda_det.roi1.kind = 'hinted'
-lambda_det.stats1.kind = 'hinted'
-lambda_det.stats1.total.kind = 'hinted'
+lambda_det.roi2.kind = 'hinted'
+lambda_det.stats2.kind = 'hinted'
+lambda_det.stats2.total.kind = 'hinted'
 
 lambda_det.stats4.total.kind = 'hinted'
 lambda_det.stats4.kind = 'hinted'

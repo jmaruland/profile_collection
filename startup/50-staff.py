@@ -29,8 +29,8 @@ def phi_track(alpha_ini, alpha_stop, num_alpha):
 def ih_track(alpha_ini, alpha_stop, num_alpha):
     # for ih in range(alpha_ini,alpha_stop, nb_alpha):
     for i in [2,3,4]:
-        getattr(tetramm, f"current{i}").mean_value.kind = "hinted"
-        #getattr(quadem, f"current{i}").mean_value.kind = "hinted"
+        #getattr(tetramm, f"current{i}").mean_value.kind = "hinted"
+        getattr(quadem, f"current{i}").mean_value.kind = "hinted"
 
 
     yield from bps.mv(geo.track_mode, 0) 

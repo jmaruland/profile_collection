@@ -93,7 +93,7 @@ def night_scan():
 
 
 def fast_scan():
-    yield from expert_reflection_scan(md={'sample_name': 'water_large'})
+    yield from expert_reflection_scan(md={'sample_name': 'water_large_3'})
 
 
 def expert_reflection_scan(md=None, detector='lambda_det'):
@@ -198,16 +198,16 @@ def expert_reflection_scan(md=None, detector='lambda_det'):
 
     # Move stable X2
     #yield from bps.mvr(geo.stblx2, -0.5)
-    yield from bps.sleep(5)
-    alpha_start, alpha_stop, num, exp_time, precount_time = 2, 3, 11, 10, 0.1
-    yield from reflection_scan(alpha_start=alpha_start,
-                               alpha_stop=alpha_stop,
-                               num=num,
-                               detector=detector,
-                               precount_time=precount_time,
-                               exp_time=exp_time,
-                               default_att = default_attenuation.value,
-                               md=md)
+    # yield from bps.sleep(5)
+    # alpha_start, alpha_stop, num, exp_time, precount_time = 2, 3, 11, 10, 0.1
+    # yield from reflection_scan(alpha_start=alpha_start,
+    #                            alpha_stop=alpha_stop,
+    #                            num=num,
+    #                            detector=detector,
+    #                            precount_time=precount_time,
+    #                            exp_time=exp_time,
+    #                            default_att = default_attenuation.value,
+    #                            md=md)
 
     print('5th set done')
 

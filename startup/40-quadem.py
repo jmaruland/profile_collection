@@ -23,14 +23,14 @@ quadem.acquire_mode.put(2)
 #for diamond mode
 quadem.geometry.put(0)
 
-tetramm = QuadEMV33("XF:12ID1-BI{EM:2}", name="tetramm")
-tetramm.conf.port_name.put("TeTrAMM")
-tetramm.acquire_mode.put(2)
-tetramm.stage_sigs["acquire_mode"] = 2
+#tetramm = QuadEMV33("XF:12ID1-BI{EM:2}", name="tetramm")
+#tetramm.conf.port_name.put("TeTrAMM")
+#tetramm.acquire_mode.put(2)
+#tetramm.stage_sigs["acquire_mode"] = 2
 
-for i in [1, 2, 3, 4]:
-    getattr(tetramm, f"current{i}").mean_value.kind = "normal"
+#for i in [1, 2, 3, 4]:
+#    getattr(tetramm, f"current{i}").mean_value.kind = "normal"
 
-for i in [1,2,3]:
-    getattr(tetramm, f"current{i}").mean_value.kind = "hinted"
+#for i in [1,2,3]:
+#    getattr(tetramm, f"current{i}").mean_value.kind = "hinted"
 
