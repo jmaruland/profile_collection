@@ -1,7 +1,9 @@
 import numpy as np
+import pandas as pds
 import os
-from ophyd import PseudoPositioner, PseudoSingle, EpicsMotor, EpicsSignal
+import time
 
+from ophyd import PseudoPositioner, PseudoSingle, EpicsMotor, EpicsSignal
 import bluesky.preprocessors as bpp
 from ophyd.pseudopos import pseudo_position_argument, real_position_argument
 
@@ -286,6 +288,7 @@ all_area_dets = [lambda_det, quadem]
 @bpp.stage_decorator(all_area_dets)
 
 def define_all_att_thickness():
+    ratios = np.zeros((6,))
     base_md = {'plan_name': 'calibration_att'}
     yield from bps.mv(S2.vg, 0.05)
     yield from bps.mv(S2.vc, 0)
@@ -293,20 +296,87 @@ def define_all_att_thickness():
     yield from bps.mv(S2.hc, 0.25)
 
     yield from bps.open_run(md=base_md)
-    ratio = yield from define_att_thickness(attenuator1=6, attenuator2=5, th_angle=0.15)
-    print('ratio between 6 and 5', ratio)
-    ratio = yield from define_att_thickness(attenuator1=5, attenuator2=4, th_angle=0.21)
-    print('ratio between 5 and 4', ratio)
-    ratio = yield from define_att_thickness(attenuator1=4, attenuator2=3, th_angle=0.37)
-    print('ratio between 4 and 3', ratio)
-    ratio = yield from define_att_thickness(attenuator1=3, attenuator2=2, th_angle=0.65)
-    print('ratio between 3 and 2', ratio)
-    ratio = yield from define_att_thickness(attenuator1=2, attenuator2=1, th_angle=1)
-    print('ratio between 2 and 1', ratio)
-    ratio = yield from define_att_thickness(attenuator1=1, attenuator2=0, th_angle=1.5)
-    print('ratio between 1 and 0', ratio)
-
+    for nu in range(0, 6, 1)[::-1]:
+        ratio = yield from define_att_thickness(attenuator1=nu+1, attenuator2=nu, th_angle=0.15)
+        ratios[nu] = 1
+        ratios *= ratio
+        print('ratio between %s and %s'%(nu+1, nu), ratios[5])
     yield from bps.close_run()
+
+    att_ener = attenuation_interpolation(path=path, filename=file_absorption, energy=energy.energy.position)
+    att_thickness_new = att_ener * np.log(ratios)
+
+
+    print('The new attenuators thickness are to {:.2f} um while the old were {:.2f} um'.format(att_thickness_new, att_thickness_old))
+    response = input('Do you want to use the new thicknesses? (y/[n]) ')
+
+    if response is 'y' or response is 'Y':
+        print('The new attenuators thickness are to {:.2f} um'.format(att_thickness_new))
+        #Need to implement the new thickness
+
+    else:
+        print('The old attenuators thicknesses were kept at {:.2f} um'.format(current_att_thickness))
+
+
+#ToDo: Need to create the csv file in the startup collection of PLS
+#ToDo: Make sure that the values are read and write correctly
+#ToDo: Check the function name since copy and paste from SMI
+#ToDo: Look if read by default
+#ToDo: Need to read the attenuator thickness from the old or new calculated values
+def attenuator_thickness_load():
+    '''
+    Load the previous attenuator thickness
+    '''
+    OPLS_CONFIG_FILENAME = os.path.join(get_ipython().profile_dir.location,
+                                       'OPLS_attenuator_thickness.csv')
+    # collect the current positions of motors
+    smi_config = pds.read_csv(OPLS_CONFIG_FILENAME, index_col=0)
+
+    att_thickness = np.zeros((6,))
+
+    att_thickness[0] = smi_config.att0.values[-1]
+    att_thickness[1] = smi_config.att1.values[-1]
+    att_thickness[2] = smi_config.att2.values[-1]
+    att_thickness[3] = smi_config.att3.values[-1]
+    att_thickness[4] = smi_config.att4.values[-1]
+    att_thickness[5] = smi_config.att5.values[-1]
+
+    return att_thickness
+
+
+current_att_thickness = attenuator_thickness_load()
+
+
+def attenuator_thickness_save(attenuators_thckness):
+    '''
+    Save the new attenuators thckness
+    '''
+
+    SMI_CONFIG_FILENAME = os.path.join(get_ipython().profile_dir.location,
+                                       'smi_config.csv')
+
+    # collect the current positions of motors
+    current_config = {
+        'att0': attenuators_thckness[0],
+        'att1': attenuators_thckness[1],
+        'att2': attenuators_thckness[2],
+        'att3': attenuators_thckness[3],
+        'att4': attenuators_thckness[4],
+        'att5': attenuators_thckness[5],
+        'time': time.ctime()
+    }
+
+    current_config_DF = pds.DataFrame(data=current_config, index=[1])
+
+    # load the previous config file
+    smi_config = pds.read_csv(SMI_CONFIG_FILENAME, index_col=0)
+    smi_config_update = smi_config.append(current_config_DF, ignore_index=True)
+
+    # save to file
+    smi_config_update.to_csv(SMI_CONFIG_FILENAME)
+    global current_att_thickness
+    current_att_thickness = attenuator_thickness_load()
+    print(current_att_thickness)
 
 
 def define_att_thickness(attenuator1, attenuator2, th_angle):
@@ -359,8 +429,6 @@ def define_att_thickness(attenuator1, attenuator2, th_angle):
     ratio = i_max2 / i_max1
     
     # att_ener = attenuation_interpolation(path, filename, energy.energy.position)
-    # att_thickness = ratio 
-
 
     return ratio
 
