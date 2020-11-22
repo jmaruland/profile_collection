@@ -282,87 +282,87 @@ def calculate_and_set_absorbers(energy, i_max, att, precount_time=0.1):
 
 
 
-# all_area_dets = [lambda_det, quadem]
-# @bpp.stage_decorator(all_area_dets)
+all_area_dets = [lambda_det, quadem]
+@bpp.stage_decorator(all_area_dets)
 
-# def define_all_att_thickness():
-#     base_md = {'plan_name': 'calibration_att'}
-#     yield from bps.mv(S2.vg, 0.05)
-#     yield from bps.mv(S2.vc, 0)
-#     yield from bps.mv(S2.hg, 0.3)
-#     yield from bps.mv(S2.hc, 0.25)
+def define_all_att_thickness():
+    base_md = {'plan_name': 'calibration_att'}
+    yield from bps.mv(S2.vg, 0.05)
+    yield from bps.mv(S2.vc, 0)
+    yield from bps.mv(S2.hg, 0.3)
+    yield from bps.mv(S2.hc, 0.25)
 
-#     yield from bps.open_run(md=base_md)
-#     ratio = yield from define_att_thickness(attenuator1=6, attenuator2=5, th_angle=0.15)
-#     print('ratio between 6 and 5', ratio)
-#     ratio = yield from define_att_thickness(attenuator1=5, attenuator2=4, th_angle=0.21)
-#     print('ratio between 5 and 4', ratio)
-#     ratio = yield from define_att_thickness(attenuator1=4, attenuator2=3, th_angle=0.37)
-#     print('ratio between 4 and 3', ratio)
-#     ratio = yield from define_att_thickness(attenuator1=3, attenuator2=2, th_angle=0.65)
-#     print('ratio between 3 and 2', ratio)
-#     ratio = yield from define_att_thickness(attenuator1=2, attenuator2=1, th_angle=1)
-#     print('ratio between 2 and 1', ratio)
-#     ratio = yield from define_att_thickness(attenuator1=1, attenuator2=0, th_angle=1.5)
-#     print('ratio between 1 and 0', ratio)
+    yield from bps.open_run(md=base_md)
+    ratio = yield from define_att_thickness(attenuator1=6, attenuator2=5, th_angle=0.15)
+    print('ratio between 6 and 5', ratio)
+    ratio = yield from define_att_thickness(attenuator1=5, attenuator2=4, th_angle=0.21)
+    print('ratio between 5 and 4', ratio)
+    ratio = yield from define_att_thickness(attenuator1=4, attenuator2=3, th_angle=0.37)
+    print('ratio between 4 and 3', ratio)
+    ratio = yield from define_att_thickness(attenuator1=3, attenuator2=2, th_angle=0.65)
+    print('ratio between 3 and 2', ratio)
+    ratio = yield from define_att_thickness(attenuator1=2, attenuator2=1, th_angle=1)
+    print('ratio between 2 and 1', ratio)
+    ratio = yield from define_att_thickness(attenuator1=1, attenuator2=0, th_angle=1.5)
+    print('ratio between 1 and 0', ratio)
 
-#     yield from bps.close_run()
+    yield from bps.close_run()
 
 
-# def define_att_thickness(attenuator1, attenuator2, th_angle):
-#     detector='lambda_det'
-#     attenuator_name_signal = Signal(name='attenuator_name', value='abs1')
-#     exposure_time = Signal(name='exposure_time', value=1)
+def define_att_thickness(attenuator1, attenuator2, th_angle):
+    detector='lambda_det'
+    attenuator_name_signal = Signal(name='attenuator_name', value='abs1')
+    exposure_time = Signal(name='exposure_time', value=1)
 
-#     yield from mabt(th_angle, th_angle, 0)
-#     yield from bps.mv(abs2, attenuator1)
-#     yield from bps.sleep(10)
+    yield from mabt(th_angle, th_angle, 0)
+    yield from bps.mv(abs2, attenuator1)
+    yield from bps.sleep(10)
 
-#     yield from det_exposure_time(5, 5)
-#     yield from bps.mv(exposure_time, 5)
-#     yield from bps.mv(attenuator_name_signal, 'abs%s'%attenuator1)
+    yield from det_exposure_time(5, 5)
+    yield from bps.mv(exposure_time, 5)
+    yield from bps.mv(attenuator_name_signal, 'abs%s'%attenuator1)
 
-#     yield from bps.mv(shutter, 1)
-#     ret = yield from bps.trigger_and_read(area_dets, name='precount')
+    yield from bps.mv(shutter, 1)
+    ret = yield from bps.trigger_and_read(area_dets, name='precount')
 
-#     # ret = yield from bps.trigger_and_read(all_area_dets +
-#     #                                 [geo] +
-#     #                                 [attenuation_factor_signal] +
-#     #                                 [attenuator_name_signal] +
-#     #                                 [exposure_time],
-#     #                                 name='primary')
+    # ret = yield from bps.trigger_and_read(all_area_dets +
+    #                                 [geo] +
+    #                                 [attenuation_factor_signal] +
+    #                                 [attenuator_name_signal] +
+    #                                 [exposure_time],
+    #                                 name='primary')
     
-#     yield from bps.mv(shutter, 0)
+    yield from bps.mv(shutter, 0)
 
-#     i_max1 = ret['%s_stats4_total'%detector]['value']
+    i_max1 = ret['%s_stats4_total'%detector]['value']
 
 
-#     yield from bps.mv(abs2, attenuator2)
-#     yield from bps.sleep(10)
+    yield from bps.mv(abs2, attenuator2)
+    yield from bps.sleep(10)
 
-#     yield from det_exposure_time(5, 5)
-#     yield from bps.mv(exposure_time, 5)
-#     yield from bps.mv(attenuator_name_signal, 'abs%s'%attenuator2)
+    yield from det_exposure_time(5, 5)
+    yield from bps.mv(exposure_time, 5)
+    yield from bps.mv(attenuator_name_signal, 'abs%s'%attenuator2)
 
-#     yield from bps.mv(shutter, 1)
-#     ret = yield from bps.trigger_and_read(area_dets, name='precount')
+    yield from bps.mv(shutter, 1)
+    ret = yield from bps.trigger_and_read(area_dets, name='precount')
 
-#     # ret = yield from bps.trigger_and_read(all_area_dets +
-#     #                                 [geo] +
-#     #                                 [attenuation_factor_signal] +
-#     #                                 [attenuator_name_signal] +
-#     #                                 [exposure_time],
-#     #                                 name='primary')
-#     yield from bps.mv(shutter, 0)
-#     i_max2 = ret['%s_stats4_total'%detector]['value']
+    # ret = yield from bps.trigger_and_read(all_area_dets +
+    #                                 [geo] +
+    #                                 [attenuation_factor_signal] +
+    #                                 [attenuator_name_signal] +
+    #                                 [exposure_time],
+    #                                 name='primary')
+    yield from bps.mv(shutter, 0)
+    i_max2 = ret['%s_stats4_total'%detector]['value']
 
-#     ratio = i_max2 / i_max1
+    ratio = i_max2 / i_max1
     
-#     # att_ener = attenuation_interpolation(path, filename, energy.energy.position)
-#     # att_thickness = ratio 
+    # att_ener = attenuation_interpolation(path, filename, energy.energy.position)
+    # att_thickness = ratio 
 
 
-#     return ratio
+    return ratio
 
 
 
