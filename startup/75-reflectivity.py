@@ -9,7 +9,7 @@ all_area_dets = [lambda_det, quadem]
 
 @bpp.stage_decorator(all_area_dets)
 def reflection_scan(alpha_start, alpha_stop, num, detector='lambda_det', precount_time=1, exp_time=1, default_att=1e-7, md=None):
-
+    
     for alpha in np.linspace(alpha_start, alpha_stop, num):
         # Move to the good geometry position
         yield from mabt(alpha, alpha, 0)
@@ -26,7 +26,7 @@ def reflection_scan(alpha_start, alpha_stop, num, detector='lambda_det', precoun
         yield from bps.mv(shutter, 1)
         ret = yield from bps.trigger_and_read(area_dets, name='precount')
         yield from bps.mv(shutter, 0)
-        
+
         if ret is None:
             # in simulation mode
             continue
@@ -93,7 +93,7 @@ def night_scan():
 
 
 def fast_scan():
-    yield from expert_reflection_scan(md={'sample_name': 'water_large_3'})
+    yield from expert_reflection_scan(md={'sample_name': 'water_large_4'})
 
 
 def expert_reflection_scan(md=None, detector='lambda_det'):
@@ -120,7 +120,7 @@ def expert_reflection_scan(md=None, detector='lambda_det'):
     global attenuation_factor_signal, exposure_time, attenuator_name_signal, default_attenuation
 
     attenuator_name_signal = Signal(name='attenuator_name', value='abs1')
-    attenuation_factor_signal = Signal(name='attenuation', value=1)
+    attenuation_factor_signal = Signal(name='attenuation', value=1e-7)
     exposure_time = Signal(name='exposure_time', value=1)
     default_attenuation = Signal(name='default-attenuation', value=1e-7)
 
