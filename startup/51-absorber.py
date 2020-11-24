@@ -296,7 +296,7 @@ def define_all_att_thickness():
     yield from bps.mv(S2.hc, 0.25)
 
     yield from bps.open_run(md=base_md)
-    for nu in range(0, 6, 1)[::-1]:
+    for nu in range(0, 8, 1)[::-1]:
         ratio = yield from define_att_thickness(attenuator1=nu+1, attenuator2=nu, th_angle=0.15)
         ratios[nu] = 1
         ratios *= ratio
@@ -332,7 +332,7 @@ def attenuator_thickness_load():
     # collect the current positions of motors
     smi_config = pds.read_csv(OPLS_CONFIG_FILENAME, index_col=0)
 
-    att_thickness = np.zeros((6,))
+    att_thickness = np.zeros((8,))
 
     att_thickness[0] = smi_config.att0.values[-1]
     att_thickness[1] = smi_config.att1.values[-1]
@@ -340,6 +340,8 @@ def attenuator_thickness_load():
     att_thickness[3] = smi_config.att3.values[-1]
     att_thickness[4] = smi_config.att4.values[-1]
     att_thickness[5] = smi_config.att5.values[-1]
+    att_thickness[6] = smi_config.att6.values[-1]
+    att_thickness[7] = smi_config.att7.values[-1]
 
     return att_thickness
 
@@ -353,7 +355,7 @@ def attenuator_thickness_save(attenuators_thckness):
     '''
 
     SMI_CONFIG_FILENAME = os.path.join(get_ipython().profile_dir.location,
-                                       'smi_config.csv')
+                                       'OPLS_attenuator_thickness.csv')
 
     # collect the current positions of motors
     current_config = {
@@ -363,6 +365,8 @@ def attenuator_thickness_save(attenuators_thckness):
         'att3': attenuators_thckness[3],
         'att4': attenuators_thckness[4],
         'att5': attenuators_thckness[5],
+        'att6': attenuators_thckness[6],
+        'att7': attenuators_thckness[7],
         'time': time.ctime()
     }
 
