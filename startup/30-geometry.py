@@ -78,13 +78,14 @@ class Geometry(PseudoPositioner):
     ih = Cpt(EpicsMotor, "{XtalDfl-Ax:IH}Mtr", doc="input height")
     ia = Cpt(EpicsMotorWithLimits, "{XtalDfl-Ax:IR}Mtr", doc="input rotation")
     phix = Cpt(EpicsMotor, "{XtalDfl-Ax:PhiX}Mtr")
-
     # Sample-detector motors
     sh = Cpt(EpicsMotor, "{Smpl-Ax:TblY}Mtr", doc="Sample vertical translation")
     astth = Cpt(EpicsMotor, "{Smpl-Ax:Tth}Mtr", doc="Sample-detector rotation")
     # asth = Cpt(EpicsMotor, "{Smpl-Ax:Th}Mtr", doc="Sample rotation")
     stblx = Cpt(EpicsMotor, "{Smpl-Ax:TblX}Mtr", doc="Sample Table X")
     stblx2 = Cpt(EpicsMotor, "{Smpl-Ax:X}Mtr", doc="Sample Table X2")
+  #  chi2 = Cpt(EpicsMotor, "{Smpl-Ax:Chi}Mtr", doc="Sample chi")
+
 
     oa = Cpt(EpicsMotor, "{Smpl-Ax:OR}Mtr", doc="β, output arm rotation")
     oh = Cpt(EpicsMotor, "{Smpl-Ax:OH}Mtr", doc="output arm vertical rotation")
@@ -148,6 +149,16 @@ class Geometry(PseudoPositioner):
         kind="config",
         doc="track mode, mm",
     )
+
+
+    det_mode = Cpt(
+        EpicsSignal,
+        "XF:12ID1:DetMode",
+        add_prefix=(),
+        kind="config",
+        doc="detector mode,",
+    )
+
 
     detector_offsets = Cpt(
         DetectorOffsets,
@@ -385,6 +396,7 @@ def cabt(*args, **kwargs):
     print("|" + "-" * 30 + "|")
 
 def mabt(*args, **kwargs):
+    # print(geo)
     yield from bps.abs_set(geo, args, **kwargs, wait=True)
 
 

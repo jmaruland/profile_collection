@@ -112,12 +112,14 @@ set_detector(pilatus100k)
 #set_detector(pilatus300k)
 
 
-def det_exposure_time(exp_t, meas_t=1):
-    # yield from bps.mov(
-    #     pilatus100k.cam.acquire_time, exp_t,
-    #     pilatus100k.cam.acquire_period, exp_t+0.2,
-    #     pilatus100k.cam.num_images, int(meas_t/exp_t))
+def det_exposure_time_pilatus(exp_t, meas_t=1):
+    yield from bps.mov(
+        pilatus100k.cam.acquire_time, exp_t,
+        pilatus100k.cam.acquire_period, exp_t+0.2,
+        pilatus100k.cam.num_images, int(meas_t/exp_t))
 
+
+def det_exposure_time(exp_t, meas_t=1):
     yield from bps.mov(
         lambda_det.cam.acquire_time, exp_t,
         lambda_det.cam.acquire_period, exp_t+0.2,

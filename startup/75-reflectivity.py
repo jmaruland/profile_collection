@@ -45,6 +45,8 @@ def reflection_scan(alpha_start, alpha_stop, num, detector='lambda_det', precoun
                 else:
                     print('You should not be there!')
                     break    
+                
+
 
                 def_att = yield from put_default_absorbers(energy.energy.position,
                                                            default_attenuation=default_attenuation.get())
@@ -59,14 +61,22 @@ def reflection_scan(alpha_start, alpha_stop, num, detector='lambda_det', precoun
                 i_max = ret['%s_stats4_max_value'%detector]['value']
                         
             # Adjust the absorbers to avoid saturation of detector
-            best_att, attenuation_factor, best_att_name = yield from calculate_and_set_absorbers(energy=energy.energy.position,
+            best_at, attenuation_factor, best_att_name = yield from calculate_and_set_absorbers(energy=energy.energy.position,
                                                                                                 i_max=i_max,
                                                                                                 att=def_att,
                                                                                                 precount_time=precount_time)
             
             # Upload the attenuation factor for the metadata
+
             yield from bps.mv(attenuation_factor_signal, attenuation_factor)
             yield from bps.mv(attenuator_name_signal, best_att_name)
+            
+            if best_att_name < 'att2':
+                yield from bps.mv(abs2, 2)
+                best_at, attenuation_factor, best_att_name, att_pos = best_att(1E-2, energy.energy.position)
+                yield from bps.mv(attenuation_factor_signal, attenuation_factor)
+                yield from bps.mv(attenuator_name_signal, best_att_name)
+
 
         # Set the exposure time to the define exp_time for the measurement
         yield from det_exposure_time(exp_time, exp_time)
@@ -92,8 +102,8 @@ def night_scan():
     yield from expert_reflection_scan(md={'sample_name': 'test_water12'})
 
 
-def fast_scan():
-    yield from expert_reflection_scan(md={'sample_name': 'water_large_4'})
+def fast_scan(name = 'test'):
+    yield from expert_reflection_scan(md={'sample_name': name})
 
 
 def expert_reflection_scan(md=None, detector='lambda_det'):
@@ -167,7 +177,7 @@ def expert_reflection_scan(md=None, detector='lambda_det'):
     # Move stable X2
     #yield from bps.mvr(geo.stblx2, -0.5)
     yield from bps.sleep(5)
-    alpha_start, alpha_stop, num, exp_time, precount_time = 0.6, 1, 9, 5, 0.1
+    alpha_start, alpha_stop, num, exp_time, precount_time = 0.6, 1, 9, 2, 0.1
     yield from reflection_scan(alpha_start=alpha_start,
                                alpha_stop=alpha_stop,
                                num=num,
@@ -183,7 +193,7 @@ def expert_reflection_scan(md=None, detector='lambda_det'):
     # Move stable X2
     #yield from bps.mvr(geo.stblx2, -0.5)
     yield from bps.sleep(5)
-    alpha_start, alpha_stop, num, exp_time, precount_time = 1, 2, 11, 5, 0.1 
+    alpha_start, alpha_stop, num, exp_time, precount_time = 1, 2.2, 13, 2, 0.1 
     yield from reflection_scan(alpha_start=alpha_start,
                                alpha_stop=alpha_stop,
                                num=num,
