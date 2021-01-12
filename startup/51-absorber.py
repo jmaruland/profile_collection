@@ -8,7 +8,8 @@ import bluesky.preprocessors as bpp
 from ophyd.pseudopos import pseudo_position_argument, real_position_argument
 
 print(f'Loading {__file__}')
-
+path = '/home/xf12id1/Downloads/'
+file_absorption = 'Mo_absorption.txt'
 
 class AbsShutter(PseudoPositioner):
     # angles
@@ -67,51 +68,6 @@ def shutter_flash_scan(*args, **kwargs):
 
 shutter = EpicsSignal("XF:12ID1-ECAT:EL2124-00-DO1", name="shutter")
 
-
-def att_setup():
-    """
-    Defining the PLS attenuator system. Each attenuators is defined by a thickness, a material and a name
-
-    Returns
-    -------
-    att_thi: A list containing all the attenuator thicknesses
-    att_mat: A list containing all the attenuator materials
-    att_name: A list containing all the attenuator names
-    att_name: A list of float containing the position of the attenuator motor at the beamline
-    """
-
-    # att_thi = [0, 24.28, 49.89, 74.97, 100.4, 126.11, 151.61, 177.62]
-    att_thi = [0, 25.0, 50.72, 76.24, 100.76, 126.41, 152.45, 177.62]
-
-    att_mat = ['Mo', 'Mo', 'Mo', 'Mo', 'Mo', 'Mo', 'Mo', 'Mo']
-    att_name = ['att0', 'att1', 'att2', 'att3', 'att4', 'att5', 'att6', 'att7']
-    att_pos = [0.22, 1, 2, 3, 4, 5, 6, 7]
-
-    '''
-    # Create a dictionary of attenuators for bar1, it can only be use one att at a time
-    att_bar1 = {'att0':{name:'att0', att_mat:'Mo', thickness:0.0,    postion:0.22, att_ener:1, att_mat_value:1},
-                'att1':{name:'att1', att_mat:'Mo', thickness:25.0,   postion:1.0,  att_ener:1, att_mat_value:1},
-                'att2':{name:'att2', att_mat:'Mo', thickness:50.72,  postion:2.0,  att_ener:1, att_mat_value:1},
-                'att3':{name:'att3', att_mat:'Mo', thickness:76.24,  postion:3.0,  att_ener:1, att_mat_value:1},
-                'att4':{name:'att4', att_mat:'Mo', thickness:100.76, postion:4.0,  att_ener:1, att_mat_value:1},
-                'att5':{name:'att5', att_mat:'Mo', thickness:126.41, postion:5.0,  att_ener:1, att_mat_value:1},
-                'att6':{name:'att6', att_mat:'Mo', thickness:152.45, postion:6.0,  att_ener:1, att_mat_value:1},
-                'att7':{name:'att7', att_mat:'Mo', thickness:177.62, postion:7.0,  att_ener:1, att_mat_value:1},
-                }
-    
-    Create a dictionary for the 2nd set of att that can be inserted in parallel
-    att_bar2 = {'att0':{'name':'att0', att_mat:'Mo', 'thickness':50.0, 'position':1, 'att_ener':1, 'att_mat_value':1},
-                'att1':{'name':'att1', att_mat:'Mo', 'thickness':50.0, 'position':1, 'att_ener':1, 'att_mat_value':1},
-                'att2':{'name':'att2', att_mat:'Mo', 'thickness':50.0, 'position':1, 'att_ener':1, 'att_mat_value':1},
-                'att3':{'name':'att3', att_mat:'Mo', 'thickness':50.0, 'position':1, 'att_ener':1, 'att_mat_value':1},
-                }
-    
-    return att_bar1, att_bar2
-    '''
-
-
-    return att_thi, att_mat, att_name, att_pos
-
 def attenuation_interpolation(path, filename, energy):
     """
     Interpolate the attenuation of a material at a given energy from the 1D curve obtained from CXRO files
@@ -136,14 +92,14 @@ def attenuation_interpolation(path, filename, energy):
     return att_ener
 
 
-def calc_attenuation(att_mat, energy):
+def calc_attenuation(att_bar1, energy):
     """
     Calculate the attenuation value of all PPLS absorbers given it material and energy. This part mainly check if the
     absorbers materials is defined and the data available, and if the picked energy is suitable for the beamline
 
     Parameters:
     -----------
-    :param att_mat: A list containing all the attenuator materials
+    :param material: A list containing all the attenuator materials
     :type att_mat: List of string
     :param energy: the energy at which the absorption needs to be interpolated
     :type energy: float
@@ -156,27 +112,20 @@ def calc_attenuation(att_mat, energy):
         raise attfuncs_Exception("error: No energy is input")
     elif energy > 24000 or energy < 5000:
         raise ValueError("error: energy entered is lower than 5keV or higher than 20keV")
-    # else:
-    #     print('The energy is', energy, 'eV')
 
     #load absorption of each material:
-    for mat in list(set(att_mat)):
+    for i, mat in enumerate(att_bar1['material']):
         if mat != 'Mo':
             raise ValueError("error: Foil material is not Mo and is not defined")
         else:
             att_ener_mo = attenuation_interpolation(path, file_absorption, energy)
+            att_bar1['material_att_coef'][i] = att_ener_mo
+            att_bar1['energy'][i] = energy
 
-    att_mat_value = [] * len(att_mat)
-    for mat in att_mat:
-        if mat == 'Mo':
-            att_mat_value += [att_ener_mo]
-        else:
-            raise ValueError("error: No other material than Mo aare defined so far")
-
-    return att_mat_value
+    return att_bar1
 
 
-def calculate_att_comb(att_thi, att_mat, energy):
+def calculate_att_comb(att_bar1, energy):
     """
     Calculate all the combination of attenuation at PPLS beamline
 
@@ -194,19 +143,68 @@ def calculate_att_comb(att_thi, att_mat, energy):
     T_coefs: A list of float which contains all the transmission coefficient of all the foils at a given energy
     """
     # Calculate the absorption coefficient of every foils
-    att_mat_value = calc_attenuation(att_mat, energy)
+    att_bar1 = calc_attenuation(att_bar1, energy)
    
     # Define all the combination of foils
-    t_coefs = np.zeros(np.shape(att_thi))
+    t_coefs = np.zeros(np.shape(att_bar1['thickness']))
 
     # Calculate the absorption of every attenuators for a given energy and store them as a list
-    for i, (att_mat_value, att_thi) in enumerate(zip(att_mat_value, att_thi)):
-        t_coefs[i] = np.exp(-1 * att_thi / att_mat_value)
-    return t_coefs
+    for i, (att_mat_value, att_thi) in enumerate(zip(att_bar1['material_att_coef'], att_bar1['thickness'])):
+        att_bar1['attenuator_aborp'][i] = np.exp(-1 * att_thi / att_mat_value)
+    return att_bar1
 
+def att_setup():
+    """
+    Defining the PLS attenuator system. Each attenuators is defined by a thickness, a material and a name
+
+    Returns
+    -------
+    att_thi: A list containing all the attenuator thicknesses
+    att_mat: A list containing all the attenuator materials
+    att_name: A list containing all the attenuator names
+    att_name: A list of float containing the position of the attenuator motor at the beamline
+    """
+
+    # att_thi = [0, 24.28, 49.89, 74.97, 100.4, 126.11, 151.61, 177.62]
+    att_thi = [0, 25.0, 50.72, 76.24, 100.76, 126.41, 152.45, 177.62]
+
+    att_mat = ['Mo', 'Mo', 'Mo', 'Mo', 'Mo', 'Mo', 'Mo', 'Mo']
+    att_name = ['att0', 'att1', 'att2', 'att3', 'att4', 'att5', 'att6', 'att7']
+    att_pos = [0.22, 1, 2, 3, 4, 5, 6, 7]
+
+    ener = energy.energy.position
+    ener = 9700
+    # Create a dictionary of attenuators for bar1, it can only be use one att at a time
+    att_bar1 = {'name':             ['att0', 'att1', 'att2', 'att3', 'att4', 'att5', 'att6', 'att7'],
+                'material':         [  'Mo',   'Mo',   'Mo',   'Mo',   'Mo',   'Mo',   'Mo',   'Mo'],
+                'thickness':        [   0.0,   25.0,  50.72,  76.24, 100.76, 126.41, 152.45, 177.62],
+                'position':          [  0.22,    1.0,    2.0,    3.0,    4.0,    5.0,    6.0,    7.0],
+                'energy':           [  ener,   ener,   ener,   ener,   ener,   ener,   ener,   ener],
+                'material_att_coef':[   1.0,    1.0,    1.0,    1.0,    1.0,    1.0,    1.0,    1.0],
+                'attenuator_aborp': [   1.0,    1.0,    1.0,    1.0,    1.0,    1.0,    1.0,    1.0]
+                }
+
+    att_bar1 = calc_attenuation(att_bar1, ener)
+    att_bar1 = calculate_att_comb(att_bar1,ener)
+
+    '''
+    Create a dictionary for the 2nd set of att that can be inserted in parallel
+    att_bar2 = {'att0':{'name':'att0', material:'Mo', 'thickness':50.0, 'position':1, 'att_ener':1, 'att_mat_value':1},
+                'att1':{'name':'att1', material:'Mo', 'thickness':50.0, 'position':1, 'att_ener':1, 'att_mat_value':1},
+                'att2':{'name':'att2', material:'Mo', 'thickness':50.0, 'position':1, 'att_ener':1, 'att_mat_value':1},
+                'att3':{'name':'att3', material:'Mo', 'thickness':50.0, 'position':1, 'att_ener':1, 'att_mat_value':1},
+                }
+    
+    return att_bar1, att_bar2
+    '''
+
+    return att_bar1
+
+#Load a default attenuation set-up that will be recalculated if needed
+att_bar1 = att_setup()
 
 # ToDo: Check the T_target to constrain that it only consider T lower than a number
-def best_att(T_target, energy):
+def best_att(T_target, att_bar1 = att_bar1):
     """
     Find the absorber combination that give the closest x-ray transmission from a taget value
 
@@ -224,19 +222,14 @@ def best_att(T_target, energy):
     att2_name[best_att]: A string which contains the name of the matching attenuator
     att_pos[best_att]: A float which contains the physical position of the matching attenuator
     """
-    att2_thi, att2_mat, att2_name, att_pos = att_setup()
-    T = calculate_att_comb(att2_thi, att2_mat, energy)
+    # Check if energy move or not
+    if energy.energy.position != int(att_bar1['energy'][0]) or att_bar1['attenuator_aborp'][2]==1:
+        att_bar1 = att_setup()
     
-    if T_target <= 0.99:
-        # valid_att = np.where(T <= T_target)[0]
-        valid_att = np.where(T)
-    else:
-        valid_att = np.where(T)
-
-    best_att = np.argmin(abs(T[valid_att]-T_target))
+    best_att = np.argmin(abs(np.asarray(att_bar1['attenuator_aborp'])-T_target))
     # print('The required attenuation is %s the best match is %s'%(T_target, T[best_att]))
 
-    return best_att, T[best_att], att2_name[best_att], att_pos[best_att]
+    return best_att, att_bar1['attenuator_aborp'][best_att], att_bar1['name'][best_att], att_bar1['position'][best_att]
 
 
 def put_default_absorbers(energy, default_attenuation=1e-07):
@@ -256,7 +249,7 @@ def put_default_absorbers(energy, default_attenuation=1e-07):
     -------
     default_factor: A float corresponding to the attenuation of the default attenuator
     """
-    default_att, default_factor, default_name, default_position = best_att(default_attenuation, energy)
+    default_att, default_factor, default_name, default_position = best_att(default_attenuation)
 
     if energy < 9000 and energy > 10000:
         raise ValueError('error: the energy entered is not correct')
@@ -300,7 +293,7 @@ def calculate_and_set_absorbers(energy, i_max, att, precount_time=0.1):
     att_needed = 1 / (max_theo_precount / i_max_det)
 
     # Calculate and move the absorber to the chosen one
-    best_at, att_factor, att_name, att_pos = best_att(att_needed, energy)
+    best_at, att_factor, att_name, att_pos = best_att(att_needed)
     yield from bps.mv(abs2, att_pos)
 
     return best_at, att_factor, att_name
@@ -323,29 +316,25 @@ def define_all_att_thickness():
         ratio = yield from define_att_thickness(attenuator1=nu+1, attenuator2=nu, th_angle=0.15)
         ratios[nu] = 1
         ratios *= ratio
-        print('ratio between %s and %s'%(nu+1, nu), ratios[5])
+        print('ratio between %s and %s'%(nu+1, nu), ratios[nu])
     yield from bps.close_run()
 
     att_ener = attenuation_interpolation(path=path, filename=file_absorption, energy=energy.energy.position)
     att_thickness_new = att_ener * np.log(ratios)
 
-
-    print('The new attenuators thickness are to {:.2f} um while the old were {:.2f} um'.format(att_thickness_new, att_thickness_old))
+    current_att_thickness = attenuator_thickness_load()
+    print('The new calculated attenuators thickness are to {:.2f} um while the current were {:.2f} um'.format(att_thickness_new, current_att_thickness))
     response = input('Do you want to use the new thicknesses? (y/[n]) ')
 
     if response is 'y' or response is 'Y':
         print('The new attenuators thickness are to {:.2f} um'.format(att_thickness_new))
         #Need to implement the new thickness
+        attenuator_thickness_save(att_thickness_new)
 
     else:
-        print('The old attenuators thicknesses were kept at {:.2f} um'.format(current_att_thickness))
+        print('The current attenuators thicknesses were kept at {:.2f} um'.format(current_att_thickness))
 
 
-#ToDo: Need to create the csv file in the startup collection of PLS
-#ToDo: Make sure that the values are read and write correctly
-#ToDo: Check the function name since copy and paste from SMI
-#ToDo: Look if read by default
-#ToDo: Need to read the attenuator thickness from the old or new calculated values
 def attenuator_thickness_load():
     '''
     Load the previous attenuator thickness
@@ -368,11 +357,7 @@ def attenuator_thickness_load():
 
     return att_thickness
 
-
-current_att_thickness = attenuator_thickness_load()
-
-
-def attenuator_thickness_save(attenuators_thckness):
+def attenuator_thickness_save(attenuators_thickness):
     '''
     Save the new attenuators thckness
     '''
@@ -382,14 +367,14 @@ def attenuator_thickness_save(attenuators_thckness):
 
     # collect the current positions of motors
     current_config = {
-        'att0': attenuators_thckness[0],
-        'att1': attenuators_thckness[1],
-        'att2': attenuators_thckness[2],
-        'att3': attenuators_thckness[3],
-        'att4': attenuators_thckness[4],
-        'att5': attenuators_thckness[5],
-        'att6': attenuators_thckness[6],
-        'att7': attenuators_thckness[7],
+        'att0': attenuators_thickness[0],
+        'att1': attenuators_thickness[1],
+        'att2': attenuators_thickness[2],
+        'att3': attenuators_thickness[3],
+        'att4': attenuators_thickness[4],
+        'att5': attenuators_thickness[5],
+        'att6': attenuators_thickness[6],
+        'att7': attenuators_thickness[7],
         'time': time.ctime()
     }
 
@@ -408,59 +393,28 @@ def attenuator_thickness_save(attenuators_thckness):
 
 def define_att_thickness(attenuator1, attenuator2, th_angle):
     detector='lambda_det'
-    attenuator_name_signal = Signal(name='attenuator_name', value='abs1')
-    exposure_time = Signal(name='exposure_time', value=1)
 
     yield from mabt(th_angle, th_angle, 0)
     yield from bps.mv(abs2, attenuator1)
     yield from bps.sleep(10)
-
     yield from det_exposure_time(5, 5)
-    yield from bps.mv(exposure_time, 5)
-    yield from bps.mv(attenuator_name_signal, 'abs%s'%attenuator1)
 
     yield from bps.mv(shutter, 1)
-    ret = yield from bps.trigger_and_read(area_dets, name='precount')
-
-    # ret = yield from bps.trigger_and_read(all_area_dets +
-    #                                 [geo] +
-    #                                 [attenuation_factor_signal] +
-    #                                 [attenuator_name_signal] +
-    #                                 [exposure_time],
-    #                                 name='primary')
-    
+    ret = yield from bps.trigger_and_read(area_dets, name='precount')    
     yield from bps.mv(shutter, 0)
 
     i_max1 = ret['%s_stats4_total'%detector]['value']
 
-
     yield from bps.mv(abs2, attenuator2)
     yield from bps.sleep(10)
-
     yield from det_exposure_time(5, 5)
-    yield from bps.mv(exposure_time, 5)
-    yield from bps.mv(attenuator_name_signal, 'abs%s'%attenuator2)
 
     yield from bps.mv(shutter, 1)
     ret = yield from bps.trigger_and_read(area_dets, name='precount')
-
-    # ret = yield from bps.trigger_and_read(all_area_dets +
-    #                                 [geo] +
-    #                                 [attenuation_factor_signal] +
-    #                                 [attenuator_name_signal] +
-    #                                 [exposure_time],
-    #                                 name='primary')
     yield from bps.mv(shutter, 0)
     i_max2 = ret['%s_stats4_total'%detector]['value']
 
     ratio = i_max2 / i_max1
-    
-    # att_ener = attenuation_interpolation(path, filename, energy.energy.position)
-
     return ratio
 
-
-
-
-path = '/home/xf12id1/Downloads/'
-file_absorption = 'Mo_absorption.txt'
+current_att_thickness = attenuator_thickness_load()
