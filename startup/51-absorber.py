@@ -84,8 +84,31 @@ def att_setup():
     att_thi = [0, 25.0, 50.72, 76.24, 100.76, 126.41, 152.45, 177.62]
 
     att_mat = ['Mo', 'Mo', 'Mo', 'Mo', 'Mo', 'Mo', 'Mo', 'Mo']
-    att_name = ['att0', 'att1', 'att2', 'att3', 'att4', 'att5', 'att5', 'att7']
+    att_name = ['att0', 'att1', 'att2', 'att3', 'att4', 'att5', 'att6', 'att7']
     att_pos = [0.22, 1, 2, 3, 4, 5, 6, 7]
+
+    '''
+    # Create a dictionary of attenuators for bar1, it can only be use one att at a time
+    att_bar1 = {'att0':{name:'att0', att_mat:'Mo', thickness:0.0,    postion:0.22, att_ener:1, att_mat_value:1},
+                'att1':{name:'att1', att_mat:'Mo', thickness:25.0,   postion:1.0,  att_ener:1, att_mat_value:1},
+                'att2':{name:'att2', att_mat:'Mo', thickness:50.72,  postion:2.0,  att_ener:1, att_mat_value:1},
+                'att3':{name:'att3', att_mat:'Mo', thickness:76.24,  postion:3.0,  att_ener:1, att_mat_value:1},
+                'att4':{name:'att4', att_mat:'Mo', thickness:100.76, postion:4.0,  att_ener:1, att_mat_value:1},
+                'att5':{name:'att5', att_mat:'Mo', thickness:126.41, postion:5.0,  att_ener:1, att_mat_value:1},
+                'att6':{name:'att6', att_mat:'Mo', thickness:152.45, postion:6.0,  att_ener:1, att_mat_value:1},
+                'att7':{name:'att7', att_mat:'Mo', thickness:177.62, postion:7.0,  att_ener:1, att_mat_value:1},
+                }
+    
+    Create a dictionary for the 2nd set of att that can be inserted in parallel
+    att_bar2 = {'att0':{'name':'att0', att_mat:'Mo', 'thickness':50.0, 'position':1, 'att_ener':1, 'att_mat_value':1},
+                'att1':{'name':'att1', att_mat:'Mo', 'thickness':50.0, 'position':1, 'att_ener':1, 'att_mat_value':1},
+                'att2':{'name':'att2', att_mat:'Mo', 'thickness':50.0, 'position':1, 'att_ener':1, 'att_mat_value':1},
+                'att3':{'name':'att3', att_mat:'Mo', 'thickness':50.0, 'position':1, 'att_ener':1, 'att_mat_value':1},
+                }
+    
+    return att_bar1, att_bar2
+    '''
+
 
     return att_thi, att_mat, att_name, att_pos
 
