@@ -73,7 +73,7 @@ def reflection_scan(alpha_start, alpha_stop, num, detector='lambda_det', precoun
             
             if best_att_name < 'att2':
                 yield from bps.mv(abs2, 2)
-                best_at, attenuation_factor, best_att_name, att_pos = best_att(1E-2, energy.energy.position)
+                best_at, attenuation_factor, best_att_name, att_pos = best_att(1E-2)
                 yield from bps.mv(attenuation_factor_signal, attenuation_factor)
                 yield from bps.mv(attenuator_name_signal, best_att_name)
 
