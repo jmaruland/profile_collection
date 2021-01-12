@@ -182,20 +182,63 @@ def unpark():
     yield from bps.mov(geo.stblx,250)
         
 
+filter1 = EpicsSignal('XF:12ID1:Fltr:1', name='filter1')
+filter2 = EpicsSignal('XF:12ID1:Fltr:2', name='filter2')
+filter3 = EpicsSignal('XF:12ID1:Fltr:3', name='filter3')
+filter4 = EpicsSignal('XF:12ID1:Fltr:4', name='filter4')
 
-def ames(name):
-    # This takes the reflectivity
-    yield from bps.mv(geo.stblx2,3)
 
+
+# schi = Cpt(EpicsMotor, "XF:12ID1-ES{Smpl-Ax:Chi}Mtr")
+    
+schi = EpicsMotor('XF:12ID1-ES{Smpl-Ax:Chi}Mtr', name='schi')
+
+
+
+
+def ames3():
+    yield from bps.mv(flow3,5.0)
+    yield from bps.sleep(100) 
     yield from bps.mv(flow3,3.1)
     yield from bps.mv(geo.det_mode,1)
     
-    # sets sample height at alpha=0.08
-    yield from sample_height_set()
+# sample 1 PEG5k-AuNP10-PEG5k-AuNP5_1:1_100mK2CO3
+    yield from bps.mv(schi,-0.1)
+    yield from bps.mv(geo.stblx2,43.5)
+    yield from sample_height_set_coarse()
+    yield from ames("Pe5Au_c10_PB_500mMNaCl")
 
-    print('Sleeping time before reflectivity')
-    yield from bps.sleep(100)
-    yield from bps.mv(flow3,2.7)
+# sample 2 PEG2k-AuNP10-PEG5k-AuNP5_1:1_100mK2CO3
+    yield from bps.mv(schi,-0.1)
+    yield from bps.mv(geo.stblx2,13)
+    yield from sample_height_set_coarse()
+    yield from ames("Pg2Au_c20_Wat_10mMNaCl")
+
+# sample 3 PEG2k-AuNP10-PEG2k-AuNP5_1:1_100mK2CO3
+    yield from bps.mv(geo.stblx2,-18.25)
+    yield from sample_height_set_coarse()
+    yield from bps.mv(schi,0.5)
+    yield from ames("Pg2Au_c20_PB_10mMNaCl")
+    yield from shclose()
+    yield from bps.mv(flow3,0.0)
+
+
+
+
+
+def ames(name):
+    # This takes the reflectivity
+    # yield from bps.mv(geo.stblx2,0)
+
+   # yield from bps.mv(flow3,3.5)
+    yield from bps.mv(geo.det_mode,1)
+    
+    # sets sample height at alpha=0.08
+    yield from sample_height_set_fine()
+
+    #print('Sleeping time before reflectivity')
+    #yield from bps.sleep(100)
+    #yield from bps.mv(flow3,2.7)
     
     # takes the reflectivity
     yield from fast_scan(name)
@@ -205,7 +248,7 @@ def ames(name):
     yield from mabt(0.08,0.08,0)
     
     print('Start the height scan before GID')
-    yield from sample_height_set()
+    yield from sample_height_set_fine()
 
     # This takes the GID
     yield from bps.mv(geo.det_mode,2)
@@ -217,7 +260,7 @@ def ames(name):
                        attenuator=1)
 
     yield from bps.mvr(geo.stblx2,2)
-    yield from sample_height_set()
+    yield from sample_height_set_fine()
     yield from bps.mv(geo.det_mode,2)
     alphai = 0.11
     yield from gid_new(md={'sample_name': name+'_fresh1_GID'},
@@ -227,7 +270,7 @@ def ames(name):
                        attenuator=1)
 
     yield from bps.mvr(geo.stblx2,-4)
-    yield from sample_height_set()
+    yield from sample_height_set_fine()
     yield from bps.mv(geo.det_mode,2)
     alphai = 0.11
     yield from gid_new(md={'sample_name': name+'_fresh2_GID'},
@@ -235,21 +278,34 @@ def ames(name):
                        detector = 'pilatus100k',
                        alphai = alphai,
                        attenuator=1)
-    
-    yield from bps.mv(flow3,2.7)
-    yield from bps.mv(geo.stblx2,3.0)
+    yield from bps.mvr(geo.stblx2,2)
 
-def sample_height_set():
+#    yield from bps.mv(flow3,2.7)
+#    yield from bps.mv(geo.stblx2,3.0)
+
+def sample_height_set_fine():
     yield from bps.mv(geo.det_mode,1)
-
     yield from bps.mv(abs2,6)
     yield from mabt(0.08,0.08,0)
-    
     print('Start the height scan before GID')
     yield from shscan(-0.2,0.2,21)
     tmp=peaks.cen['lambda_det_stats2_total'] 
     yield from bps.mv(sh,tmp)
     yield from set_sh(-0.9945)
+
+def sample_height_set_coarse():
+    yield from bps.mv(geo.det_mode,1)
+    yield from bps.mv(abs2,6)
+    yield from mabt(0.08,0.08,0)
+    print('Start the height scan before GID')
+    yield from shscan(-1,1,41)
+    tmp=peaks.cen['lambda_det_stats2_total'] 
+    yield from bps.mv(sh,tmp)
+    yield from set_sh(-0.9945)
+
+
+
+
 
 
 
