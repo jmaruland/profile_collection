@@ -33,9 +33,9 @@ class Lambda(SingleTriggerV33, LambdaDetector):
     # from 2020 to 2030 with 777 permissions, owned by xf12id1 user.
     tiff = Cpt(TIFFPluginWithFileStore,
                suffix="TIFF1:",
-               write_path_template="/disk2/jpls_data/data/lambda/%Y/%m/%d/",
-               read_path_template="/nsls2/jpls/data/lambda/%Y/%m/%d/",
-               root='/nsls2/jpls/data')
+               write_path_template="/nsls2/xf12id1/data/lambda/%Y/%m/%d/",
+               read_path_template="/nsls2/xf12id1/data/lambda/%Y/%m/%d/",
+               root='/nsls2/xf12id1/data') 
 
     roi1 = Cpt(ROIPlugin, 'ROI1:')
     roi2 = Cpt(ROIPlugin, 'ROI2:')
