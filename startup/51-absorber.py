@@ -177,7 +177,8 @@ def att_setup():
     # Create a dictionary of attenuators for bar1, it can only be use one att at a time
     att_bar1 = {'name':             ['att0', 'att1', 'att2', 'att3', 'att4', 'att5', 'att6', 'att7'],
                 'material':         [  'Mo',   'Mo',   'Mo',   'Mo',   'Mo',   'Mo',   'Mo',   'Mo'],
-                'thickness':        [   0.0,   25.0,  50.72,  76.24, 100.76, 126.41, 152.45, 177.62],
+                #  [   0.0,   25.0,  50.72,  76.24, 100.76, 126.41, 152.45, 177.62]
+                'thickness':              [0,  26.35,   52.5, 77.923,103.062,130.2615, 154.1797, 181.824],
                 'position':          [  0.22,    1.0,    2.0,    3.0,    4.0,    5.0,    6.0,    7.0],
                 'energy':           [  ener,   ener,   ener,   ener,   ener,   ener,   ener,   ener],
                 'material_att_coef':[   1.0,    1.0,    1.0,    1.0,    1.0,    1.0,    1.0,    1.0],
@@ -304,16 +305,19 @@ all_area_dets = [lambda_det, quadem]
 @bpp.stage_decorator(all_area_dets)
 
 def define_all_att_thickness():
-    ratios = np.zeros((6,))
+    ratios = np.zeros((8,))
     base_md = {'plan_name': 'calibration_att'}
-    yield from bps.mv(S2.vg, 0.05)
-    yield from bps.mv(S2.vc, 0)
-    yield from bps.mv(S2.hg, 0.3)
-    yield from bps.mv(S2.hc, 0.25)
+    # yield from bps.mv(S2.vg, 0.05)
+    # yield from bps.mv(S2.vc, 0)
+    # yield from bps.mv(S2.hg, 0.3)
+    # yield from bps.mv(S2.hc, -0.1)
 
     yield from bps.open_run(md=base_md)
-    for nu in range(0, 8, 1)[::-1]:
-        ratio = yield from define_att_thickness(attenuator1=nu+1, attenuator2=nu, th_angle=0.15)
+
+    #From 0 to 6 because the last ratio should be 0 
+    th_angle = [0.1, 0.2, 0.25, 0.35, 0.6, 1.2, 2]
+    for nu, th_angles in zip(range(0, 7, 1)[::-1], th_angle):
+        ratio = yield from define_att_thickness(attenuator1=nu+1, attenuator2=nu, th_angle=th_angles)
         ratios[nu] = 1
         ratios *= ratio
         print('ratio between %s and %s'%(nu+1, nu), ratios[nu])
@@ -323,16 +327,16 @@ def define_all_att_thickness():
     att_thickness_new = att_ener * np.log(ratios)
 
     current_att_thickness = attenuator_thickness_load()
-    print('The new calculated attenuators thickness are to {:.2f} um while the current were {:.2f} um'.format(att_thickness_new, current_att_thickness))
+    print('The new calculated attenuators thickness are to %s um while the current were %s um'%(att_thickness_new, current_att_thickness))
     response = input('Do you want to use the new thicknesses? (y/[n]) ')
 
     if response is 'y' or response is 'Y':
-        print('The new attenuators thickness are to {:.2f} um'.format(att_thickness_new))
+        print('The new attenuators thickness are to %s um'%att_thickness_new)
         #Need to implement the new thickness
         attenuator_thickness_save(att_thickness_new)
 
     else:
-        print('The current attenuators thicknesses were kept at {:.2f} um'.format(current_att_thickness))
+        print('The current attenuators thicknesses were kept at %s um'%current_att_thickness)
 
 
 def attenuator_thickness_load():
