@@ -8,11 +8,16 @@ all_area_dets = [lambda_det, quadem]
 
 
 @bpp.stage_decorator(all_area_dets)
-def reflection_scan(alpha_start, alpha_stop, num, detector='lambda_det', precount_time=1, exp_time=1, default_att=1e-7, md=None):
+def reflection_scan(alpha_start, alpha_stop, num, detector='lambda_det', precount_time=1, exp_time=1, default_att=1e-7, tilt_stage=False, md=None):
     
     for alpha in np.linspace(alpha_start, alpha_stop, num):
         # Move to the good geometry position
-        yield from mabt(alpha, alpha, 0)
+        if tilt_stage:
+            yield from nabt(alpha, alpha, alpha*0.025)
+        else:
+             yield from mabt(alpha, alpha, 0)
+
+        # yield from mabt(geo.alpha=0,geo.samchi=x,geo.beta=2*x)
         yield from bps.sleep(5)
 
         # Move the default attenuator in for the pre-count
@@ -102,11 +107,11 @@ def night_scan():
     yield from expert_reflection_scan(md={'sample_name': 'test_water12'})
 
 
-def fast_scan(name = 'test'):
-    yield from expert_reflection_scan(md={'sample_name': name})
+def fast_scan(name = 'test', tilt_stage=False):
+    yield from expert_reflection_scan(md={'sample_name': name},tilt_stage=tilt_stage)
 
 
-def expert_reflection_scan(md=None, detector='lambda_det'):
+def expert_reflection_scan(md=None, detector='lambda_det',tilt_stage=False):
     """
     Macros to set all the parameters in order to record all the required information for further analysis,
     such as the attenuation factors, detectors, ROIS, ...
@@ -121,9 +126,11 @@ def expert_reflection_scan(md=None, detector='lambda_det'):
 
     # Bluesky command to record metadata
     base_md = {'plan_name': 'reflection_scan',
+               'cycle': RE.md['cycle'],
+               'proposal_number': RE.md['cycle'] + '_' + RE.md['main_proposer'],
                'detector': detector, 
                'energy': energy.energy.position,
-               'rois': [203, 193, 207, 221]
+               'rois': [198, 197, 207, 217]
                }
     base_md.update(md or {})
 
@@ -153,7 +160,8 @@ def expert_reflection_scan(md=None, detector='lambda_det'):
                                precount_time=precount_time,
                                exp_time=exp_time,
                                default_att = default_attenuation.value,
-                               md=md)
+                               md=md,
+                               tilt_stage=tilt_stage)
     
     print('1st set done')
     print('2nd set starting')
@@ -169,7 +177,8 @@ def expert_reflection_scan(md=None, detector='lambda_det'):
                                precount_time=precount_time,
                                exp_time=exp_time,
                                default_att = default_attenuation.value,
-                               md=md)
+                               md=md,
+                               tilt_stage=tilt_stage)
     
     print('2nd set done', 'default attenuation is', default_attenuation)
     print('3rd set starting')
@@ -185,7 +194,8 @@ def expert_reflection_scan(md=None, detector='lambda_det'):
                                precount_time=precount_time,
                                exp_time=exp_time,
                                default_att = default_attenuation.value,
-                               md=md)
+                               md=md,
+                               tilt_stage=tilt_stage)
 
     print('3rd set done')
     print('4th set starting')
@@ -193,7 +203,7 @@ def expert_reflection_scan(md=None, detector='lambda_det'):
     # Move stable X2
     #yield from bps.mvr(geo.stblx2, -0.5)
     yield from bps.sleep(5)
-    alpha_start, alpha_stop, num, exp_time, precount_time = 1, 2.2, 13, 2, 0.1 
+    alpha_start, alpha_stop, num, exp_time, precount_time = 1, 2., 11, 2, 0.1 
     yield from reflection_scan(alpha_start=alpha_start,
                                alpha_stop=alpha_stop,
                                num=num,
@@ -201,7 +211,8 @@ def expert_reflection_scan(md=None, detector='lambda_det'):
                                precount_time=precount_time,
                                exp_time=exp_time,
                                default_att = default_attenuation.value,
-                               md=md)
+                               md=md,
+                               tilt_stage=tilt_stage)
 
     print('4th set done')
     print('5th set starting')
@@ -217,7 +228,8 @@ def expert_reflection_scan(md=None, detector='lambda_det'):
     #                            precount_time=precount_time,
     #                            exp_time=exp_time,
     #                            default_att = default_attenuation.value,
-    #                            md=md)
+    #                            md=md,
+    #                            tilt_stage=tilt_stage)
 
     print('5th set done')
 
