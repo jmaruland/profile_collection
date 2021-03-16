@@ -57,9 +57,9 @@ class TIFFPluginWithFileStore(TIFFPlugin, FileStoreTIFFIterativeWrite):
 class Pilatus(SingleTriggerV33, PilatusDetector):
     tiff = Cpt(TIFFPluginWithFileStore,
                suffix="TIFF1:",
-               write_path_template="/disk2/jpls_data/data/pilatus100k/%Y/%m/%d/",
-               read_path_template="/nsls2/jpls/data/pilatus100k/%Y/%m/%d/",  # override this on instances using instance.tiff.write_file_path
-               root='/nsls2/jpls/data')
+               write_path_template="/nsls2/xf12id1/data/pilatus100k/%Y/%m/%d/",
+               read_path_template="/nsls2/xf12id1/data/pilatus100k/%Y/%m/%d/",  # override this on instances using instance.tiff.write_file_path
+               root='/nsls2/xf12id1/data')
 
     roi1 = Cpt(ROIPlugin, 'ROI1:')
     roi2 = Cpt(ROIPlugin, 'ROI2:')
