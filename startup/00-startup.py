@@ -3,6 +3,8 @@ import logging
 from nslsii import configure_base
 from IPython import get_ipython
 from bluesky.callbacks.zmq import Publisher
+import functools
+
 
 configure_base(get_ipython().user_ns, "jpls")
 
