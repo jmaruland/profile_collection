@@ -8,7 +8,7 @@ import bluesky.preprocessors as bpp
 from ophyd.pseudopos import pseudo_position_argument, real_position_argument
 
 print(f'Loading {__file__}')
-path = '/home/xf12id1/Downloads/'
+path = '/home/xf12id1/.ipython/profile_collection/startup/'
 file_absorption = 'Mo_absorption.txt'
 
 class AbsShutter(PseudoPositioner):
