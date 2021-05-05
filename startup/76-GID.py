@@ -111,8 +111,10 @@ def gid_new(md=None, exp_time=1, detector = 'pilatus100k', alphai = 0.1, attenua
 
     # Creation of a fignal to record the attenuation
     yield from bps.mv(abs2, attenuator)# to avoid pilatus saturation
-    attenuation = calculate_att_comb([np.sum(current_att_thickness[0:attenuator+1])], ['Mo'], energy.energy.position)
-    attenuation_factor_signal = Signal(name='attenuation', value = attenuation[0])
+
+    # attenuation = calculate_att_comb([np.sum(current_att_thickness[0:attenuator+1])], ['Mo'], energy.energy.position)
+    # attenuation_factor_signal = Signal(name='attenuation', value = attenuation[0])
+    attenuation_factor_signal = Signal(name='attenuation', value = att_bar1['attenuator_aborp'][attenuator])
 
     # Set and record the exposure time to 0.1 for the precount
     exposure_time = Signal(name='exposure_time', value = exp_time)
