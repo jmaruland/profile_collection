@@ -17,13 +17,23 @@ class SlitsWithTopBottomInbOutb(Device):
     absorber1 = Cpt(EpicsMotor, "X}Mtr")
 
 class Smaract1(Device):
-    absorber1 = Cpt(EpicsMotor, "X1}Mtr")
+   absorber1 = Cpt(EpicsMotor, "X}Mtr")
+
+class Smaract2(Device):
+   position1 = Cpt(EpicsMotor, "Y}Mtr")
+
 
 
 
 S1 = SlitsWithTopBottomInbOutb("XF:12ID1-ES{Slt1-Ax:", name="S1")
 S2 = SlitsWithGapAndCenter("XF:12ID1-ES{Slt2-Ax:", name="S2")
-S3 = Smaract1("XF:12ID1-ES{SM:1-Ax:", name="S3")
+#S3 = Smaract1("XF:12ID1-ES{SM:1-Ax:", name="S3")
+S3 = Smaract1("XF:12ID1-ES{Fltr:1-Ax:", name="S3")
+S4 = Smaract1("XF:12ID1-ES{BPM:1-Ax:", name="S4")
+S5 = Smaract2("XF:12ID1-ES{BPM:1-Ax:", name="S5")
+
+
+
 
 
 class SLTH(Device):
