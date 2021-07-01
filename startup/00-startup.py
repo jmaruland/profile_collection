@@ -25,7 +25,7 @@ async def reset_user_position(msg):
 
     old_value = obj.position
     obj.set_current_position(val)
-    print(f"{obj.name} reset from {old_value:.3f} to {val:.3f}")
+    print(f"{obj.name} reset from {old_value:.4f} to {val:.4f}")
 
 RE.register_command("reset_user_position", reset_user_position)
 
