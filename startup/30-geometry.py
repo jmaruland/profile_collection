@@ -53,6 +53,13 @@ class DetectorOffsets(Device):
         add_prefix=(),
         kind="config"
         )
+    det_4= Cpt(
+        EpicsSignal,
+        "XF:12ID1:L_14",
+        add_prefix=(),
+        kind="config"
+        )
+
 
 
     #mode = Cpt(EpicsSignal, "L_14", kind="config")
@@ -150,6 +157,14 @@ class Geometry(PseudoPositioner):
         doc="track mode, mm",
     )
 
+    L11 = Cpt(
+        EpicsSignal,
+        "XF:12ID1:L_11",
+        add_prefix=(),
+        kind="config",
+        doc="L11 tth offset",
+    )
+
 
     det_mode = Cpt(
         EpicsSignal,
@@ -218,7 +233,7 @@ class Geometry(PseudoPositioner):
 
         # bragg is sin(theta_bragg)
         # self.wlength = 12.39842 / self.Energy.get()
-        self.wlength = 12.39842 / (0.001 * energy.energy.position)
+        self.wlength = 12.39842 / (0.001 * energy.energy.position)  #in A
         _lambda = self.wlength
 
         # COMMENT,  THIS MIGHT NOT UPDATE IN TIME
@@ -292,6 +307,7 @@ class Geometry(PseudoPositioner):
             1: 'det_1',
             2: 'det_2',
             3: 'det_3',
+            4: 'det_4',
         }
 
         if det_mode not in det_dict:
@@ -302,6 +318,9 @@ class Geometry(PseudoPositioner):
         _tth_offset = np.deg2rad(getattr(self.detector_offsets, det_dict[det_mode]).get())
 
         _astth = _tth + _stth + _tth_offset
+    
+        #print("calcualted _astth=",np.rad2deg(_astth))
+        #print("_tth=",np.rad2deg(_tth), "   _stth=",np.rad2deg(_stth), "tth_offset=",np.rad2deg(_tth_offset))
         real_pos = self.real_position
         return self.RealPosition(
             th=np.rad2deg(_th),
@@ -351,8 +370,25 @@ class Geometry(PseudoPositioner):
             raise ValueError(msg)
 
         _alpha = np.arcsin(tmp) * (180.0 / np.pi)
+        # actually output theta
+        det_mode = int(self.detector_offsets.det_mode.get())
 
-        stth = real_pos.astth - real_pos.tth
+        det_dict = {
+            1: 'det_1',
+            2: 'det_2',
+            3: 'det_3',
+            4: 'det_4',
+        }
+
+        if det_mode not in det_dict:
+            raise UserError(f'The "det_mode={det_mode}" you are trying to use '
+                            f'is not supported. Use one of {list(det_dict.keys())} '
+                            f'for the det_mode.')
+
+        _tth_offset = getattr(self.detector_offsets, det_dict[det_mode]).get()
+        #print(f'{_tth_offset}')
+        stth = real_pos.astth - real_pos.tth - _tth_offset
+
 
         # TODO compute beta from the other motors
 
@@ -386,7 +422,7 @@ def cabt(*args, **kwargs):
         "footprint(mm)=",
         S2.vg.user_readback.get() / ((args[0] + 0.001) * 3.14159 / 180),
     )
-    print("qz=", (4 * np.pi / geo.wlength.real) * np.sin(args[0] * 3.14159 / 180))
+    print("fqz=", (4 * np.pi / geo.wlength.real) * np.sin(args[0] * 3.14159 / 180))
 
     cur = geo.real_position
     print("| {:<6s} |{:>9s} |{:>9s} |".format("MOTOR", "TARGET", "CURRENT"))
@@ -398,6 +434,14 @@ def cabt(*args, **kwargs):
 def mabt(*args, **kwargs):
     # print(geo)
     yield from bps.abs_set(geo, args, **kwargs, wait=True)
+
+def nabt(alpha_0,beta_0,stth_0):
+    # print(geo)
+    yield from bps.mv(geo.alpha, 0)
+    yield from bps.mv(geo.beta,2*beta_0)
+    yield from bps.mv(tilt.y,alpha_0)
+    yield from bps.mv(geo.stth,stth_0)
+
 
 
 def my_over_night():
