@@ -166,7 +166,11 @@ def att_setup():
     """
 
     # att_thi = [0, 24.28, 49.89, 74.97, 100.4, 126.11, 151.61, 177.62]
-    att_thi = [0, 25.0, 50.72, 76.24, 100.76, 126.41, 152.45, 177.62]
+    #att_thi = [0, 25.0, 50.72, 76.24, 100.76, 126.41, 152.45, 177.62]
+    #june 26, 2021
+    att_thi = [0, 24.69281, 50.299573, 75.855897, 100.892898, 127.098354, 153.204123, 179.600359]       
+
+    
 
     att_mat = ['Mo', 'Mo', 'Mo', 'Mo', 'Mo', 'Mo', 'Mo', 'Mo']
     att_name = ['att0', 'att1', 'att2', 'att3', 'att4', 'att5', 'att6', 'att7']
@@ -285,7 +289,7 @@ def calculate_and_set_absorbers(energy, i_max, att, precount_time=0.1):
     att_name: A string which contains the name of the matching attenuator
     """
     # i_max_det is the maximum allowed pixel count (nominal value is 1e4)
-    i_max_det = 10000  # 50000 if lambda, 500000 if pilatus
+    i_max_det = 5000  # 50000 if lambda, 500000 if pilatus
 
     # Theoretical maximum count to be seen by the detector
     max_theo_precount = i_max / (att * precount_time)
@@ -422,3 +426,4 @@ def define_att_thickness(attenuator1, attenuator2, th_angle):
     return ratio
 
 current_att_thickness = attenuator_thickness_load()
+

@@ -1,7 +1,7 @@
 #Set the detector to trigger
-all_area_dets = [xs, quadem]
+all_area_dets_fluo = [xs, quadem]
 
-@bpp.stage_decorator(all_area_dets)
+@bpp.stage_decorator(all_area_dets_fluo)
 def reflection_fluorescence_scan(alpha_start, alpha_stop, num, detector='xs', precount_time=1, exp_time=1, md=None):
 
     for alpha in np.linspace(alpha_start, alpha_stop, num):
@@ -17,8 +17,10 @@ def reflection_fluorescence_scan(alpha_start, alpha_stop, num, detector='xs', pr
         
         # Open and close teh shutter manually to mitigate beam damage
         yield from bps.mv(shutter, 1)
-        yield from bps.trigger_and_read(all_area_dets + [geo] + [exposure_time],
+        print('about to take data')
+        yield from bps.trigger_and_read(all_area_dets_fluo + [geo] + [exposure_time],
                                         name='primary')
+        print('after_trigger_Read')
         yield from bps.mv(shutter, 0)   
 
 def fast_scan_fluo(name = 'test'):
@@ -58,9 +60,9 @@ def expert_reflection_scan_fluo(md=None, detector='xs'):
 
     #Initialize the fluorescence default set-up (i.e. abs to 1 and det mode to 4)
     yield from bps.mv(geo.det_mode,4)
-    yield from bps.mv(abs2, 1)
-
-    alpha_start, alpha_stop, num, exp_time = 0.05, 0.3, 25, 2
+    yield from bps.mv(abs2, 0)
+# increased counting time and reduce attnuator
+    alpha_start, alpha_stop, num, exp_time,precount_time = 0.05, 0.3, 25, 10,1
     
     #Set the fluorescence detector 
     yield from bps.mv(xs.capture_mode, 1)
