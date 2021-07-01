@@ -40,3 +40,70 @@ def set_bimorphs(vector,offset=0):
     for i in range(16):
         yield from bimorphs(i,bimorph_vectors[vector][i]+offset)
         yield from bps.sleep(5)
+
+
+        
+
+def focus_set(voff_ini, voff_stop, num_voff, vector=9):
+    # for voff_set in range(eta_start, eta_stop, nb_eta):
+    # eta
+    global dif    
+    dif  = np.zeros((3, num_voff+1))
+    for i, voff in enumerate(range(0, num_voff+1, 1)):
+        voff_rel = voff_ini + (i * (voff_stop - voff_ini) / num_voff)
+        print(i, voff_ini, voff_rel)
+        yield from set_bimorphs(vector, voff_rel) 
+        yield from bp.rel_scan([lambda_det,quadem], sh, -0.2,0.2, 40) 
+        #yield from bp.rel_scan([lambda_det,quadem], sh, -0.2,0.2, 10) 
+        peak_lambda = peaks.max['lambda_det_stats2_total'][1]
+        fwhm_lambda = peaks.fwhm['lambda_det_stats2_total']
+        quadem_mv = peaks.max["quadem_current3_mean_value"][1]
+        #print(peaks.cen["quadem_current3_mean_value"] 
+        dif[0, i] = voff_rel
+        dif[1, i] = peak_lambda / quadem_mv  
+        dif[2, i] = fwhm_lambda  
+    print(dif)
+    return dif
+
+def focus_show2():
+    import matplotlib.pyplot as plt
+    fig=plt.figure()
+    ax1=fig.add_subplot(2,1,1)    
+    ax1.plot(dif[0, :], dif[1, :])  
+    ax2=fig.add_subplot(2,1,2)    
+    ax2.plot(dif[0, :], dif[2, :])     
+
+    
+
+def focus_show():
+    import matplotlib.pyplot as plt
+    plt.figure()
+    plt.plot(dif[0, :], dif[1, :])    
+    plt.show()
+
+    
+def focus_set_ih(voff_ini, voff_stop, num_voff, vector=9):
+    # for voff_set in range(eta_start, eta_stop, nb_eta):
+    # eta
+    global dif    
+    dif  = np.zeros((3, num_voff+1))
+    for i, voff in enumerate(range(0, num_voff+1, 1)):
+        voff_rel = voff_ini + (i * (voff_stop - voff_ini) / num_voff)
+        print(i, voff_ini, voff_rel)
+        yield from set_bimorphs(vector, voff_rel) 
+        #yield from bp.rel_scan([lambda_det,quadem], sh, -0.2,0.2, 40) 
+        yield from bp.rel_scan([lambda_det,quadem], ih, -0.1,0.1, 40) 
+
+        #peak_lambda = peaks.max['lambda_det_stats2_total'][1]
+        peak_quadem =  peaks.max["quadem_current3_mean_value"][1]
+        #fwhm_lambda = peaks.fwhm['lambda_det_stats2_total']
+        fwhm_quadem = peaks.fwhm["quadem_current3_mean_value"]
+
+    
+        #print(peaks.cen["quadem_current3_mean_value"] 
+        dif[0, i] = voff_rel
+        dif[1, i] = peak_quadem
+        dif[2, i] = fwhm_quadem  
+    print(dif)
+    return dif
+
