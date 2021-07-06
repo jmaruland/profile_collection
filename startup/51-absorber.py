@@ -399,19 +399,18 @@ def attenuator_thickness_save(attenuators_thickness):
     print(current_att_thickness)
 
 
-def define_att_thickness(attenuator1, attenuator2, th_angle):
-    detector='lambda_det'
+def define_att_thickness(attenuator1, attenuator2, th_angle, detector=lambda_det):
 
     yield from mabt(th_angle, th_angle, 0)
     yield from bps.mv(abs2, attenuator1)
     yield from bps.sleep(10)
-    yield from det_exposure_time(5, 5)
+    yield from det_exposure_time_new(detector, 5, 5)
 
     yield from bps.mv(shutter, 1)
     ret = yield from bps.trigger_and_read(area_dets, name='precount')    
     yield from bps.mv(shutter, 0)
 
-    i_max1 = ret['%s_stats4_total'%detector]['value']
+    i_max1 = ret['%s_stats4_total'%detector.name]['value']
 
     yield from bps.mv(abs2, attenuator2)
     yield from bps.sleep(10)
@@ -420,7 +419,7 @@ def define_att_thickness(attenuator1, attenuator2, th_angle):
     yield from bps.mv(shutter, 1)
     ret = yield from bps.trigger_and_read(area_dets, name='precount')
     yield from bps.mv(shutter, 0)
-    i_max2 = ret['%s_stats4_total'%detector]['value']
+    i_max2 = ret['%s_stats4_total'%detector.name]['value']
 
     ratio = i_max2 / i_max1
     return ratio
