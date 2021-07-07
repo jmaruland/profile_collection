@@ -18,7 +18,7 @@ def gid_scan(md=None, exp_time=1, detector = pilatus100k, alphai = 0.1, attenuat
     """
 
     @bpp.stage_decorator([quadem, detector])
-    def gid_method(md=None, exp_time=1, detector = detector, alphai = 0.1, attenuator=2):
+    def gid_method(md, exp_time, detector, alphai, attenuator):
         # Bluesky command to record metadata
         base_md = {'plan_name': 'gid',
                 'cycle': RE.md['cycle'],
