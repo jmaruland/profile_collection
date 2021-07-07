@@ -9,7 +9,7 @@ from ophyd import Component as Cpt
 from ophyd.areadetector.filestore_mixins import FileStorePluginBase
 from ophyd.device import Staged
 from enum import Enum
-
+from collections import OrderedDict
 from nslsii.detectors.xspress3 import (
     XspressTrigger,
     Xspress3Detector,
@@ -140,6 +140,9 @@ class OPLSXspress3Detector(XspressTriggerFlyable, Xspress3Detector):
     channel1 = Cpt(Xspress3Channel, "C1_", channel_num=1, read_attrs=["rois"])
     # channel2 = Cpt(Xspress3Channel, 'C2_', channel_num=2, read_attrs=['rois'])
     # channel3 = Cpt(Xspress3Channel, 'C3_', channel_num=3, read_attrs=['rois'])
+    acquisition_time = Cpt(EpicsSignal, "AcquireTime")
+    capture_mode = Cpt(EpicsSignal, "HDF5:Capture")
+
 
     erase = Cpt(EpicsSignal, "ERASE")
     array_counter = Cpt(EpicsSignal, "ArrayCounter_RBV")
@@ -216,15 +219,23 @@ class OPLSXspress3Detector(XspressTriggerFlyable, Xspress3Detector):
 
 
 try:
-    xs = OPLSXspress3Detector("XF:12ID1-ES{Xsp:1}:", name="xs")
+    xs = OPLSXspress3Detector("XF:12ID1-ES{Xsp:1}:",
+                              name="xs")
     xs.channel1.rois.read_attrs = ["roi{:02}".format(j)
                                    for j in [1, 2, 3, 4]]
+    
+    
+    xs.acquisition_time.set(1)
+    xs.total_points.set(1)
+    xs.hdf5.num_extra_dims.put(0)
+    xs.hdf5.warmup()
+
     # TODO: Does this need to be done on startup? Better to init manually?
     # if os.getenv("TOUCHBEAMLINE", "0") == "1":
-    #     xs.settings.num_channels.put(1)
-    #     xs.channel1.vis_enabled.put(1)
-    #     xs.hdf5.num_extra_dims.put(0)
-    #     xs.hdf5.warmup()
+    # xs.settings.num_channels.put(1)
+    # xs.channel1.vis_enabled.put(1)
+
+
 except TimeoutError:
     xs = None
     print("\nCannot connect to Xspress3. Continuing without device.\n")
