@@ -58,7 +58,7 @@ class Pilatus(SingleTriggerV33, PilatusDetector):
     tiff = Cpt(TIFFPluginWithFileStore,
                suffix="TIFF1:",
                write_path_template="/nsls2/xf12id1/data/pilatus100k/%Y/%m/%d/",
-               read_path_template="/nsls2/xf12id1/data/pilatus100k/%Y/%m/%d/",  # override this on instances using instance.tiff.write_file_path
+               read_path_template="/nsls2/xf12id1/data/pilatus100k/%Y/%m/%d/",
                root='/nsls2/xf12id1/data')
 
     roi1 = Cpt(ROIPlugin, 'ROI1:')
@@ -96,20 +96,25 @@ def set_detector(det):
     det.stats1.centroid.y.kind = 'hinted' 
     det.stats2.centroid.kind = 'hinted'
 
-    pilatus100k.stats2.max_value.kind = 'normal'
-    pilatus100k.stats4.max_value.kind = 'normal'
+    det.stats2.max_value.kind = 'normal'
+    det.stats4.max_value.kind = 'normal'
 
     det.cam.ensure_nonblocking()
 
 pilatus100k = Pilatus("XF:12ID1-ES{Det:P100k}", name="pilatus100k")
 set_detector(pilatus100k)
+pilatus100k.tiff.write_path_template = "/nsls2/xf12id1/data/pilatus100k/%Y/%m/%d/"
+pilatus100k.tiff.read_path_template = "/nsls2/xf12id1/data/pilatus100k/%Y/%m/%d/"
 
 
-#ToDo: Check if this work + create path to folders
-#pilatus300k = Pilatus("XF:12ID1-ES{Det:P300k}", name="pilatus300k")
-#write_path_template="/disk2/jpls_data/data/pilatus300k/%Y/%m/%d/",
-#read_path_template="/nsls2/jpls/data/pilatus300k/%Y/%m/%d/",
-#set_detector(pilatus300k)
+try:
+    pilatus300k = Pilatus("XF:12ID1-ES{Det:P300k}", name="pilatus300k")
+    set_detector(pilatus300k)
+    pilatus300k.tiff.write_path_template = "/nsls2/xf12id1/data/pilatus300k/%Y/%m/%d/"
+    pilatus300k.tiff.read_path_template = "/nsls2/xf12id1/data/pilatus300k/%Y/%m/%d/"
+
+except:
+    print('Pilatus 300KW is not connected')
 
 
 def det_exposure_time_pilatus(exp_t, meas_t=1):
@@ -117,7 +122,13 @@ def det_exposure_time_pilatus(exp_t, meas_t=1):
         pilatus100k.cam.acquire_time, exp_t,
         pilatus100k.cam.acquire_period, exp_t+0.2,
         pilatus100k.cam.num_images, int(meas_t/exp_t))
-
+    try:
+        yield from bps.mov(
+            pilatus300k.cam.acquire_time, exp_t,
+            pilatus300k.cam.acquire_period, exp_t+0.2,
+            pilatus300k.cam.num_images, int(meas_t/exp_t))
+    except:
+        print('Pilatus 300KW is not connected')
 
 def det_exposure_time(exp_t, meas_t=1):
     yield from bps.mov(
@@ -125,6 +136,11 @@ def det_exposure_time(exp_t, meas_t=1):
         lambda_det.cam.acquire_period, exp_t+0.2,
         lambda_det.cam.num_images, int(meas_t/exp_t))
 
+def det_exposure_time_new(detector, exp_t, meas_t=1):
+    yield from bps.mov(
+        detector.cam.acquire_time, exp_t,
+        detector.cam.acquire_period, exp_t+0.2,
+        detector.cam.num_images, int(meas_t/exp_t))
 
 '''
 def sample_id(*, user_name, sample_name, tray_number=None):
