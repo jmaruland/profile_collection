@@ -14,6 +14,8 @@ def reflection_scan(alpha_start, alpha_stop, num, detector=lambda_det, precount_
     :type precount_time, exp_time: float, float
     :param tilt_stage: Boolean to define if using or not a specific tilt stage
     :type tilt_stage: Boolean
+    :param low_abs_limit: Integer to define the lowest amount of attenuation required
+    :type low_abs_limit: Integer
     """
 
     @bpp.stage_decorator([quadem, detector])
