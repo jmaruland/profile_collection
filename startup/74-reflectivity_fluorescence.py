@@ -1,33 +1,56 @@
-#Set the detector to trigger
-all_area_dets_fluo = [xs, quadem]
 
-@bpp.stage_decorator(all_area_dets_fluo)
-def reflection_fluorescence_scan(alpha_start, alpha_stop, num, detector='xs', precount_time=1, exp_time=1, md=None):
+def reflection_fluorescence_scan(alpha_start, alpha_stop, num, detector=xs, precount_time=1, exp_time=1, tilt_stage=False):
+    """
+    Run reflectivity fluorescence scans
 
-    for alpha in np.linspace(alpha_start, alpha_stop, num):
-        # Move to the good geometry position
-        yield from mabt(alpha, alpha, 0)
+    Parameters:
+    -----------
+    :param alpha_start, alpha_stop, num: Incident angles start (deg), stop (deg) and number of angles
+    :type alpha_start, alpha_stop, num: float, float, int
+    :param detector: detector object that will be used to collect the data
+    :type detector: ophyd object (for OPLS either pillatus100k, pilatus300k or lambda_det
+    :param precount_time, exp_time: Exposure time in seconds for the precount (used to calculate the attenuation) and the data
+    :type precount_time, exp_time: float, float
+    :param tilt_stage: Boolean to define if using or not a specific tilt stage
+    :type tilt_stage: Boolean
+    """
 
-        #Wait 5s in order to have the sample stabilize
-        yield from bps.sleep(5)
+    @bpp.stage_decorator([quadem, detector])
+    def reflection_fluorescence_method(alpha_start, alpha_stop, num, detector, precount_time, exp_time, tilt_stage):
+        for alpha in np.linspace(alpha_start, alpha_stop, num):
+            
+            # Move to the good geometry position
+            if tilt_stage:
+                yield from nabt(alpha, alpha, alpha*0.025)
+            else:
+                yield from mabt(alpha, alpha, 0)
 
-        # Set the exposure time to the define exp_time for the measurement
-        yield from det_exposure_time(exp_time, exp_time)
-        yield from bps.mv(exposure_time, exp_time)
-        
-        # Open and close teh shutter manually to mitigate beam damage
-        yield from bps.mv(shutter, 1)
-        print('about to take data')
-        yield from bps.trigger_and_read(all_area_dets_fluo + [geo] + [exposure_time],
-                                        name='primary')
-        print('after_trigger_Read')
-        yield from bps.mv(shutter, 0)   
+            #Wait 5s in order to have the sample stabilize
+            yield from bps.sleep(5)
+
+            # Set the exposure time to the define exp_time for the measurement
+            yield from det_exposure_time_new(lambda_det, precount_time, precount_time)
+            yield from bps.mv(exposure_time, exp_time)
+            
+            # Open shutter, Take the pre-count data, Close shutter
+            yield from bps.mv(shutter, 1)
+            yield from bps.trigger_and_read([quadem, detector, geo, exposure_time], name='primary')
+            yield from bps.mv(shutter, 0)
+
+    yield from reflection_fluorescence_method(alpha_start=alpha_start,
+                                              alpha_stop=alpha_stop,
+                                              num=num,
+                                              detector=detector,
+                                              precount_time=precount_time,
+                                              exp_time=exp_time,
+                                              tilt_stage=tilt_stage)
+
 
 def fast_scan_fluo(name = 'test'):
     yield from expert_reflection_scan_fluo(md={'sample_name': name})
 
 
-def expert_reflection_scan_fluo(md=None, detector='xs'):
+def expert_reflection_scan_fluo(md=None, detector=xs):
     """
     Macros to set all the parameters in order to record all the required information for further analysis,
     such as the attenuation factors, detectors, ROIS, ...
@@ -44,7 +67,7 @@ def expert_reflection_scan_fluo(md=None, detector='xs'):
     base_md = {'plan_name': 'reflection_fluorescence_scan',
                'cycle': RE.md['cycle'],
                'proposal_number': RE.md['proposal_number'] + '_' + RE.md['main_proposer'],
-               'detector': detector, 
+               'detector': detector.name, 
                'energy': energy.energy.position
                }
     base_md.update(md or {})
@@ -75,7 +98,7 @@ def expert_reflection_scan_fluo(md=None, detector='xs'):
                                             detector=detector,
                                             precount_time=precount_time,
                                             exp_time=exp_time,
-                                            md=md)
+                                            tilt_stage=False)
     
     # Bluesky command to stop recording metadata
     yield from bps.close_run()
