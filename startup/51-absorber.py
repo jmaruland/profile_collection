@@ -165,29 +165,29 @@ def att_setup():
     att_name: A list of float containing the position of the attenuator motor at the beamline
     """
 
+    #Commented out to see it it cause any issues while beamline running. If not, can be fully removed
+    
     # att_thi = [0, 24.28, 49.89, 74.97, 100.4, 126.11, 151.61, 177.62]
     #att_thi = [0, 25.0, 50.72, 76.24, 100.76, 126.41, 152.45, 177.62]
     #june 26, 2021
-    att_thi = [0, 24.69281, 50.299573, 75.855897, 100.892898, 127.098354, 153.204123, 179.600359]       
-
-    
-
-    att_mat = ['Mo', 'Mo', 'Mo', 'Mo', 'Mo', 'Mo', 'Mo', 'Mo']
-    att_name = ['att0', 'att1', 'att2', 'att3', 'att4', 'att5', 'att6', 'att7']
-    att_pos = [0.22, 1, 2, 3, 4, 5, 6, 7]
+    # att_thi = [0, 24.69281, 50.299573, 75.855897, 100.892898, 127.098354, 153.204123, 179.600359]       
+    # att_mat = ['Mo', 'Mo', 'Mo', 'Mo', 'Mo', 'Mo', 'Mo', 'Mo']
+    # att_name = ['att0', 'att1', 'att2', 'att3', 'att4', 'att5', 'att6', 'att7']
+    # att_pos = [0.22, 1, 2, 3, 4, 5, 6, 7]
 
     ener = energy.energy.position
     ener = 9700
     # Create a dictionary of attenuators for bar1, it can only be use one att at a time
     att_bar1 = {'name':             ['att0', 'att1', 'att2', 'att3', 'att4', 'att5', 'att6', 'att7'],
                 'material':         [  'Mo',   'Mo',   'Mo',   'Mo',   'Mo',   'Mo',   'Mo',   'Mo'],
-                #  [   0.0,   25.0,  50.72,  76.24, 100.76, 126.41, 152.45, 177.62]
-                'thickness':              [0,  26.35,   52.5, 77.923,103.062,130.2615, 154.1797, 181.824],
-                'position':          [  0.22,    1.0,    2.0,    3.0,    4.0,    5.0,    6.0,    7.0],
+                'thickness':        [     0,   25.0,   50.0,   75.0,  100.0,  125.0,  150.0,  175.0],
+                'position':         [  0.22,    1.0,    2.0,    3.0,    4.0,    5.0,    6.0,    7.0],
                 'energy':           [  ener,   ener,   ener,   ener,   ener,   ener,   ener,   ener],
                 'material_att_coef':[   1.0,    1.0,    1.0,    1.0,    1.0,    1.0,    1.0,    1.0],
                 'attenuator_aborp': [   1.0,    1.0,    1.0,    1.0,    1.0,    1.0,    1.0,    1.0]
                 }
+
+    att_bar1['thickness'] = attenuator_thickness_load()
 
     att_bar1 = calc_attenuation(att_bar1, ener)
     att_bar1 = calculate_att_comb(att_bar1,ener)
@@ -204,9 +204,6 @@ def att_setup():
     '''
 
     return att_bar1
-
-#Load a default attenuation set-up that will be recalculated if needed
-att_bar1 = att_setup()
 
 # ToDo: Check the T_target to constrain that it only consider T lower than a number
 def best_att(T_target, att_bar1 = att_bar1):
@@ -309,7 +306,6 @@ all_area_dets = [lambda_det, quadem]
 @bpp.stage_decorator(all_area_dets)
 
 def define_all_att_thickness():
-    ratios = np.zeros((8,))
     base_md = {'plan_name': 'calibration_att'}
     # yield from bps.mv(S2.vg, 0.05)
     # yield from bps.mv(S2.vc, 0)
@@ -318,29 +314,29 @@ def define_all_att_thickness():
 
     yield from bps.open_run(md=base_md)
 
-    #From 0 to 6 because the last ratio should be 0 
+    ratios = np.ones((8,))
     th_angle = [0.1, 0.2, 0.25, 0.35, 0.6, 1.2, 2]
-    for nu, th_angles in zip(range(0, 7, 1)[::-1], th_angle):
-        ratio = yield from define_att_thickness(attenuator1=nu+1, attenuator2=nu, th_angle=th_angles)
-        ratios[nu] = 1
-        ratios *= ratio
+    for nu, th_angles in zip(range(7, 0, -1), th_angle):
+        # ratio = yield from define_att_thickness(attenuator1=nu, attenuator2=nu-1, th_angle=th_angles)
+        ratio = 10
+        ratios[nu:] *= ratio
         print('ratio between %s and %s'%(nu+1, nu), ratios[nu])
     yield from bps.close_run()
 
     att_ener = attenuation_interpolation(path=path, filename=file_absorption, energy=energy.energy.position)
     att_thickness_new = att_ener * np.log(ratios)
-
+    
     current_att_thickness = attenuator_thickness_load()
-    print('The new calculated attenuators thickness are to %s um while the current were %s um'%(att_thickness_new, current_att_thickness))
+    print('The new calculated attenuators thickness are to %s um while the current were %s um'%(np.around(att_thickness_new, 2), np.around(current_att_thickness, 2)))
     response = input('Do you want to use the new thicknesses? (y/[n]) ')
 
     if response is 'y' or response is 'Y':
-        print('The new attenuators thickness are to %s um'%att_thickness_new)
+        print('The new attenuators thickness are to %s um'%np.around(att_thickness_new, 2))
         #Need to implement the new thickness
         attenuator_thickness_save(att_thickness_new)
 
     else:
-        print('The current attenuators thicknesses were kept at %s um'%current_att_thickness)
+        print('The current attenuators thicknesses were kept at %s um'%np.around(current_att_thickness, 2))
 
 
 def attenuator_thickness_load():
@@ -402,7 +398,7 @@ def attenuator_thickness_save(attenuators_thickness):
 def define_att_thickness(attenuator1, attenuator2, th_angle, detector=lambda_det):
 
     yield from mabt(th_angle, th_angle, 0)
-    yield from bps.mv(abs2, attenuator1)
+    yield from bps.mv(abs2, att_bar1['position'][attenuator1])
     yield from bps.sleep(10)
     yield from det_exposure_time_new(detector, 5, 5)
 
@@ -412,7 +408,7 @@ def define_att_thickness(attenuator1, attenuator2, th_angle, detector=lambda_det
 
     i_max1 = ret['%s_stats4_total'%detector.name]['value']
 
-    yield from bps.mv(abs2, attenuator2)
+    yield from bps.mv(abs2, att_bar1['position'][attenuator2])
     yield from bps.sleep(10)
     yield from det_exposure_time(5, 5)
 
@@ -426,3 +422,5 @@ def define_att_thickness(attenuator1, attenuator2, th_angle, detector=lambda_det
 
 current_att_thickness = attenuator_thickness_load()
 
+#Load a default attenuation set-up that will be recalculated if needed
+att_bar1 = att_setup()
