@@ -121,7 +121,7 @@ def calc_attenuation(att_bar1, energy):
             att_ener_mo = attenuation_interpolation(path, file_absorption, energy)
             att_bar1['material_att_coef'][i] = att_ener_mo
             att_bar1['energy'][i] = energy
-
+            
     return att_bar1
 
 
@@ -165,8 +165,7 @@ def att_setup():
     att_name: A list of float containing the position of the attenuator motor at the beamline
     """
 
-    #Commented out to see it it cause any issues while beamline running. If not, can be fully removed
-    
+    #Commented out to see it it cause any issues while beamline running. If not, can be fully
     # att_thi = [0, 24.28, 49.89, 74.97, 100.4, 126.11, 151.61, 177.62]
     #att_thi = [0, 25.0, 50.72, 76.24, 100.76, 126.41, 152.45, 177.62]
     #june 26, 2021
@@ -174,7 +173,6 @@ def att_setup():
     # att_mat = ['Mo', 'Mo', 'Mo', 'Mo', 'Mo', 'Mo', 'Mo', 'Mo']
     # att_name = ['att0', 'att1', 'att2', 'att3', 'att4', 'att5', 'att6', 'att7']
     # att_pos = [0.22, 1, 2, 3, 4, 5, 6, 7]
-
     ener = energy.energy.position
     ener = 9700
     # Create a dictionary of attenuators for bar1, it can only be use one att at a time
@@ -205,100 +203,6 @@ def att_setup():
 
     return att_bar1
 
-# ToDo: Check the T_target to constrain that it only consider T lower than a number
-def best_att(T_target, att_bar1 = att_bar1):
-    """
-    Find the absorber combination that give the closest x-ray transmission from a taget value
-
-    Parameters:
-    -----------
-    :param T_target: The target transmission value (has to be 1 or lower)
-    :type T_target: float
-    :param energy: the energy at which the absorption needs to be interpolated
-    :type energy: float
-
-    Returns
-    -------
-    best_att: A integer which contains the attenuator that best match the targeted transmission
-    T[best_att]: A float which contains the corresponding best transmission value
-    att2_name[best_att]: A string which contains the name of the matching attenuator
-    att_pos[best_att]: A float which contains the physical position of the matching attenuator
-    """
-    # Check if energy move or not
-    if energy.energy.position != int(att_bar1['energy'][0]) or att_bar1['attenuator_aborp'][2]==1:
-        att_bar1 = att_setup()
-    
-    best_att = np.argmin(abs(np.asarray(att_bar1['attenuator_aborp'])-T_target))
-    # print('The required attenuation is %s the best match is %s'%(T_target, T[best_att]))
-
-    return best_att, att_bar1['attenuator_aborp'][best_att], att_bar1['name'][best_att], att_bar1['position'][best_att]
-
-
-def put_default_absorbers(energy, default_attenuation=1e-07):
-    """
-    Put a default absorbers to protect the detector. With a default_attenuation factor of 1e-07,
-    the full direct beam is attenuated enough to not damage the detector. This is used to set a default
-    attenuator during a pre-count to define what is the necessary number of attenuators for a full image.
-
-    Parameters:
-    -----------
-    :param energy: the energy at which the absorption needs to be interpolated
-    :type energy: float
-    :param default_attenuation: The default target transmission value (1e-07)
-    :type default_attenuation: float
-
-    Returnsput_default_absorbers
-    -------
-    default_factor: A float corresponding to the attenuation of the default attenuator
-    """
-    default_att, default_factor, default_name, default_position = best_att(default_attenuation)
-
-    if energy < 9000 and energy > 10000:
-        raise ValueError('error: the energy entered is not correct')
-
-    yield from bps.mv(abs2, default_position)
-    yield from bps.sleep(1)
-
-    return default_factor
-
-
-def calculate_and_set_absorbers(energy, i_max, att, precount_time=0.1):
-    """
-    Define the good attenuation needed based on the maximum counts recorded by the detector on an
-    image taken with a known safe number of attenuator (default attenuations). The process of 'precount'
-    is used to protect the detectors
-
-    Parameters:
-    -----------
-    :param energy: the energy at which the absorption needs to be interpolated
-    :type energy: float
-    :param i_max: The maximum counts recorded by the detector during the pre-count
-    :type i_max: float
-    :param att: The attenuation used during the pre-count
-    :type att: float
-    :param precount_time: The pre-count exposure time
-    :type precount_time: float
-
-    Returns
-    -------
-    best_at: An integer which contains the attenuator that best match the targeted transmission
-    att_factor: A float which contains the corresponding best transmission value
-    att_name: A string which contains the name of the matching attenuator
-    """
-    # i_max_det is the maximum allowed pixel count (nominal value is 1e4)
-    i_max_det = 5000  # 50000 if lambda, 500000 if pilatus
-
-    # Theoretical maximum count to be seen by the detector
-    max_theo_precount = i_max / (att * precount_time)
-
-    # The required attenuation to not saturate the detector, i.e. keep i_max < max_theo
-    att_needed = 1 / (max_theo_precount / i_max_det)
-
-    # Calculate and move the absorber to the chosen one
-    best_at, att_factor, att_name, att_pos = best_att(att_needed)
-    yield from bps.mv(abs2, att_pos)
-
-    return best_at, att_factor, att_name
 
 
 
@@ -420,7 +324,106 @@ def define_att_thickness(attenuator1, attenuator2, th_angle, detector=lambda_det
     ratio = i_max2 / i_max1
     return ratio
 
+
 current_att_thickness = attenuator_thickness_load()
 
 #Load a default attenuation set-up that will be recalculated if needed
 att_bar1 = att_setup()
+
+# ToDo: Check the T_target to constrain that it only consider T lower than a number
+def best_att(T_target, att_bar1 = att_bar1):
+    """
+    Find the absorber combination that give the closest x-ray transmission from a taget value
+
+    Parameters:
+    -----------
+    :param T_target: The target transmission value (has to be 1 or lower)
+    :type T_target: float
+    :param energy: the energy at which the absorption needs to be interpolated
+    :type energy: float
+
+    Returns
+    -------
+    best_att: A integer which contains the attenuator that best match the targeted transmission
+    T[best_att]: A float which contains the corresponding best transmission value
+    att2_name[best_att]: A string which contains the name of the matching attenuator
+    att_pos[best_att]: A float which contains the physical position of the matching attenuator
+    """
+    # Check if energy move or not
+    if energy.energy.position != int(att_bar1['energy'][0]) or att_bar1['attenuator_aborp'][2]==1:
+        att_bar1 = att_setup()
+    
+    best_att = np.argmin(abs(np.asarray(att_bar1['attenuator_aborp'])-T_target))
+    # print('The required attenuation is %s the best match is %s'%(T_target, T[best_att]))
+
+    return best_att, att_bar1['attenuator_aborp'][best_att], att_bar1['name'][best_att], att_bar1['position'][best_att]
+
+
+def put_default_absorbers(energy, default_attenuation=1e-07):
+    """
+    Put a default absorbers to protect the detector. With a default_attenuation factor of 1e-07,
+    the full direct beam is attenuated enough to not damage the detector. This is used to set a default
+    attenuator during a pre-count to define what is the necessary number of attenuators for a full image.
+
+    Parameters:
+    -----------
+    :param energy: the energy at which the absorption needs to be interpolated
+    :type energy: float
+    :param default_attenuation: The default target transmission value (1e-07)
+    :type default_attenuation: float
+
+    Returnsput_default_absorbers
+    -------
+    default_factor: A float corresponding to the attenuation of the default attenuator
+    """
+    default_att, default_factor, default_name, default_position = best_att(default_attenuation)
+
+    if energy < 9000 and energy > 10000:
+        raise ValueError('error: the energy entered is not correct')
+
+    yield from bps.mv(abs2, default_position)
+    yield from bps.sleep(1)
+
+    return default_factor
+
+
+def calculate_and_set_absorbers(energy, i_max, att, precount_time=0.1):
+    """
+    Define the good attenuation needed based on the maximum counts recorded by the detector on an
+    image taken with a known safe number of attenuator (default attenuations). The process of 'precount'
+    is used to protect the detectors
+
+    Parameters:
+    -----------
+    :param energy: the energy at which the absorption needs to be interpolated
+    :type energy: float
+    :param i_max: The maximum counts recorded by the detector during the pre-count
+    :type i_max: float
+    :param att: The attenuation used during the pre-count
+    :type att: float
+    :param precount_time: The pre-count exposure time
+    :type precount_time: float
+
+    Returns
+    -------
+    best_at: An integer which contains the attenuator that best match the targeted transmission
+    att_factor: A float which contains the corresponding best transmission value
+    att_name: A string which contains the name of the matching attenuator
+    """
+    # i_max_det is the maximum allowed pixel count (nominal value is 1e4)
+    i_max_det = 5000  # 50000 if lambda, 500000 if pilatus
+
+    # Theoretical maximum count to be seen by the detector
+    max_theo_precount = i_max / (att * precount_time)
+
+    # The required attenuation to not saturate the detector, i.e. keep i_max < max_theo
+    att_needed = 1 / (max_theo_precount / i_max_det)
+
+    # Calculate and move the absorber to the chosen one
+    best_at, att_factor, att_name, att_pos = best_att(att_needed)
+    yield from bps.mv(abs2, att_pos)
+
+    return best_at, att_factor, att_name
+
+
+
