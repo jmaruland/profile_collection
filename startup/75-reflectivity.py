@@ -40,7 +40,7 @@ def reflection_scan(alpha_start, alpha_stop, num, detector=lambda_det, precount_
 
             # Open shutter, Take the pre-count data, Close shutter
             yield from bps.mv(shutter, 1)
-            ret = yield from bps.trigger_and_read(detector, name='precount')
+            ret = yield from bps.trigger_and_read([detector], name='precount')
             yield from bps.mv(shutter, 0)
 
 
@@ -213,7 +213,7 @@ def expert_reflection_scan(md=None, detector=lambda_det, tilt_stage=False):
     # Move stable X2
     #yield from bps.mvr(geo.stblx2, -0.5)
     yield from bps.sleep(3)
-    alpha_start, alpha_stop, num, exp_time, precount_time = 1, 2., 11, 2, 0.1 
+    alpha_start, alpha_stop, num, exp_time, precount_time = 1, 3., 21, 2, 0.1 
     yield from reflection_scan(alpha_start=alpha_start,
                                alpha_stop=alpha_stop,
                                num=num,
@@ -229,7 +229,7 @@ def expert_reflection_scan(md=None, detector=lambda_det, tilt_stage=False):
     #Move stable X2
     yield from bps.mvr(geo.stblx2, -0.5)
     yield from bps.sleep(3)
-    alpha_start, alpha_stop, num, exp_time, precount_time = 2, 3.4, 15, 2, 0.1
+    alpha_start, alpha_stop, num, exp_time, precount_time = 3.1, 3.4, 4, 2, 0.1
     yield from reflection_scan(alpha_start=alpha_start,
                                 alpha_stop=alpha_stop,
                                 num=num,
