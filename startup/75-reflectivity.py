@@ -17,9 +17,10 @@ def reflection_scan(alpha_start, alpha_stop, num, detector=lambda_det, precount_
     :param low_abs_limit: Integer to define the lowest amount of attenuation required
     :type low_abs_limit: Integer
     """
-
+    
+    print(detector.name)
     @bpp.stage_decorator([quadem, detector])
-    def reflection_method(alpha_start, alpha_stop, num, detector, precount_time, exp_time, tilt_stage, low_abs_limit):
+    def reflection_method(alpha_start, alpha_stop, num, precount_time, exp_time, tilt_stage, low_abs_limit, detector=detector):
 
         for alpha in np.linspace(alpha_start, alpha_stop, num):
             # Move to the good geometry position
@@ -69,7 +70,7 @@ def reflection_scan(alpha_start, alpha_stop, num, detector=lambda_det, precount_
 
                     # Re-take the pre-count data
                     yield from bps.mv(shutter, 1)
-                    ret = yield from bps.trigger_and_read(area_dets,
+                    ret = yield from bps.trigger_and_read([detector],
                                                         name='precount')
                     yield from bps.mv(shutter, 0)
                                         
@@ -104,7 +105,6 @@ def reflection_scan(alpha_start, alpha_stop, num, detector=lambda_det, precount_
                                             name='primary')
             yield from bps.mv(shutter, 0)
 
-
     yield from reflection_method(alpha_start=alpha_start,
                                  alpha_stop=alpha_stop,
                                  num=num,
@@ -120,8 +120,8 @@ def night_scan():
     yield from expert_reflection_scan(md={'sample_name': 'test_water12'})
     
 
-def fast_scan(name = 'test', tilt_stage=False):
-    yield from expert_reflection_scan(md={'sample_name': name},tilt_stage=tilt_stage)
+def fast_scan(name = 'test', tilt_stage=False, detector=lambda_det):
+    yield from expert_reflection_scan(md={'sample_name': name},tilt_stage=tilt_stage, detector=detector)
 
 
 def expert_reflection_scan(md=None, detector=lambda_det, tilt_stage=False):
