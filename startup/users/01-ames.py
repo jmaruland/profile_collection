@@ -1,10 +1,98 @@
-# pull various motors into the global name space
 
 
 ##Copied from 76-GID in /nsls2/xf12id1/user/2021_c2/..../honghu
 
 
+ #   yield from one_gid( name=sam, xpos=start_pos, stth = stth, exp_time=30, attenuator=0, beta1=0, beta_off=0.13, det_mode=3) 
 
+# -82 -34 16 62
+# -80 -33.5 14.5 60
+# -83 -34 15 60
+# -79 -32 14 58
+# -83 -35 12 58
+#     -33  14
+
+#sample_1 = "peg1k-NP5_100mM-k"
+#sample_1 = "peg2k-NP10_peg5k-NP5_1-4_100mM-k"
+sample_2 = "peg2k-Ag20_100mM-k"
+sample_3 = "peg2k-Ag20_peg5k-Ag10_100mM-k"
+#sample_4 = "peg1k-NP20_peg2k-NP5_2-1_100mM-k"
+
+def ames_4():
+#    indent = 1
+    yield from he_on()
+    yield from bps.mv(abs2,6)
+    yield from bps.mv(shutter,1) # open shutter
+    yield from check_ih()  #Align the spectrometer  height
+    yield from check_tth() #Align the spectrometer rotation angle
+    #yield from ames_1(sample_1, -81, detector=pilatus100k) 
+    yield from ames_1(sample_2, -33, detector=pilatus100k)
+    yield from ames_1(sample_3, +15.5, detector=pilatus100k)
+    #yield from ames_1(sample_4, +61, detector=pilatus100k)
+    yield from shclose()
+    yield from he_off()
+
+def ames_1(sam, xpos_start,detector=lambda_det):
+    yield from bps.mv(geo.det_mode,1)
+ #   yield from sample_height_set_coarse(detector=detector) #scan the detector arm height (sh) from -1 to 1 with 41 points
+ #   yield from sample_height_set_fine(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
+    
+    yield from one_ref(name=sam, xpos=xpos_start, tiltx=0,detector=pilatus100k) 
+    
+    yield from mabt(0.08,0.08,0)
+
+    # This takes the GID
+    yield from bps.mv(geo.det_mode,2)
+    alphai = 0.11
+    yield from bps.mvr(x2,-0.5)
+    print("at 1")
+    # yield from gid_scan(md={'sample_name': sam + '_GID-'},
+    #                     exp_time = 1,
+    #                     detector = pilatus300k,
+    #                     alphai = alphai,
+    #                     attenuator=1)
+
+    # yield from bps.mvr(x2,1.0)
+    # yield from gid_scan(md={'sample_name': sam +'_GID+'},
+    #                     exp_time = 1,
+    #                     detector = pilatus300k,
+    #                     alphai = alphai,
+    #                     attenuator=1)
+
+
+
+    yield from gid_scan_stitch(md={'sample_name': sam + '_GID-'},
+                        exp_time = 1,
+                        detector = pilatus300k,
+                        alphai = alphai,
+                        attenuator=1)
+    yield from gid_scan_stitch(md={'sample_name': sam + '_GID-5s'},
+                        exp_time = 5,
+                        detector = pilatus300k,
+                        alphai = alphai,
+                        attenuator=1)
+
+
+    yield from bps.mvr(x2,1.0)
+    yield from gid_scan_stitch(md={'sample_name': sam +'_GID+'},
+                        exp_time = 1,
+                        detector = pilatus300k,
+                        alphai = alphai,
+                        attenuator=1)
+    yield from gid_scan_stitch(md={'sample_name': sam +'_GID+5s'},
+                        exp_time = 5,
+                        detector = pilatus300k,
+                        alphai = alphai,
+                        attenuator=1)
+
+
+def tmp():
+    alphai=0.11
+    yield from gid_scan_stitch(md={'sample_name': "zero" + '_GID'},
+                        exp_time = 5,
+                        detector = pilatus300k,
+                        alphai = alphai,
+                        attenuator=1)
 
 def cfn(name):
     # This takes the reflectivity
