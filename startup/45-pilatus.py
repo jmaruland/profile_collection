@@ -58,7 +58,7 @@ class Pilatus(SingleTriggerV33, PilatusDetector):
     tiff = Cpt(TIFFPluginWithFileStore,
                suffix="TIFF1:",
                write_path_template="/nsls2/xf12id1/data/pilatus100k/%Y/%m/%d/",
-               read_path_template="/nsls2/xf12id1/data/pilatus100k/%Y/%m/%d/",
+               read_path_template= "/nsls2/xf12id1/data/pilatus100k/%Y/%m/%d/",
                root='/nsls2/xf12id1/data')
 
     roi1 = Cpt(ROIPlugin, 'ROI1:')
@@ -97,7 +97,7 @@ def set_detector(det):
     det.stats2.centroid.kind = 'hinted'
 
     det.stats2.max_value.kind = 'normal'
-    det.stats4.max_value.kind = 'normal'
+    det.stats4.max_value.kind = 'hinted'
 
     det.cam.ensure_nonblocking()
 
