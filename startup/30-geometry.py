@@ -475,9 +475,3 @@ def param():
     print("En  :", 0.001 * energy.energy.position, "keV")
     print(" wavelength: ", 12.39842 / energy.energy.position, "Angstroms")
 
-def park():
-    # this group will move simultanouslt
-    yield from bps.mov(mtr1, 0, mtr2, 1, ...)
-    # this group will move simultanouslt
-    yield from bps.mov(mtr1, 0, mtr2, 1, ...)
-    ...
