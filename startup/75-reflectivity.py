@@ -19,7 +19,9 @@ def reflection_scan(alpha_start, alpha_stop, num, detector=lambda_det, precount_
     """
     
     print(detector.name)
-    @bpp.stage_decorator([quadem, detector])
+    all_area_dets = [quadem, detector, AD1, AD2, o2_per   ]
+    #@bpp.stage_decorator([quadem, detector, AD1, AD2, o2_per   ])
+    @bpp.stage_decorator( all_area_dets )
     def reflection_method(alpha_start, alpha_stop, num, precount_time, exp_time, tilt_stage, low_abs_limit, detector=detector):
 
         for alpha in np.linspace(alpha_start, alpha_stop, num):
@@ -101,8 +103,16 @@ def reflection_scan(alpha_start, alpha_stop, num, detector=lambda_det, precount_
             # Open shutter, sleep to initiate quadEM, collect data, close shutter
             yield from bps.mv(shutter, 1)
             yield from bps.sleep(1)
-            yield from bps.trigger_and_read([detector, quadem, geo, attenuation_factor_signal, attenuator_name_signal, exposure_time],
-                                            name='primary')
+            #yield from bps.trigger_and_read([detector, quadem, geo, attenuation_factor_signal, attenuator_name_signal, exposure_time],
+            #                                name='primary')
+            yield from bps.trigger_and_read(all_area_dets +
+                                        [geo] +
+                                        [attenuation_factor_signal] +
+                                        [attenuator_name_signal] +
+                                        [exposure_time],
+                                        name='primary')                                            
+
+
             yield from bps.mv(shutter, 0)
 
     yield from reflection_method(alpha_start=alpha_start,
