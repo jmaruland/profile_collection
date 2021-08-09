@@ -13,28 +13,20 @@ USERDIR = '/nsls2/xf12id1/user/2021_2/308360_vaknin/GID_data'
 dispatcher = RemoteDispatcher('localhost:5578')
 
 def factory(name, start_doc):
+    if '{start[plan_name]}' == 'gid':
+        serializer = tiff_series.Serializer(file_prefix=('{start[sample_name]}_'
+                                                        ),
+                                            directory=USERDIR)
+        serializer('start', start_doc)
 
-    SWserializer = tiff_series.Serializer(file_prefix=('{start[cycle]}/'
-                                                       '{start[proposal_id]}/auto/'
-                                                       '{start[project_name]}/'
-                                                       '{start[scan_id]}/'
-                                                       '{start[scan_id]}-'
-                                                       '{start[sample_name]}-'
-                                                       ),
-                                          directory=USERDIR)
-
-    name, doc = SWserializer(name, start_doc)
-
-    def subfactory(dname, descriptor_doc):
-        dname, ddoc = dname, descriptor_doc
-        if ddoc['name'] in ['primary', 'dark']:
-            
-            serializer('start', start_doc)
+    def subfactory(name, descriptor_doc):
+        if descriptor_doc['name'] == 'primary':
+            # Tell RunRouter to give the serializer all the data from this stream.
             serializer('descriptor', descriptor_doc)
             return [serializer]
         else:
+            # Tell RunRouter we don't care about this stream.
             return []
-
     return [], [subfactory]
 
 
