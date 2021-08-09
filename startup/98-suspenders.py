@@ -17,3 +17,6 @@ RE.install_suspender(susp_beam)
 # Front end shutter suspender
 susp_smi_shutter = SuspendFloor(smi_shutter_enable, 0.1, resume_thresh=0.9)
 RE.install_suspender(susp_smi_shutter)
+
+
+# to clear suspenders RE.clear_suspenders()
