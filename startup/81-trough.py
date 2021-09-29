@@ -1,10 +1,12 @@
 
 #for reading in the A/D and making isotherm plots
 
-AD1 = EpicsSignal("XF:12ID1:TrufA1", name="analog/digital 1")
-AD2 = EpicsSignal("XF:12ID1:TrufA2", name="analog/digital 2")
+#AD1 = EpicsSignal("XF:12ID1:TrufA1", name="analog/digital 1")
+#AD2 = EpicsSignal("XF:12ID1:TrufA2", name="analog/digital 2")
 #AD3 = EpicsSignal("XF:12ID1-ECAT:EL3164-00-AI3", name="analog/digital 3")
 #AD4 = EpicsSignal("XF:12ID1-ECAT:EL3164-00-AI4", name="analog/digital 4")
+AD1 = EpicsSignal("XF:12ID1:TrufA1", name="AD1")
+AD2 = EpicsSignal("XF:12ID1:TrufA2", name="AD2")
 
 import matplotlib.pyplot as plt 
 import json

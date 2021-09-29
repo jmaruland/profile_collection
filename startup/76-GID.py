@@ -26,7 +26,6 @@ def gid_scan(md=None, exp_time=1, detector = pilatus100k, alphai = 0.1, attenuat
                 'detector': detector.name, 
                 'energy': energy.energy.position,
                 'alphai': alphai,
-                #'stth' : geo.stth
                 'stth' : geo.stth.position
                 # ...
             }

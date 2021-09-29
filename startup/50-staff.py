@@ -4,8 +4,9 @@
 def phi_track(alpha_ini, alpha_stop, num_alpha):
     # for eta in range(eta_start, eta_stop, nb_eta):
     # eta
-
-    dif = np.zeros((2, num_alpha+1))
+    global dif
+    
+    dif  = np.zeros((2, num_alpha+1))
     for i, alpha in enumerate(range(0, num_alpha+1, 1)):
         alpha_re = alpha_ini + (i * (alpha_stop - alpha_ini) / num_alpha)
         print(i, alpha_ini, alpha_re)
@@ -20,6 +21,8 @@ def phi_track(alpha_ini, alpha_stop, num_alpha):
         dif[1, i] = peaks.cen["quadem_current3_mean_value"] - geo.forward(alpha=alpha_re).phi
 
     print(dif)
+
+def phi_track_show():
     import matplotlib.pyplot as plt
     plt.figure()
     plt.plot(dif[0, :], dif[1, :])
@@ -28,14 +31,14 @@ def phi_track(alpha_ini, alpha_stop, num_alpha):
 
 def ih_track(alpha_ini, alpha_stop, num_alpha):
     # for ih in range(alpha_ini,alpha_stop, nb_alpha):
-    for i in [2,3,4]:
+    for i in [2,3]:
         #getattr(tetramm, f"current{i}").mean_value.kind = "hinted"
         getattr(quadem, f"current{i}").mean_value.kind = "hinted"
 
 
     yield from bps.mv(geo.track_mode, 0) 
 
-
+    global dif
     dif = np.zeros((3, num_alpha+1))
     for i, alpha in enumerate(range(0, num_alpha+1, 1)):
         alpha_re = alpha_ini + (i * (alpha_stop - alpha_ini) / num_alpha)
@@ -45,9 +48,9 @@ def ih_track(alpha_ini, alpha_stop, num_alpha):
         yield from bp.rel_scan([quadem], geo.phi, -0.010, 0.010, 20)
 
         #yield from bps.mv(geo.phi, peaks.cen["tetramm_current2_mean_value"])
-        yield from bps.mv(geo.phi, peaks.cen["quadem_current3_mean_value"])
+        yield from bps.mv(geo.phi, peaks.cen["quadem_current2_mean_value"])
 
-        dif[2, i] = peaks.cen["quadem_current3_mean_value"] - geo.forward(alpha=alpha_re).phi
+        dif[2, i] = peaks.cen["quadem_current2_mean_value"] - geo.forward(alpha=alpha_re).phi
         #dif[2, i] = peaks.cen["tetramm_current2_mean_value"] - geo.forward(alpha=alpha_re).phi
 
         #yield from bp.rel_scan([tetramm], geo.ih, -0.4, 0.4, 20)
@@ -55,24 +58,25 @@ def ih_track(alpha_ini, alpha_stop, num_alpha):
 
         # is the next line corrct, geo.forward(alpha=alpha_re)
         #print(peaks.cen["tetramm_current3_mean_value"] - geo.forward(alpha=alpha_re).ih)
-        print(peaks.cen["quadem_current4_mean_value"] - geo.forward(alpha=alpha_re).ih)
+        print(peaks.cen["quadem_current3_mean_value"] - geo.forward(alpha=alpha_re).ih)
 
         dif[0, i] = alpha_re
-        dif[1, i] = peaks.cen["quadem_current4_mean_value"] - geo.forward(alpha=alpha_re).ih
+        dif[1, i] = peaks.cen["quadem_current3_mean_value"] - geo.forward(alpha=alpha_re).ih
         #dif[1, i] = peaks.cen["tetramm_current3_mean_value"] - geo.forward(alpha=alpha_re).ih
 
 
     print(dif)
-    import matplotlib.pyplot as plt
 
-    plt.figure()
-    plt.subplot(211)
-    plt.title("IH_track")
-    plt.plot(dif[0, :], dif[1, :])
-    plt.subplot(212)
-    plt.title("Phi_track")
-    plt.plot(dif[0, :], dif[2, :])
-    plt.show()
+def ih_track_show():
+        import matplotlib.pyplot as pltFOne
+        plt.figure()
+        plt.subplot(211)
+        plt.title("IH_track")
+        plt.plot(dif[0, :], dif[1, :])
+        plt.subplot(212)
+        plt.title("Phi_track")
+        plt.plot(dif[0, :], dif[2, :])
+        plt.show()
 
 
 def ref1(abso, expo, alpha_ini, alpha_stop, num_alpha):
@@ -247,11 +251,33 @@ def ref1_2(sample_name, expo, alpha_ini, alpha_stop, num_alpha):
             print(absorber1,absorber2, expo, alpha_re, \
                   int_roi4, int_roi3, int_roi2, int_ref) 
 
+@functools.wraps(bps.one_nd_step)
+def sleepy_step(*args, **kwargs):
+    def cleanup_plan_sleepy():
+        yield from bps.mov(shutter, 0)
+        yield from bps.sleep(.2)
+
+    def collect_plan_sleepy(detectors, step, pos_cache):
+        motors = step.keys()
+        yield from move_per_step(step, pos_cache)
+        yield from bps.sleep(0.2)
+        yield from bps.mov(shutter, 1)
+        yield from trigger_and_read(list(detectors) + list(motors))
 
 
+    yield from bpp.finalize_wrapper(
+        collect_plan_sleepy(*args, **kwargs),
+        cleanup_plan_sleepy()
+    )
 
-
-
-
+    def restore_beam():
+        yield from clear.suspenders()
+        yield from bps.rel_scan([quadem3_cl],dcm_pitch,-0.015,0.015,40)
+        #set up so that the center of mass works
+        tmp=peaks.cen['quadem_current3_mean_value']
+        yield from bps.mov(dcm_ptich,tmp)
+        RE.install_suspender(susp_xbpm2_sum)    
+        RE.install_suspender(susp_beam)
+        RE.install_suspender(susp_smi_shutter)
 
 

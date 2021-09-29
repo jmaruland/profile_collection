@@ -83,7 +83,7 @@ def expert_reflection_scan_fluo(md=None, detector=xs):
 
     #Initialize the fluorescence default set-up (i.e. abs to 1 and det mode to 4)
     yield from bps.mv(geo.det_mode,4)
-    yield from bps.mv(abs2, 0)
+    yield from bps.mv(abs2, 2)
 # increased counting time and reduce attnuator
     alpha_start, alpha_stop, num, exp_time,precount_time = 0.05, 0.3, 25, 10,1
     
@@ -111,3 +111,9 @@ def expert_reflection_scan_fluo(md=None, detector=xs):
     yield from bps.mv(geo.det_mode, 1)
     yield from bps.mv(abs2, 5)
     print('The reflectivity scan is over')
+
+def display_saturate():
+    saturate = EpicsSignal("XF:12ID1-ES{Xsp:1}:C1_ROI1:Value_RBV", name="xs_sum")
+    display_17=EpicsSignal("XF:12ID1:L_17", name="test3")
+    yield from bps.mv(display_17,saturate)
+

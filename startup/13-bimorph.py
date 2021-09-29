@@ -21,11 +21,11 @@ for i in range(16):
     bimorph_pv.append( "VFM:SET-VOUT" + str(i))
     bimorph_name.append( "PV_name" + str(i))
 
-print(bimorph_pv,bimorph_name)
+#print(bimorph_pv,bimorph_name)
 
 for i,pv in enumerate(bimorph_pv):
     name = bimorph_name[i]
-    print(pv,name)
+#    print(pv,name)
 
 bimorph_vectors =[bimv0,bimv1,bimv2,bimv3,bimv4,bimv5,bimv6,bimv7,bimv8,bimv9,bimv10,bimv11,bimv12,bimv13,bimv14,]
 
@@ -51,7 +51,7 @@ def focus_set(voff_ini, voff_stop, num_voff, vector=9):
     dif  = np.zeros((3, num_voff+1))
     for i, voff in enumerate(range(0, num_voff+1, 1)):
         voff_rel = voff_ini + (i * (voff_stop - voff_ini) / num_voff)
-        print(i, voff_ini, voff_rel)
+     #   print(i, voff_ini, voff_rel)
         yield from set_bimorphs(vector, voff_rel) 
         yield from bp.rel_scan([lambda_det,quadem], sh, -0.2,0.2, 40) 
         #yield from bp.rel_scan([lambda_det,quadem], sh, -0.2,0.2, 10) 
@@ -62,7 +62,7 @@ def focus_set(voff_ini, voff_stop, num_voff, vector=9):
         dif[0, i] = voff_rel
         dif[1, i] = peak_lambda / quadem_mv  
         dif[2, i] = fwhm_lambda  
-    print(dif)
+ #   print(dif)
     return dif
 
 def focus_show2():
@@ -89,7 +89,7 @@ def focus_set_ih(voff_ini, voff_stop, num_voff, vector=9):
     dif  = np.zeros((3, num_voff+1))
     for i, voff in enumerate(range(0, num_voff+1, 1)):
         voff_rel = voff_ini + (i * (voff_stop - voff_ini) / num_voff)
-        print(i, voff_ini, voff_rel)
+ #       print(i, voff_ini, voff_rel)
         yield from set_bimorphs(vector, voff_rel) 
         #yield from bp.rel_scan([lambda_det,quadem], sh, -0.2,0.2, 40) 
         yield from bp.rel_scan([lambda_det,quadem], ih, -0.1,0.1, 40) 
@@ -104,6 +104,6 @@ def focus_set_ih(voff_ini, voff_stop, num_voff, vector=9):
         dif[0, i] = voff_rel
         dif[1, i] = peak_quadem
         dif[2, i] = fwhm_quadem  
-    print(dif)
+   # print(dif)
     return dif
 

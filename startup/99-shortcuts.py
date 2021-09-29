@@ -1,9 +1,14 @@
 # pull various motors into the global name space
 
+dscan = bp.rel_scan
+count =  bp.count
+ps(det='lambda_det',suffix='_stats2_total')
+
 
 x1 = tab1.x
 y1 = tab1.y
 z1 = tab1.z
+x2 = geo.stblx2
 
 th=geo.th
 tth=geo.tth
@@ -11,61 +16,70 @@ chi=geo.chi
 phi=geo.phi
 phix=geo.phix
 ih=geo.ih
-ia=geo.ia
-
-x2=geo.stblx2
 sh=geo.sh
 astth=geo.astth
 #asth=geo.asth
 oh=geo.oh
 oa=geo.oa
+stth=geo.stth
 abs1=S1.absorber1
 abs2=S3.absorber1
+abs3=S4.absorber1
+bpmy=S5.position1
+
+
   
+def set_sh(new_value):
+    yield Msg('reset_user_position', geo.sh, new_value)
+    save_offsets()
 
 def set_ih(new_value):
     yield Msg('reset_user_position', geo.ih, new_value)
+    save_offsets()
  
 def set_ia(new_value):
     yield Msg('reset_user_position', geo.ia, new_value)
+    save_offsets()
 
 def set_phi(new_value):
     yield Msg('reset_user_position', geo.phi, new_value)
+    save_offsets()
 
 def set_chi(new_value):
     yield Msg('reset_user_position', geo.chi, new_value)
+    save_offsets()
 
 def set_tth(new_value):
     yield Msg('reset_user_position', geo.tth, new_value)
+    save_offsets()
      
 def set_th(new_value):
     yield Msg('reset_user_position', geo.th, new_value)
+    save_offsets()
        
 def set_astth(new_value):
     yield Msg('reset_user_position', geo.astth, new_value)
+    save_offsets()
 
 def set_asth(new_value):
     yield Msg('reset_user_position', geo.asth, new_value)
+    save_offsets()
 
 def set_oh(new_value):
     yield Msg('reset_user_position', geo.oh, new_value)
+    save_offsets()
 
 def set_oa(new_value):
     yield Msg('reset_user_position', geo.oa, new_value)
+    save_offsets()
 
-def set_sh(new_value):
-    yield Msg('reset_user_position', geo.sh, new_value)
-
-
-# NEEDS TO BE FIXED
-def set_zero_alpha():
-    chi_nom=geo.forward(0,0,0).chi  
+def set_all():
     yield from set_chi(chi_nom)
-    phi_nom=geo.forward(0,0,0).phi   
+    phi_nom=geo.forward(0,0,0).phi  
     yield from set_phi(phi_nom)
-    tth_nom=geo.forward(0,0,0).tth   
+    tth_nom=geo.forward(0,0,0).tth 
     yield from set_tth(tth_nom)
-    sh_nom=geo.forward(0,0,0).sh   
+    sh_nom=geo.forward(0,0,0).sh
     yield from set_sh(sh_nom)
     yield from set_ih(0)
     yield from set_ia(0)
@@ -73,253 +87,237 @@ def set_zero_alpha():
     yield from set_oh(0)
 
 
-# NEEDS TO BE FIXED
-def sh_center(a_sh,wid_sh,npts_sh):
-    sh_nom=geo.forward(a_sh,a_sh,0).sh  
-    geo_offset_old= geo.SH_OFF.get()
-    yield from smab(a_sh,a_sh)
-    yield from shscan(-1*wid_sh/2,wid_sh/2,npts_sh)
-    shscan_cen = peaks.cen['pilatus100k_stats4_total'] # to get the center of the scan plot, HZ
-    geo_offset_new=shscan_cen-sh_nom
-    geo_offset_diff = geo_offset_new-geo_offset_old
-#      Do we put an if statement here to only move it it is about 2/3 of the width       
-    yield from bps.mv(geo.sh, shscan_cen)
-    yield from bps.null()
-    yield from bps.mv(geo.SH_OFF, geo_offset_new)
-    yield from bps.null()
-    print('sh reset from %f to %f', shscan_cen,sh_nom)
-
-
 def mab(alpha,beta):
     yield from mabt(alpha,beta,0)
 
-def direct_beam():
-    yield from bps.mov(abs1,1)
-    yield from bps.mov(abs2,8)
-    yield from bps.mov(shutter,1)
-    yield from mab(0,0)
-    yield from bps.movr(sh,-0.2)
-
-def smab(alpha,beta):
-    abs_select(alpha)
-    absorber1,absorber2 = abs_select(alpha)
-    yield from bps.mv(abs1, absorber1)
-    yield from bps.mv(abs2, absorber2)
-    print('absorber1 =%s' %absorber1)
-    print('absorber2 =%s' %absorber2)
-    yield from mabt(alpha,beta,0)
-    yield from bps.mov(shutter,1)
-    print('Shutter open')
-    yield from det_exposure_time(1,1)
-    yield from bp.count([pilatus100k],num=1)
-
-def setsh_gid():
-    abs_old = abs2.position
-    yield from bps.mv(abs2,4)
-    yield from mabt(0.1,0,0)
-    yield from bps.mvr(astth,1)  
-    yield from bp.rel_scan([pilatus100k],sh,-0.15,0.15,31,per_step=shutter_flash_scan)
-    yield from bps.mv(sh,peaks.cen['pilatus100k_stats1_total'] )
-    yield from set_sh(-1.243)
-    yield from mabt(0.1,0,0)
-    # yield from bps.mvr(astth,0.5)
-    # yield from bps.mv(shutter,1) # open shutter
-    # yield from bp.count([pilatus100k]) # gid
-    # yield from bps.mv(shutter,0) # close shutter
-    # yield from bps.mvr(astth,-0.5)  
-    yield from bps.mv(abs2,0)
-    yield from bps.mv(abs1,0)
-    yield from bps.mv(shutter,1) # open shutter
-    yield from bp.count([pilatus100k]) # gid
-    yield from bps.mv(shutter,0) # close shutter
-    yield from bps.mv(abs2,abs_old)
-    yield from bps.mv(abs1,1)
-
-    yield from bps.mvr(geo.stblx2, -0.5) # move stable X2 to get a fresh spot
-    yield from bps.sleep(5) # need to sleep after move X2
-    yield from bps.mv(abs2,0)
-    yield from bps.mv(abs1,0)
-    yield from bps.mv(shutter,1) # open shutter
-    yield from bp.count([pilatus100k]) # gid
-    yield from bps.mv(shutter,0) # close shutter
-    yield from bps.mv(abs2,abs_old)
-    yield from bps.mv(abs1,1)
 
 
+def fast(time,stth,saxsy):
+     yield from det_exposure_time_pilatus(time, time)
+     yield from bps.mv(geo.det_mode,4)
+     yield from mabt(0.08,0,stth)
+     yield from bps.mov(saxs.y,saxsy)
+     yield from bps.mov(shutter,1)
+     yield from bp.count([saxs, geo, pilatus100k])
+     yield from bps.mov(shutter,0)
 
-def shscan(start,end,steps):
-    yield from det_exposure_time(1,1)
-    start2=2*start
-    end2 = 2*end
-    yield from bp.rel_scan([lambda_det],sh,start,end,oh,start2,end2,steps, per_step=shutter_flash_scan)
 
-def park():
+def gid_stitch():
+    yield from bps.mv(flow3,2.22)
+    yield from shopen()
     yield from bps.mov(shutter,0)
-    # this parks the two tables.
-    yield from bps.mov(geo.stblx,820)
-    yield from bps.mov(tab1.x,270)
-    yield from bps.mov(ih,100)
-    # this moves the th and two theta
-    yield from bps.mov(geo.th,20,geo.tth,30)
-    yield from bps.mov(geo.th,40,geo.tth,50)
-    yield from bps.mov(geo.th,60,geo.tth,70)
-    yield from bps.mov(geo.th,90,geo.tth,70)
-    # this moves the height of the crystal 
-    yield from bps.mov(tab1.y,-70) # the low limit is -68.32
+    yield from sample_height_set_fine()
+    yield from bps.mov(abs2,0)
 
-def unpark():
-    yield from bps.mov(shutter,0)
-    # this restores the height of the crystal 
-    yield from bps.mov(tab1.y,0)
-    #this restores the th and two theta
-    yield from bps.mov(geo.th,60,geo.tth,70)
-    yield from bps.mov(geo.th,40,geo.tth,50)
-    yield from bps.mov(geo.th,20,geo.tth,30)
-    yield from bps.mov(geo.th,0,geo.tth,20)
-    #this restores the two tables.
-    yield from bps.mov(ih,0)
-    yield from bps.mov(tab1.x,0)
-    yield from bps.mov(geo.stblx,250)
-        
+    for saxsy in [72,102,132,162]:
+         for stth in [13,16,19]:
+             yield from fast(10,stth,saxsy)
 
-filter1 = EpicsSignal('XF:12ID1:Fltr:1', name='filter1')
-filter2 = EpicsSignal('XF:12ID1:Fltr:2', name='filter2')
-filter3 = EpicsSignal('XF:12ID1:Fltr:3', name='filter3')
-filter4 = EpicsSignal('XF:12ID1:Fltr:4', name='filter4')
-
-
-
-# schi = Cpt(EpicsMotor, "XF:12ID1-ES{Smpl-Ax:Chi}Mtr")
-    
-schi = EpicsMotor('XF:12ID1-ES{Smpl-Ax:Chi}Mtr', name='schi')
-
-
-
-
-def ames3():
-    yield from bps.mv(flow3,5.0)
-    yield from bps.sleep(100) 
-    yield from bps.mv(flow3,3.1)
-    yield from bps.mv(geo.det_mode,1)
-    
-# sample 1 PEG5k-AuNP10-PEG5k-AuNP5_1:1_100mK2CO3
-    yield from bps.mv(schi,-0.1)
-    yield from bps.mv(geo.stblx2,43.5)
-    yield from sample_height_set_coarse()
-    yield from ames("Pe5Au_c10_PB_500mMNaCl")
-
-# sample 2 PEG2k-AuNP10-PEG5k-AuNP5_1:1_100mK2CO3
-    yield from bps.mv(schi,-0.1)
-    yield from bps.mv(geo.stblx2,13)
-    yield from sample_height_set_coarse()
-    yield from ames("Pg2Au_c20_Wat_10mMNaCl")
-
-# sample 3 PEG2k-AuNP10-PEG2k-AuNP5_1:1_100mK2CO3
-    yield from bps.mv(geo.stblx2,-18.25)
-    yield from sample_height_set_coarse()
-    yield from bps.mv(schi,0.5)
-    yield from ames("Pg2Au_c20_PB_10mMNaCl")
+    yield from bps.mv(flow3,0)
     yield from shclose()
-    yield from bps.mv(flow3,0.0)
 
 
+def align_all(detector=lambda_det):
+    yield from ih_set()
+    yield from tth_set()
+    yield from astth_set(detector=detector)
 
-
-
-def ames(name):
-    # This takes the reflectivity
-    # yield from bps.mv(geo.stblx2,0)
-
-   # yield from bps.mv(flow3,3.5)
-    yield from bps.mv(geo.det_mode,1)
     
-    # sets sample height at alpha=0.08
-    yield from sample_height_set_fine()
 
-    #print('Sleeping time before reflectivity')
-    #yield from bps.sleep(100)
-    #yield from bps.mv(flow3,2.7)
+def one_ref(name,xpos,tiltx=0,detector=lambda_det):
+        '''Conduct reflectivity measurments'''
+        print("file name=",name)
+        yield from shopen()
+        yield from bps.mv(geo.stblx2,xpos)  #move the  Sample Table X2 to xpos
+        yield from bps.mv(tilt.x,tiltx)  #move the  Sample tilt 
+        yield from bps.mv(shutter,1) # open shutter
+        #yield from check_ih()  #Align the spectrometer  height
+        #yield from check_tth() #Align the spectrometer rotation angle
+        yield from sample_height_set_coarse(detector=detector) #scan the detector arm height (sh) from -1 to 1 with 41 points
+        yield from sample_height_set_fine(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
+        yield from bps.mv(shutter,1) # open shutter
+        # yield from astth_set(detector=detector)   #Align the detector arm rotation angle# comment out as it might affect OFFSET
+        yield from fast_scan_here(name)
+        yield from bps.mv(shutter,0) # open shutter
+        yield from mabt(0.2,0.2,0)
+
+        
+def one_xf(name,xpos):
+        print("file name=",name)
+        yield from shopen()
+        yield from bps.mv(abs2,1)
+        yield from bps.mv(geo.stblx2,xpos)
+        yield from bps.mv(shutter,1) # open shutter
+        yield from sample_height_set_coarse()  #scan the height from -1 to 1 with 41 points
+        yield from sample_height_set_fine() #scan the height from -0.2 to 0.2 with 21 points
+        yield from fast_scan_fluo(name)
+
+def one_gid(name,xpos,stth, exp_time = 10, attenuator=6, alphai=0.1, beta1=0,  beta_off = 0.13, md={}, det_mode=3 ):
+    '''
+    GID: det_mode = 3, beta_gid(0,0.13)
+    GISAXS: det_mode=2, beta_gid(0,0.4)
+    '''
     
-    # takes the reflectivity
-    yield from fast_scan(name)
+    gid_dets = [pilatus300k]
+    @bpp.stage_decorator(gid_dets)
+    def _one_gid(name,xpos,stth, exp_time, attenuator, alphai, beta1,  beta_off, md ):
+            print("file name=",name)
+            #yield from bps.mv(abs2,0)
+            base_md = {'plan_name': 'gid',
+                    'cycle': RE.md['cycle'],
+                    'proposal_number': RE.md['proposal_number'] + '_' + RE.md['main_proposer'],
+                    'detector': gid_dets[0].name, 
+                    'energy': energy.energy.position,
+                    'alphai': alphai,
+                    'stth' : stth,
+                    'detx': detsaxs.x.user_readback.value,
+                    'dety': detsaxs.y.user_readback.value,
+                    'sample_name': name,
+                    'beta1': beta1,
+                    'beta_off': beta_off
+                    # ...
+                } 
+            base_md.update(md or {})        
+            # Disable plots and start a new the databroker document 
+            bec.disable_plots()
+            yield from shopen()
+            yield from bps.open_run(md=base_md)
+            yield from bps.mv(geo.det_mode,det_mode)
+            yield from beta_gid(beta1, beta_off)
+            yield from mabt(alphai,alphai,stth)
+            yield from bps.mv(geo.stblx2,xpos)
+            yield from bps.mv(shutter,1) # open shutter
+            yield from bps.sleep(0.5) # add this because the QuadEM I0
+            attenuation_factor_signal = Signal(name='attenuation', value = att_bar1['attenuator_aborp'][attenuator])
+            exposure_time = Signal(name='exposure_time', value = exp_time)
+            # Set attenuators and exposure to the corresponding values
+            yield from bps.mv(abs2, attenuator)
+            yield from det_exposure_time_new(gid_dets[0], exp_time, exp_time)  
+            yield from bps.trigger_and_read(gid_dets + [geo] + [attenuation_factor_signal] + [exposure_time], name='primary')
+            yield from bps.mv(shutter,0)
+            yield from close_run()
+            bec.enable_plots()
+    yield from _one_gid(name=name,
+                        xpos=xpos,
+                        stth=stth,
+                        exp_time=exp_time,
+                        attenuator=attenuator,
+                        alphai=alphai, 
+                        beta1=beta1,
+                        beta_off=beta_off,
+                        md=md)       
 
-    # sets sample height at alpha=0.08 so that it is ready for GID
-    yield from bps.mv(abs2,6)
-    yield from mabt(0.08,0.08,0)
     
-    print('Start the height scan before GID')
-    yield from sample_height_set_fine()
-
-    # This takes the GID
-    yield from bps.mv(geo.det_mode,2)
-    alphai = 0.11
-    yield from gid_new(md={'sample_name': name+'_GID'},
-                       exp_time = 1,
-                       detector = 'pilatus100k',
-                       alphai = alphai,
-                       attenuator=1)
-
-    yield from bps.mvr(geo.stblx2,2)
-    yield from sample_height_set_fine()
-    yield from bps.mv(geo.det_mode,2)
-    alphai = 0.11
-    yield from gid_new(md={'sample_name': name+'_fresh1_GID'},
-                       exp_time = 1,
-                       detector = 'pilatus100k',
-                       alphai = alphai,
-                       attenuator=1)
-
-    yield from bps.mvr(geo.stblx2,-4)
-    yield from sample_height_set_fine()
-    yield from bps.mv(geo.det_mode,2)
-    alphai = 0.11
-    yield from gid_new(md={'sample_name': name+'_fresh2_GID'},
-                       exp_time = 1,
-                       detector = 'pilatus100k',
-                       alphai = alphai,
-                       attenuator=1)
-    yield from bps.mvr(geo.stblx2,2)
-
-#    yield from bps.mv(flow3,2.7)
-#    yield from bps.mv(geo.stblx2,3.0)
-
-def sample_height_set_fine():
-    yield from bps.mv(geo.det_mode,1)
-    yield from bps.mv(abs2,6)
-    yield from mabt(0.08,0.08,0)
-    print('Start the height scan before GID')
-    yield from shscan(-0.2,0.2,21)
-    tmp=peaks.cen['lambda_det_stats2_total'] 
-    yield from bps.mv(sh,tmp)
-    yield from set_sh(-0.9945)
-
-def sample_height_set_coarse():
-    yield from bps.mv(geo.det_mode,1)
-    yield from bps.mv(abs2,6)
-    yield from mabt(0.08,0.08,0)
-    print('Start the height scan before GID')
-    yield from shscan(-1,1,41)
-    tmp=peaks.cen['lambda_det_stats2_total'] 
-    yield from bps.mv(sh,tmp)
-    yield from set_sh(-0.9945)
+    
+def one():
+        yield from he_off()
+        yield from one_ref("0.05mM CsCl with ML, small trough_3", -6,0)
+        yield from one_xf("0.05mM CsCl with ML, small trough_3", -6)
+        yield from shclose()
+        yield from he_off()
 
 
+def cfn_3():
+    yield from he_on()
+    yield from one_ref("S1, 1ul_DSPEP_P14", -59, tiltx=0,detector=pilatus100k)
+    yield from one_ref("S2, 2ul_DSPEP_Px", -9, tiltx=0,detector=pilatus100k)
+    yield from one_ref("S3, 4ul_DSPEP_P38", 41, tiltx=0,detector=pilatus100k)     
+    yield from shclose()
+    yield from he_off()
 
 
+def opls_3():
+    yield from he_on()
+    yield from one_ref("0.5mM CsCl_ML, small trough_1_abs2", -62,tiltx=0,detector=pilatus100k)
+    yield from  one_xf("0.5mM CsCl_ML, small trough_1_abs2", -62)
+    yield from one_ref("0.2mM CsBr_ML, small trough_1_abs2", -12,tiltx=0,detector=pilatus100k)
+    yield from  one_xf("0.2mM CsBr_ML, small trough_1_abs2", -12)
+    yield from one_ref("0.5mM CsI_ML, small trough_1_abs2", 39,tiltx=0,detector=pilatus100k)
+    yield from  one_xf("0.5mM CsI_ML, small trough_1_abs2", 39)
+    yield from shclose()
+    yield from he_off()
 
 
+def beta_gid(beta1,beta_off):
+    y1=650*np.deg2rad(beta1+beta_off)
+    y2=1333*np.deg2rad(beta1+beta_off)
+    y3=1500*np.deg2rad(beta1)
+    yield from bps.mv(fp_saxs.y1,y1,fp_saxs.y2,y2,detsaxs.y,y3)
+   
+    
 
 
-                       
-                       
+def one_dppc(sam,start_pos):
+
+    yield from bps.mv(geo.stblx2,  start_pos, stth)
+ #   yield from sample_height_set_coarse(detector=pilatus100k)
+ #   yield from sample_height_set_fine(detector=pilatus100k)
+    yield from one_gid( name=sam, xpos=start_pos, stth = stth, exp_time=30, attenuator=0, beta1=0, beta_off=0.13, det_mode=3) 
+    yield from one_gid( name=sam, xpos=start_pos, stth = stth, exp_time=30,attenuator=0, beta1=3, beta_off=-0.25, det_mode=3) 
 
 
+def dppc_3():
+    yield from he_on()
+    #yield from one_dppc("DPPC, 40uL, P=14", -80)
+    #yield from one_dppc("DPPC, 50uL, P=NA", -10)
+    yield from one_dppc("DPPC, 60uL, P=45, stth=15", 55, stth=15)
+    yield from one_dppc("DPPC, 60uL, P=45, stth=16", 55, stth=16)
+    yield from one_dppc("DPPC, 60uL, P=45, stth=17", 55, stth=17)
+    yield from one_dppc("DPPC, 60uL, P=45, stth=18", 55, stth=18)
+    yield from one_dppc("DPPC, 60uL, P=45  stth=19", 55, stth=19)
+    yield from shclose()
+    yield from he_off()
 
-                
+
+def dppc():
+
+ #   yield from sample_height_set_coarse(detector=pilatus100k)
+ #   yield from sample_height_set_fine(detector=pilatus100k)
+    start_pos=54
+    sam="DPPC, 60uL, P=45"
+    yield from one_gid( name=sam+"stth=16.0", xpos=start_pos, stth = 16, exp_time=30, attenuator=0, beta1=0, beta_off=0.13, det_mode=3) 
+    yield from one_gid( name=sam+"stth=16.5", xpos=start_pos, stth = 16.5, exp_time=30, attenuator=0, beta1=0, beta_off=0.13, det_mode=3) 
+    yield from one_gid( name=sam+"stth=17.0", xpos=start_pos, stth = 17, exp_time=30, attenuator=0, beta1=0, beta_off=0.13, det_mode=3) 
+    yield from one_gid( name=sam+"stth=17.5", xpos=start_pos, stth = 17.5, exp_time=30, attenuator=0, beta1=0, beta_off=0.13, det_mode=3) 
+    yield from one_gid( name=sam+"stth=18.0", xpos=start_pos, stth = 18, exp_time=30, attenuator=0, beta1=0, beta_off=0.13, det_mode=3) 
+   
+    yield from one_gid( name=sam+"stth=16.0", xpos=start_pos, stth = 16, exp_time=30, attenuator=0, beta1=3, beta_off=-0.25, det_mode=3) 
+    yield from one_gid( name=sam+"stth=16.5", xpos=start_pos, stth = 16.5, exp_time=30, attenuator=0, beta1=3,beta_off=-0.25, det_mode=3) 
+    yield from one_gid( name=sam+"stth=17.0", xpos=start_pos, stth = 17, exp_time=30, attenuator=0, beta1=3, beta_off=-0.25, det_mode=3) 
+    yield from one_gid( name=sam+"stth=17.5", xpos=start_pos, stth = 17.5, exp_time=30, attenuator=0, beta1=3, beta_off=-0.25, det_mode=3) 
+    yield from one_gid( name=sam+"stth=18.0", xpos=start_pos, stth = 18, exp_time=30, attenuator=0, beta1=3, beta_off=-0.25, det_mode=3) 
+   
 
 
+offset_counter =1
 
+def save_offsets():
+    global offset_counter
+    motor_file = open('/home/xf12id1/.ipython/profile_collection/startup/offsets','a')
+    e = str(datetime.datetime.now())
+    offset_counter = offset_counter + 1
+    if offset_counter%10 == 0:
+        motor_file.write(e[0:19])
+        motor_file.write("   phi   phix    chi     ih     ia    tth     sh     oh     oa  astth tab1.x tab1.y\n")
+    motor_file.write(e[0:19])
+  
+    time.sleep(0.1)
+    motor_file.write("{:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f}\n".format(
+    geo.phi.user_offset.value,
+    geo.phix.user_offset.value,
+    geo.chi.user_offset.value,
+    geo.ih.user_offset.value,
+    geo.ia.user_offset.value,
+    geo.tth.user_offset.value,
+    geo.sh.user_offset.value,
+    geo.oh.user_offset.value,
+    geo.oa.user_offset.value,
+    geo.astth.user_offset.value,
+    tab1.x.user_offset.value,
+    tab1.y.user_offset.value,
+    ))
+    motor_file.close()
 
-
+    
 
 
