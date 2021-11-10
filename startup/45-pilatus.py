@@ -1,25 +1,13 @@
 
 print(f'Loading {__file__}')
 
-from ophyd import ( Component as Cpt, ADComponent, Device, PseudoPositioner,
-                    EpicsSignal, EpicsSignalRO, EpicsMotor,
-                    ROIPlugin, ImagePlugin,
-                    SingleTrigger, PilatusDetector,
-                    OverlayPlugin, FilePlugin, TIFFPlugin)
-
+from ophyd import ( Component as Cpt, EpicsSignal, ROIPlugin, TransformPlugin,
+                    PilatusDetector, OverlayPlugin, TIFFPlugin )
 from ophyd.areadetector.filestore_mixins import FileStoreTIFFIterativeWrite
 from ophyd.areadetector.cam import PilatusDetectorCam
 from ophyd.areadetector.detectors import PilatusDetector
 from ophyd.areadetector.base import EpicsSignalWithRBV as SignalWithRBV
-
-from ophyd.utils import set_and_wait
-from databroker.assets.handlers_base import HandlerBase
-import os
-import bluesky.plans as bp
-import time
-from nslsii.ad33 import StatsPluginV33
-from nslsii.ad33 import SingleTriggerV33
-import pandas as pds
+from nslsii.ad33 import StatsPluginV33, SingleTriggerV33
 
 class PilatusDetectorCamV33(PilatusDetectorCam):
     '''This is used to update the Pilatus to AD33.'''
@@ -72,6 +60,8 @@ class Pilatus(SingleTriggerV33, PilatusDetector):
     stats4 = Cpt(StatsPluginV33, 'Stats4:', read_attrs=['total'])
 
     over1 = Cpt(OverlayPlugin, 'Over1:')
+    trans1 = Cpt(TransformPlugin, 'Trans1:')
+
 
     def set_primary_roi(self, num):
         st = f'stats{num}'

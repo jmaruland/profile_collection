@@ -1,11 +1,11 @@
 print(f'Loading {__file__}')
 
 from ophyd import Component as Cpt
+from ophyd import ROIPlugin, TransformPlugin, EpicsSignal, EpicsSignalRO
+from ophyd.areadetector.base import EpicsSignalWithRBV as SignalWithRBV
 from ophyd.areadetector.cam import CamBase
 from ophyd.areadetector import ADComponent as ADCpt, DetectorBase
-
-from nslsii.ad33 import StatsPluginV33
-from nslsii.ad33 import SingleTriggerV33
+from nslsii.ad33 import StatsPluginV33, SingleTriggerV33
 
 
 class Lambda750kCam(CamBase):
@@ -27,7 +27,6 @@ class LambdaDetector(DetectorBase):
     _html_docs = ['lambda.html']
     cam = Cpt(Lambda750kCam, 'cam1:')
 
-
 class Lambda(SingleTriggerV33, LambdaDetector):
     # MR20200122: created all dirs recursively in /nsls2/jpls/data/lambda/
     # from 2020 to 2030 with 777 permissions, owned by xf12id1 user.
@@ -46,6 +45,8 @@ class Lambda(SingleTriggerV33, LambdaDetector):
     stats2 = Cpt(StatsPluginV33, 'Stats2:', read_attrs=['total'])
     stats3 = Cpt(StatsPluginV33, 'Stats3:', read_attrs=['total'])
     stats4 = Cpt(StatsPluginV33, 'Stats4:', read_attrs=['total'])
+
+    trans1 = Cpt(TransformPlugin, 'Trans1:')
 
     low_thr = Cpt(EpicsSignal, 'cam1:LowEnergyThreshold')
     hig_thr = Cpt(EpicsSignal, 'cam1:HighEnergyThreshold')
