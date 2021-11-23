@@ -8,8 +8,8 @@ from bluesky_darkframes import DarkSubtraction
 from bluesky.callbacks.zmq import RemoteDispatcher
 import databroker.assets.handlers
 
-USERDIR = '/nsls2/xf12id1/users/2021_2/308360_vaknin/GID_data'
 
+USERDIR = '/nsls2/xf12id1/users/' + RE.md['cycle'] + '/' + RE.md['proposal_number'] + RE.md['main_proposer']
 dispatcher = RemoteDispatcher('localhost:5578')
 
 def factory(name, start_doc):
@@ -18,7 +18,7 @@ def factory(name, start_doc):
         return [], []
 
     serializer = tiff_series.Serializer(file_prefix=('{start[sample_name]}_'),
-                                            directory=USERDIR)
+                                            directory=USERDIR + '/GID_data')
     # serializer('start', start_doc)
 
     def subfactory(name, descriptor_doc):
@@ -44,6 +44,6 @@ def factory(name, start_doc):
 
 
 handler_registry = {'AD_TIFF': databroker.assets.handlers.AreaDetectorTiffHandler}
-rr = RunRouter([factory], handler_registry=handler_registry)
-RE.subscribe(rr)
+#rr = RunRouter([factory], handler_registry=handler_registry)
+#RE.subscribe(rr)
 # dispatcher.start()

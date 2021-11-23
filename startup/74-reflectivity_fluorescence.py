@@ -21,7 +21,7 @@ def reflection_fluorescence_scan(alpha_start, alpha_stop, num, detector=xs, prec
             
             # Move to the good geometry position
             if tilt_stage:
-                yield from nabt(alpha, alpha, alpha*0.025)
+                yield from nabt(alpha, alpha, alpha)
             else:
                 yield from mabt(alpha, alpha, 0)
 
@@ -83,9 +83,9 @@ def expert_reflection_scan_fluo(md=None, detector=xs):
 
     #Initialize the fluorescence default set-up (i.e. abs to 1 and det mode to 4)
     yield from bps.mv(geo.det_mode,4)
-    yield from bps.mv(abs2, 2)
+    yield from bps.mv(abs2, 0)
 # increased counting time and reduce attnuator
-    alpha_start, alpha_stop, num, exp_time,precount_time = 0.05, 0.3, 25, 10,1
+    alpha_start, alpha_stop, num, exp_time,precount_time = 0.03, 0.2, 18, 1,1
     
     #Set the fluorescence detector 
     yield from bps.mv(xs.capture_mode, 1)

@@ -1,8 +1,9 @@
 # pull various motors into the global name space
 
-dscan = bp.rel_scan
+from bluesky.plans import rel_scan as dscan
+#dscan = bp.rel_scan
 count =  bp.count
-ps(det='lambda_det',suffix='_stats2_total')
+
 
 
 x1 = tab1.x
@@ -73,6 +74,10 @@ def set_oa(new_value):
     yield Msg('reset_user_position', geo.oa, new_value)
     save_offsets()
 
+def set_tilty(new_value):
+    yield Msg('reset_user_position', tilt.y, new_value)
+    save_offsets()
+
 def set_all():
     yield from set_chi(chi_nom)
     phi_nom=geo.forward(0,0,0).phi  
@@ -133,8 +138,8 @@ def one_ref(name,xpos,tiltx=0,detector=lambda_det):
         yield from bps.mv(shutter,1) # open shutter
         #yield from check_ih()  #Align the spectrometer  height
         #yield from check_tth() #Align the spectrometer rotation angle
-        yield from sample_height_set_coarse(detector=detector) #scan the detector arm height (sh) from -1 to 1 with 41 points
-        yield from sample_height_set_fine(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
+        yield from check_sh_coarse(detector=detector) #scan the detector arm height (sh) from -1 to 1 with 41 points
+        yield from check_sh_fine(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
         yield from bps.mv(shutter,1) # open shutter
         # yield from astth_set(detector=detector)   #Align the detector arm rotation angle# comment out as it might affect OFFSET
         yield from fast_scan_here(name)
@@ -145,11 +150,11 @@ def one_ref(name,xpos,tiltx=0,detector=lambda_det):
 def one_xf(name,xpos):
         print("file name=",name)
         yield from shopen()
-        yield from bps.mv(abs2,1)
+        yield from bps.mv(abs2,4)
         yield from bps.mv(geo.stblx2,xpos)
         yield from bps.mv(shutter,1) # open shutter
-        yield from sample_height_set_coarse()  #scan the height from -1 to 1 with 41 points
-        yield from sample_height_set_fine() #scan the height from -0.2 to 0.2 with 21 points
+     #   yield from sample_height_set_coarse()  #scan the height from -1 to 1 with 41 points
+     #   yield from sample_height_set_fine() #scan the height from -0.2 to 0.2 with 21 points
         yield from fast_scan_fluo(name)
 
 def one_gid(name,xpos,stth, exp_time = 10, attenuator=6, alphai=0.1, beta1=0,  beta_off = 0.13, md={}, det_mode=3 ):
@@ -243,6 +248,13 @@ def beta_gid(beta1,beta_off):
     y2=1333*np.deg2rad(beta1+beta_off)
     y3=1500*np.deg2rad(beta1)
     yield from bps.mv(fp_saxs.y1,y1,fp_saxs.y2,y2,detsaxs.y,y3)
+
+def GID_fp(y3):
+        y1= y3*650/1500
+        y2= y3*1333/1500
+        return y1,y2
+        
+
    
     
 
@@ -298,11 +310,11 @@ def save_offsets():
     offset_counter = offset_counter + 1
     if offset_counter%10 == 0:
         motor_file.write(e[0:19])
-        motor_file.write("   phi   phix    chi     ih     ia    tth     sh     oh     oa  astth tab1.x tab1.y\n")
+        motor_file.write("   phi   phix    chi     ih     ia    tth     sh     oh     oa  astth tab1.x tab1.y tilt.y\n")
     motor_file.write(e[0:19])
   
     time.sleep(0.1)
-    motor_file.write("{:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f}\n".format(
+    motor_file.write("{:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f}\n".format(
     geo.phi.user_offset.value,
     geo.phix.user_offset.value,
     geo.chi.user_offset.value,
@@ -315,6 +327,7 @@ def save_offsets():
     geo.astth.user_offset.value,
     tab1.x.user_offset.value,
     tab1.y.user_offset.value,
+    tilt.y.user_offset.value,
     ))
     motor_file.close()
 

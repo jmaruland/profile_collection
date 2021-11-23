@@ -225,7 +225,6 @@ class Geometry(PseudoPositioner):
         _alpha = np.deg2rad(pseudo_pos.alpha)
         _beta = np.deg2rad(pseudo_pos.beta)
         _stth = np.deg2rad(pseudo_pos.stth)
-
         cE = np.cos(self.Eta.get())
         sE = np.sin(self.Eta.get())
         _phix = self.phix.position
@@ -441,6 +440,15 @@ def nabt(alpha_0,beta_0,stth_0):
     yield from bps.mv(geo.beta,2*beta_0)
     yield from bps.mv(tilt.y,alpha_0)
     yield from bps.mv(geo.stth,stth_0)
+
+def nab(alpha_0,beta_0):
+    stth_corr = 0.003*pow(2*np.abs(alpha_0),1.72)
+    print(stth_corr)
+    if alpha_0 > 0:
+        yield from nabt(alpha_0,beta_0,stth_corr)
+    else:
+        yield from nabt(alpha_0,beta_0,-1*stth_corr)
+
 
 
 

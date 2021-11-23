@@ -1,3 +1,5 @@
+#format proposal_id("2021_3","307695_ocko")
+
 def proposal_id(cycle_id, proposal_id):
     RE.md['cycle'] = cycle_id
     RE.md['proposal_number'] = proposal_id.split('_')[0]
