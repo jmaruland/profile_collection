@@ -55,7 +55,7 @@ def gid_scan1(name):
     atten_2_list            = [0,0,0,0]
     wait_time_list          = [2,2,2,2]
 
-    scan_dict={"saxs_y":det_saxs_y_list,
+    scan_dict={"det_saxs_y":det_saxs_y_list,
         "det_saxs_y_offset":det_saxs_y_offset_list,
         "stth":stth_list,
         "exp_time":exp_time_list,
@@ -63,6 +63,8 @@ def gid_scan1(name):
         "atten_2":atten_2_list,
         "wait_time":wait_time_list,}
 
+    print("calling GID_stitch")
     yield from gid_scan_stitch(scan_dict, md={'sample_name': name}, detector = pilatus300k, alphai = 0.1)
+
 
     
