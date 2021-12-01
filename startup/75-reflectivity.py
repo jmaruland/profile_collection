@@ -5,6 +5,15 @@ def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=Fa
     :param detector: A string which is the detector name
     :type detector: string, can be either 'lambda_det' or 'pilatus100k'
     """
+    # Tom's way of checking to see if all lists are the same length
+    N = None
+    for k, v in scan_param.items():
+        if N is None:
+            N = len(v)
+        if N != len(v):
+            raise ValueError(f"the key {k} is length {len(v)}, expected {N}")
+    
+
  #XF:12ID1-ES{Det:Lambda}ROI1:MinX
     # Bluesky command to record metadata
     base_md = {'plan_name': 'reflection_scan',
@@ -13,12 +22,12 @@ def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=Fa
                'detector': detector.name, 
                'energy': energy.energy.position,
                'rois': [197, 273, 291, 309, 18,18],
-            #    'rois': [detector.roi1.min_xyz.min_y.get(),
-            #             detector.roi1.min_xyz.min_x.get(),
-            #             detector.roi2.min_xyz.min_x.get(),
-            #             detector.roi3.min_xyz.min_x.get(),
-            #             detector.roi1.min_xyz.size.x.get(),
-            #             detector.roi1.min_xyz.size.y.get()]
+            #    'rois': [detector.roi1.min_xyz.min_x.get(),
+            #             detector.roi1.min_xyz.min_y.get(),
+            #             detector.roi2.min_xyz.min_y.get(),
+            #             detector.roi3.min_xyz.min_y.get(),
+            #             detector.roi2.size.x.get(),
+            #             detector.roi2.size.y.get()]
                'geo_param': [geo.L1.get(), geo.L2.get(), geo.L3.get(), geo.L4.get()],
                'slit_s1': [S1.top.position - S1.bottom.position, S1.outb.position - S1.inb.position],
                'slit_s2': [S2.vg.position, S2.hg.position],
@@ -34,7 +43,6 @@ def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=Fa
     # Disable the plot during the reflectivity scan
     bec.disable_plots()
     # Bluesky command to start the document
-  
     yield from bps.open_run(md=base_md)
     x2_nominal= geo.stblx2.position
 
@@ -47,15 +55,10 @@ def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=Fa
     # Bluesky command to stop recording metadata
     yield from bps.close_run()
     bec.enable_plots()
-        
-    
+    # puts in absorber to protect the detctor      
     yield from bps.mv(abs2, 5)
     print('The reflectivity scan is over')
 print(f'Loading {__file__}')
-# area_dets = [pilatus100k]
-# all_area_dets = [pilatus100k, tetramm]
-#area_dets = [lambda_det,quadem]
-#all_area_dets = [pilatus100k, quadem]
 all_area_dets = [quadem, lambda_det, AD1, AD2, o2_per]
 
  
@@ -65,12 +68,13 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
     alpha_start =   scan_param["start"][i]
     alpha_stop =    scan_param["stop"][i]
     number_points = scan_param["n"][i]
-    atten_2 =    scan_param["atten"][i]
+    atten_2 =       scan_param["atten"][i]
     s2_vg =         scan_param["s2vg"][i]
     exp_time =      scan_param["exp_time"][i]
     precount_time=  scan_param["pre_time"][i]
     wait_time =     scan_param["wait_time"][i]
     x2_offset =     scan_param["x2_offset"][i]
+
     
     print(alpha_start,"----",alpha_stop,atten_2)
     for alpha in np.linspace(alpha_start, alpha_stop, number_points):
@@ -79,27 +83,30 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
              print('tilt stage')
              yield from nab(alpha, alpha)
         else:
-             yield from mabt(alpha, alpha, 0)
+            print('removed the move')
+        #    yield from mabt(alpha, alpha, 0)
         # yield from mabt(geo.alpha=0,geo.samchi=x,geo.beta=2*x)
+
         yield from bps.sleep(5)    
         # Set the exposure time to the define exp_time for the measurement
         yield from det_exposure_time(exp_time, exp_time)
         yield from bps.mv(exposure_time, exp_time)
         yield from bps.mv(S2.vg,s2_vg)
-        yield from bps.mv(x2,x2_nominal+x2_offset)
+        yield from bps.mv(geo.stblx2,x2_nominal+x2_offset)
 
-        ##Deal with the attenuator
-
+        #Deal with the attenuator
         # Set the absorber time to the define exp_time for the measurement
         if atten_2 == "auto":
             yield from calc_att_auto(alpha, precount_time=precount_time,detector=detector)
         elif atten_2 == "calc":
             att = calc_att_from_ai(alpha)
-            yield from bps.mv(abs2, att)
+            yield from bps.mv(abs2, atten_2)
         else:            
             if isinstance(atten_2,int):
-                yield from bps.mv(abs2, atten_2)
+                att=atten_2
+                #yield from bps.mv(abs2, atten_2)
                 yield from bps.sleep(wait_time)
+                
             # else:
             #     print('The absorber should be auto, calc, or int. Here will use auto.')
             #     yield from calc_att_auto(alphai, precount_time=1)

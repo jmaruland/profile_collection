@@ -22,13 +22,6 @@ def xr_scan1(name):
     wait_time_list=      [    4,   4,    4,    4,    4,    4,   4 ]
     x2_offset_list=      [    0,   0,    0,    0,    0,    0,   0 ]
 
-    assert len(alpha_stop_list) == N
-    assert len(number_points_list) == N
-    assert len(exp_time_list) == N
-    assert len(s2_vg_list) == N
-    assert len(precount_time_list) == N
-    assert len(wait_time_list) == N
-    assert len(x2_offset_list) == N
 
     scan_p={"start":alpha_start_list,
         "stop":alpha_stop_list,
@@ -46,6 +39,9 @@ def xr_scan1(name):
         tilt_stage=False,)
     yield from mabt(0.2,0.2,0)
 
+
+# print_summary(gid_scan1('bob'))
+
 def gid_scan1(name):
     det_saxs_y_list         = [0,0,80,80]
     det_saxs_y_offset_list  = [0,1,0,1]
@@ -62,6 +58,7 @@ def gid_scan1(name):
         "x2_offset":x2_offset_list,
         "atten_2":atten_2_list,
         "wait_time":wait_time_list,}
+
 
     print("calling GID_stitch")
     yield from gid_scan_stitch(scan_dict, md={'sample_name': name}, detector = pilatus300k, alphai = 0.1)
