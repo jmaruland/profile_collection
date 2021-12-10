@@ -34,12 +34,13 @@ def bimorphs(pv_no,volts):
 #    print('vfmout=EpicsSignal("',pv,'")')
 #    print('yield from bps.mv(vfmout,',volts,')')
     vfmout=EpicsSignal(pv)
+    print(vfmout)
     yield from bps.mv(vfmout,volts)
 
 def set_bimorphs(vector,offset=0):
     for i in range(16):
         yield from bimorphs(i,bimorph_vectors[vector][i]+offset)
-        yield from bps.sleep(5)
+        yield from bps.sleep(10)
 
 
         

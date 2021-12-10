@@ -174,22 +174,22 @@ def mplot1():
 def check_linear_slits():
     # eta
     global dif    
-    dif  = np.zeros((4, 10))
-    slit_width=[0.0,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09]
+    dif  = np.zeros((4, 18))
+    slit_width=[0.01,0.01,0.02,0.02,0.03,0.03,0.04,0.04,0.05,0.05,0.06,0.06,0.07,0.07,0.08,0.08,0.09,0.09]
     for i,j in enumerate(slit_width):
         yield from bps.mov(S2.vg,j)
         yield from bp.count([quadem,lambda_det]) 
         dif[0, i]=j
         dif[1, i] = quadem.current3.mean_value.get()
-        dif[2, i] = lambda_det.stats2.total.get()-0.5*(lambda_det.stats3.total.get()+lambda_det.stats1.total.get())
+        dif[2, i] = lambda_det.stats2.total.get()
         dif[3, i] = dif[2,i]/dif[1,i]  
     print(dif)
 
 def mplot2():
     plt.figure()
-    plt.plot(dif[0, :], dif[3, :],'r')
-    plt.plot(dif[0, :], dif[2, :]/20,'g')
-    plt.plot(dif[0, :], dif[1, :]/0.001,'b')
+    plt.plot(dif[0, :], 5*dif[3, :],color='r',label="detector/monitor")
+    plt.plot(dif[0, :], dif[2, :]/4,'g',label="detector")
+    plt.plot(dif[0, :], dif[1, :]/0.006,'b',label="monitor")
     plt.xlabel('s2.vg')
     plt.ylabel('counts/monitor')
     plt.show()

@@ -21,13 +21,12 @@ def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=Fa
                'proposal_number': RE.md['proposal_number'] + '_' + RE.md['main_proposer'],
                'detector': detector.name, 
                'energy': energy.energy.position,
-               'rois': [197, 273, 291, 309, 18,18],
-            #    'rois': [detector.roi1.min_xyz.min_x.get(),
-            #             detector.roi1.min_xyz.min_y.get(),
-            #             detector.roi2.min_xyz.min_y.get(),
-            #             detector.roi3.min_xyz.min_y.get(),
-            #             detector.roi2.size.x.get(),
-            #             detector.roi2.size.y.get()]
+               'rois': [detector.roi1.min_xyz.min_x.get(),
+                        detector.roi1.min_xyz.min_y.get(),
+                        detector.roi2.min_xyz.min_y.get(),
+                        detector.roi3.min_xyz.min_y.get(),
+                        detector.roi2.size.x.get(),
+                        detector.roi2.size.y.get()],
                'geo_param': [geo.L1.get(), geo.L2.get(), geo.L3.get(), geo.L4.get()],
                'slit_s1': [S1.top.position - S1.bottom.position, S1.outb.position - S1.inb.position],
                'slit_s2': [S2.vg.position, S2.hg.position],
@@ -49,6 +48,7 @@ def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=Fa
     for i in range(N):
         print('%sst set starting'%i)
         yield from bps.sleep(3) 
+        print(scan_param)
         yield from reflection_scan(scan_param,i, detector=detector, md=md, tilt_stage=tilt_stage, x2_nominal=x2_nominal)                      
         print('%sst set done'%i)
 
@@ -83,9 +83,8 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
              print('tilt stage')
              yield from nab(alpha, alpha)
         else:
-            print('removed the move')
-        #    yield from mabt(alpha, alpha, 0)
-        # yield from mabt(geo.alpha=0,geo.samchi=x,geo.beta=2*x)
+            yield from mabt(alpha, alpha, 0)
+        #yield from mabt(geo.alpha=0,geo.samchi=x,geo.beta=2*x)
 
         yield from bps.sleep(5)    
         # Set the exposure time to the define exp_time for the measurement
@@ -104,7 +103,7 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
         else:            
             if isinstance(atten_2,int):
                 att=atten_2
-                #yield from bps.mv(abs2, atten_2)
+                yield from bps.mv(abs2, att)
                 yield from bps.sleep(wait_time)
                 
             # else:
@@ -121,6 +120,7 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
             yield from bps.mv(shutter, 1)
             yield from bps.trigger_and_read(all_area_dets, name='precount')
             yield from bps.mv(shutter, 0)
+            yield from bps.sleep(wait_time)
             print("finished dummy count")
 
         yield from bps.mv(shutter, 1)
