@@ -73,7 +73,8 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
     exp_time =      scan_param["exp_time"][i]
     precount_time=  scan_param["pre_time"][i]
     wait_time =     scan_param["wait_time"][i]
-    x2_offset =     scan_param["x2_offset"][i]
+    x2_offset_start =     scan_param["x2_offset_start"][i]
+    x2_offset_stop =     scan_param["x2_offset_stop"][i]
 
     
     print(alpha_start,"----",alpha_stop,atten_2)
@@ -85,13 +86,14 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
         else:
             yield from mabt(alpha, alpha, 0)
         #yield from mabt(geo.alpha=0,geo.samchi=x,geo.beta=2*x)
-
+        fraction  = (alpha-alpha_start)/(alpha_stop-alpha_start)
+        x2_fraction =fraction*(x2_offset_stop-x2_offset_start)
         yield from bps.sleep(5)    
         # Set the exposure time to the define exp_time for the measurement
         yield from det_exposure_time(exp_time, exp_time)
         yield from bps.mv(exposure_time, exp_time)
         yield from bps.mv(S2.vg,s2_vg)
-        yield from bps.mv(geo.stblx2,x2_nominal+x2_offset)
+        yield from bps.mv(geo.stblx2,x2_nominal+x2_fraction)
 
         #Deal with the attenuator
         # Set the absorber time to the define exp_time for the measurement

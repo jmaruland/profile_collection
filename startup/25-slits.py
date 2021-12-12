@@ -22,6 +22,15 @@ class Smaract1(Device):
 class Smaract2(Device):
    position1 = Cpt(EpicsMotor, "Y}Mtr")
 
+class Smaract3(Device):
+    y = Cpt(EpicsMotor, "BS}Mtr")
+
+class BSTOP(Device):
+    x = Cpt(EpicsMotor, "X}Mtr")
+    y = Cpt(EpicsMotor, "Y}Mtr")
+
+bstop =BSTOP("XF:12ID1-ES{BS-Ax:", name="Pilatus300 Beam Stop")
+block = Smaract3("XF:12ID1-ES{Smpl-Ax:", name="Beam Stop")
 
 
 
@@ -31,6 +40,7 @@ S2 = SlitsWithGapAndCenter("XF:12ID1-ES{Slt2-Ax:", name="S2")
 S3 = Smaract1("XF:12ID1-ES{Fltr:1-Ax:", name="S3")
 S4 = Smaract1("XF:12ID1-ES{BPM:1-Ax:", name="S4")
 S5 = Smaract2("XF:12ID1-ES{BPM:1-Ax:", name="S5")
+
 
 
 

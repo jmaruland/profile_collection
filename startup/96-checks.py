@@ -151,14 +151,14 @@ def check_linear_time():
        # yield from bps.mv(i, i)
         exp_t=j
         yield from bps.mov(
-            pilatus100k.cam.acquire_time, exp_t,
-            pilatus100k.cam.acquire_period, exp_t+0.2,
-            pilatus100k.cam.num_images, int(exp_t/exp_t))
+            lambda_det.cam.acquire_time, exp_t,
+            lambda_det.cam.acquire_period, exp_t+0.2,
+            lambda_det.cam.num_images, int(exp_t/exp_t))
 
-        yield from bp.count([quadem,pilatus100k]) 
+        yield from bp.count([quadem,lambda_det]) 
         dif[0, i]=exp_t
         dif[1, i] = quadem.current3.mean_value.get()
-        dif[2, i] = pilatus100k.stats3.total.get()
+        dif[2, i] = lambda_det.stats3.total.get()
         dif[3, i] = dif[2,i]/dif[0,i]  
     print(dif)
 

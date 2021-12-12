@@ -94,8 +94,10 @@ def mab(alpha,beta):
 def beta_gid(beta1,beta_off):
     y1=650*np.deg2rad(beta1+beta_off)
     y2=1333*np.deg2rad(beta1+beta_off)
-    y3=1500*np.deg2rad(beta1)
-    yield from bps.mv(fp_saxs.y1,y1,fp_saxs.y2,y2,detsaxs.y,y3)
+ #   y3=1500*np.deg2rad(beta1)
+ #   yield from bps.mv(fp_saxs.y1,y1,fp_saxs.y2,y2,detsaxs.y,y3)
+    yield from bps.mv(fp_saxs.y1,y1,fp_saxs.y2,y2)
+
 
 def GID_fp(y3):
         y1= y3*650/1500

@@ -43,6 +43,9 @@ def gid_scan_stitch(scan_dict={}, md=None, detector = pilatus300k, alphai = 0.1 
         x2_offset_list          = scan_dict["x2_offset"]
         atten_2_list            = scan_dict["atten_2"]
         wait_time_list          = scan_dict["wait_time"]
+        beam_stop_x             = scan_dict["beam_stop_x"]
+        beam_stop_y             = scan_dict["beam_stop_y"]
+
         # Tom's way of checking
         N = None
         for k, v in scan_dict.items():
@@ -75,7 +78,9 @@ def gid_scan_stitch(scan_dict={}, md=None, detector = pilatus300k, alphai = 0.1 
             y3 = det_saxs_y_list[i]-4.3*det_saxs_y_offset_list[i]
             y1,y2 = GID_fp( det_saxs_y_list[i]+45)
             x2_new = x2_nominal+x2_offset_list[i]
-            yield from bps.mv(fp_saxs.y1,y1,fp_saxs.y2,y2,detsaxs.y, y3,geo.stblx2,x2_new)
+         #   yield from bps.mv(fp_saxs.y1,y1,fp_saxs.y2,y2,detsaxs.y, y3,geo.stblx2,x2_new)
+            yield from bps.mv(detsaxs.y, y3,geo.stblx2,x2_new)
+            yield from bps.mv(bstop.x,beam_stop_x[i], bstop.y,beam_stop_y[i])
             yield from bps.sleep(wait_time_list[i])
 
         # Open shutter, sleep to initiate quadEM, collect data, close shutter

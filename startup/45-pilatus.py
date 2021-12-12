@@ -140,3 +140,23 @@ def sample_id(*, user_name, sample_name, tray_number=None):
 '''
 pil1m_roi2 = EpicsSignal('XF:12ID1-ES{Det:P100k}Stats1:Total_RBV', name= 'test')                                                                                   
 #pilatus100k.set_primary_roi(2)        
+
+
+
+# From: Yin, Zhijian <zyin@bnl.gov>
+# Sent: Saturday, December 11, 2021 8:40:26 PM
+# To: Ocko, Benjamin <ocko@bnl.gov>
+# Subject: Restarting camserver and epics ioc for pilatus300k
+ 
+# Here is the procedure of restarting camserver and epics-ioc
+
+# "ssh det@xf12id1-pilatus300k"  passwd: x9user
+# camserver was running in the background
+# telnet localhost 20002
+# ctrl-x should restart
+
+# after camserver screen gives you "*" prompt, exit with ctrl-] (telnet escape), and "quit"
+
+# epics-ioc can be restarted from "reboot" in css
+
+# ZY
