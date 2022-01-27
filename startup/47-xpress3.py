@@ -148,13 +148,16 @@ class OPLSXspress3Detector(XspressTriggerFlyable, Xspress3Detector):
     array_counter = Cpt(EpicsSignal, "ArrayCounter_RBV")
     create_dir = Cpt(EpicsSignal, "HDF5:FileCreateDir")
 
+
     # TODO: Change file locations for OPLS
     hdf5 = Cpt(
         Xspress3FileStoreFlyable,
         "HDF5:",
-        read_path_template="/nsls2/xf12id1/data/xpress3",
-    #    read_path_template="/home/xspress3/data",
-        write_path_template="/nsls2/xf12id1/data/xpress3",
+    #    read_path_template="/nsls2/xf12id1/data/xpress3",
+        read_path_template="/nsls2/xf12id1/data/xpress3/%Y/%m/%d/",
+    #    write_path_template="/nsls2/xf12id1/data/xpress3",
+        write_path_template="/nsls2/xf12id1/data/xpress3/%Y/%m/%d/",
+
         root="/",
     #    root="/home/xspress3/data",
     )

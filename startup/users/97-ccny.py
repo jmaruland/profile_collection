@@ -12,14 +12,7 @@ def ccny_ref(name,xpos):
     yield from fast_scan(name)
 
 
-def ccny_xf(name,xpos):
-    print("file name=",name)
-    yield from bps.mv(abs2,2)
-    yield from bps.mv(geo.stblx2,xpos)
-    yield from bps.mv(shutter,1) # open shutter
-    yield from sample_height_set_coarse()  #scan the height from -1 to 1 with 41 points
-    yield from sample_height_set_fine() #scan the height from -0.2 to 0.2 with 21 points
-    yield from fast_scan_fluo(name)
+
 
 
 def ccny_ref_xf(name,xpos):       #Runs BOTH reflectivity and fluorescence
