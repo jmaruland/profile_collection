@@ -66,6 +66,8 @@ class DetectorOffsets(Device):
     #det1 = Cpt(EpicsSignal, "L_11", kind="config")
     #det2 = Cpt(EpicsSignal, "L_12", kind="config")
     #det3 = Cpt(EpicsSignal, "L_13", kind="config")
+from ophyd.sim import SynAxis as _SynAxis
+
 
 
 class Geometry(PseudoPositioner):
@@ -317,7 +319,7 @@ class Geometry(PseudoPositioner):
         _tth_offset = np.deg2rad(getattr(self.detector_offsets, det_dict[det_mode]).get())
 
         _astth = _tth + _stth + _tth_offset
-    
+
         #print("calcualted _astth=",np.rad2deg(_astth))
         #print("_tth=",np.rad2deg(_tth), "   _stth=",np.rad2deg(_stth), "tth_offset=",np.rad2deg(_tth_offset))
         real_pos = self.real_position
@@ -400,15 +402,59 @@ class Geometry(PseudoPositioner):
     def save_geo(self, L1):
         return (yield from bps.mv(self.L1, L1))
 
+class SynAxis(_SynAxis):
+    def move(self, *args, wait=None, moved_cb=None, timeout=None, **kwargs):
+
+        st = self.set(*args, **kwargs)
+        import functools
+        from ophyd.status import wait as status_wait
+        if moved_cb is not None:
+            st.add_callback(functools.partial(moved_cb, obj=self))
+        if wait:
+            status_wait(st)
+        return st
+
+class SynGeometry(Geometry):
+    _real = ['th', 'phi', 'chi', 'tth', 'ih', 'ia', 'phix', 'sh', 'astth', 'stblx', 'stblx2', 'oa', 'oh']
+    # input motors
+    th = Cpt(SynAxis, doc="Θ 3-circle theta for mono", value=0.0)
+    #
+    phi = Cpt(SynAxis, doc="Φ-stage sets bragg angle", value=10.0)
+    #    phi = Cpt(EpicsMotor, '{XtalDfl-Ax:M7}Mtr', labels=['geo'])
+    chi = Cpt(SynAxis, doc="Χ, beam steering", value=0.0)
+    tth = Cpt(SynAxis, doc="2Θ, spectrometer rotation", value=0.0)
+    ih = Cpt(SynAxis, doc="input height", value=0.0)
+    ia = Cpt(SynAxis, doc="input rotation", value=0.0)
+    phix = Cpt(SynAxis, value=0.0)
+    # Sample-detector motors
+    sh = Cpt(SynAxis, doc="Sample vertical translation", value=0.0)
+    astth = Cpt(SynAxis, doc="Sample-detector rotation", value=0.0)
+    # asth = Cpt(EpicsMotor, "{Smpl-Ax:Th}Mtr", doc="Sample rotation")
+    stblx = Cpt(SynAxis, doc="Sample Table X", value=200.0)
+    stblx2 = Cpt(SynAxis, doc="Sample Table X2", value=0.0)
+    #  chi2 = Cpt(EpicsMotor, "{Smpl-Ax:Chi}Mtr", doc="Sample chi")
+    oa = Cpt(SynAxis, doc="β, output arm rotation", value=0.0)
+    oh = Cpt(SynAxis, doc="output arm vertical rotation", value=0.0)
+
+IN_SIM_MODE = True # bool(sim_flag.get() > 0)
+
+if IN_SIM_MODE:
+    geo = SynGeometry("XF:12ID1-ES", name="geo")
+    for atr in SynGeometry._real:
+        mtr = getattr(geo, atr)
+        mtr.set(mtr.get().readback)
+        mtr.readback.kind = 'normal'
+else:
+    geo = Geometry("XF:12ID1-ES", name="geo")
+
+    [   
+        setattr(getattr(geo, k).user_readback, "kind", "hinted")
+        for k in geo.real_position._fields
+    ]
+
 
 #geo = Geometry("XF:12ID1-ES", name="geo")
 # Prefix the PV with "S" for simulations
-geo = Geometry("XF:12ID1-ES", name="geo")
-
-[
-    setattr(getattr(geo, k).user_readback, "kind", "hinted")
-    for k in geo.real_position._fields
-]
 
 # this is how to add additional aliases
 # ih = geo.ih
@@ -479,7 +525,7 @@ def param():
     print("shutter:", shutter.get(), ":%mov shutter 0/1")
     # print("En  :", geo.Energy.get(), "keV")
     # print(" wavelength: ", 12.39842 / geo.Energy.get(), "Angstroms")
-    
+
     print("En  :", 0.001 * energy.energy.position, "keV")
     print(" wavelength: ", 12.39842 / energy.energy.position, "Angstroms")
 
