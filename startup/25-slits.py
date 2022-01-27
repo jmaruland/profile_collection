@@ -41,6 +41,11 @@ S3 = Smaract1("XF:12ID1-ES{Fltr:1-Ax:", name="S3")
 S4 = Smaract1("XF:12ID1-ES{BPM:1-Ax:", name="S4")
 S5 = Smaract2("XF:12ID1-ES{BPM:1-Ax:", name="S5")
 
+S2.vg.user_readback.kind="normal"
+S2.vc.user_readback.kind="normal"
+S2.hg.user_readback.kind="normal"
+S2.hc.user_readback.kind="normal"
+
 
 
 

@@ -4,7 +4,10 @@ from nslsii import configure_base
 from IPython import get_ipython
 from bluesky.callbacks.zmq import Publisher
 import functools
+from ophyd.signal import EpicsSignal, EpicsSignalRO
 
+EpicsSignal.set_defaults(connection_timeout=10)
+EpicsSignalRO.set_defaults(connection_timeout=10)
 
 configure_base(get_ipython().user_ns, "jpls")
 
