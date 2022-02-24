@@ -10,10 +10,12 @@ z1 = tab1.z
 x2 = geo.stblx2
 
 th=geo.th
-tth=geo.tth
+tth=geo.tthf
+
 chi=geo.chi
 phi=geo.phi
 phix=geo.phix
+ia=geo.ia
 ih=geo.ih
 sh=geo.sh
 astth=geo.astth
@@ -50,9 +52,9 @@ def set_tth(new_value):
     yield Msg('reset_user_position', geo.tth, new_value)
     save_offsets()
      
-def set_th(new_value):
-    yield Msg('reset_user_position', geo.th, new_value)
-    save_offsets()
+#def set_th(new_value):
+#    yield Msg('reset_user_position', geo.th, new_value)
+#    save_offsets()
        
 def set_astth(new_value):
     yield Msg('reset_user_position', geo.astth, new_value)
@@ -75,6 +77,7 @@ def set_tilty(new_value):
     save_offsets()
 
 def set_all():
+    chi_nom=geo.forward(0,0,0).chi  
     yield from set_chi(chi_nom)
     phi_nom=geo.forward(0,0,0).phi  
     yield from set_phi(phi_nom)
@@ -141,7 +144,66 @@ def save_offsets():
     tilt.y.user_offset.value,
     ))
     motor_file.close()
+    save_param()
+
+def offset_read():
+    motor_file1 = open('/home/xf12id1/.ipython/profile_collection/startup/offsets_1','r')
+    tmp=motor_file1.read()
+    print(tmp)
 
     
+old_paras = ''   
+def save_param():
+    global old_paras
+   
+    new_paras = " {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f}  {:6.4f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f}\n".format(
+        energy.position.energy,
+        geo.L1.get(),
+        geo.L2.get(),
+        geo.L3.get(),
+        geo.L4.get(),
+        geo.Eta.get(),
+        geo.SH_OFF.get(),
+        geo.detector_offsets.det_1.get(),
+        geo.detector_offsets.det_2.get(),
+        geo.detector_offsets.det_3.get(),
+        geo.detector_offsets.det_4.get(),
+        )    
+    if old_paras == new_paras:
+        pass  
+    else:
+        old_paras = new_paras  
+        parameter_file = open('/home/xf12id1/.ipython/profile_collection/startup/parameters','a')
+        etime = str(datetime.datetime.now())
+        parameter_file .write(etime[0:19])
+        if offset_counter%10 == 0:
+            parameter_file .write(" Energy    L01     L02     L03      L04    L05     L06    L11    L12     L13     L14\n")
+            parameter_file .write(etime[0:19])
+        parameter_file.write( new_paras )     
+    
+    
+     
+    
+def test1(detector=lambda_det):
+    yield from bps.mv(abs2,4)
+    yield from bps.mv(geo.det_mode,1)
+    yield from det_exposure_time_new(detector, 1,1)
+    yield from mabt(0.2,0.2,0)
+ #   local_peaks = PeakStats(alpha.user_readback.name,  '%s_stats2_total'%detector.name)
+ #   yield from bpp.subs_wrapper(bp.scan([lambda_det],geo.alpha,0.17,0.23,geo.beta,0.23,0.17,13), local_peaks)
+  #  tmp2 = local_peaks.cen  #get the height for roi2 of detector.name with max intens
+#    yield from mabt((0.2-tmp2),(tmp2-0.2,0)
+    yield from bp.scan([lambda_det],geo.alpha,0.12,0.28,geo.beta,0.28,0.12,21)
 
 
+fl_roi1= xs.channel1.rois.roi01.value_sum.get()
+
+
+def screen():
+    yield from bps.mv(tth,0.7, phi,0, phix,0, ih,29.5)
+ 
+
+def shake():
+    for i in range(1000):
+        yield from bps.mv(x2,-50)
+        yield from bps.mv(x2,-51)

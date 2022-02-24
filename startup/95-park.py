@@ -14,7 +14,7 @@ def park():
 
 
 def unpark():
-    yield from bps.mov(shutter,0)
+    #yield from bps.mov(shutter,0)
     # this restores the height of the crystal 
     yield from bps.mov(tab1.y,0)
     #this restores the th and two theta
