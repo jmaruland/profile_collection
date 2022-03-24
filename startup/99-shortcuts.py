@@ -10,7 +10,7 @@ z1 = tab1.z
 x2 = geo.stblx2
 
 th=geo.th
-tth=geo.tthf
+tth=geo.tth
 
 chi=geo.chi
 phi=geo.phi

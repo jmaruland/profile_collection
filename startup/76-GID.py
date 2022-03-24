@@ -16,6 +16,13 @@ def gid_scan_stitch(scan_dict={}, md=None, detector = pilatus300k, alphai = 0.1 
     :type attenuator: integers
 
     """
+    pilatus300k.stats1.kind='normal'
+    pilatus300k.stats2.kind='normal'
+    pilatus300k.stats3.kind='normal'
+    pilatus300k.stats4.kind='normal'
+
+
+    
 
     @bpp.stage_decorator([quadem, detector])
     def gid_method(md, detector, alphai, scan_dict):

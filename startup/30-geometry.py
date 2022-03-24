@@ -436,7 +436,7 @@ class SynGeometry(Geometry):
     oa = Cpt(SynAxis, doc="β, output arm rotation", value=0.0)
     oh = Cpt(SynAxis, doc="output arm vertical rotation", value=0.0)
 
-IN_SIM_MODE = True # bool(sim_flag.get() > 0)
+IN_SIM_MODE = False # bool(sim_flag.get() > 0)
 
 if IN_SIM_MODE:
     geo = SynGeometry("XF:12ID1-ES", name="geo")
@@ -451,6 +451,7 @@ else:
         setattr(getattr(geo, k).user_readback, "kind", "hinted")
         for k in geo.real_position._fields
     ]
+    
 
 
 #geo = Geometry("XF:12ID1-ES", name="geo")
@@ -483,13 +484,16 @@ def mabt(*args, **kwargs):
 def nabt(alpha_0,beta_0,stth_0):
     # print(geo)
     yield from bps.mv(geo.alpha, 0)
-    yield from bps.mv(geo.beta,2*beta_0)
-    yield from bps.mv(tilt.y,alpha_0)
-    yield from bps.mv(geo.stth,stth_0)
+    yield from bps.mv(geo.beta,2*beta_0,tilt.y,alpha_0, geo.stth,stth_0)
 
-def nab(alpha_0,beta_0):
-    stth_corr = 0.003*pow(2*np.abs(alpha_0),1.72)
-    print(stth_corr)
+def nab(alpha_0,beta_0, ssth_corr_par=0.022):
+    """
+    Args:
+        ssth_corr_par (float): parameter for stth (sample two
+                               theta correction)
+    """
+    stth_corr = (ssth_corr_par)*pow(np.abs(alpha_0),1)
+    # print(stth_corr)
     if alpha_0 > 0:
         yield from nabt(alpha_0,beta_0,stth_corr)
     else:

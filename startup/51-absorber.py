@@ -178,10 +178,11 @@ def att_setup():
     ener = energy.energy.position
     ener = 9700
     # Create a dictionary of attenuators for bar1, it can only be use one att at a time
+    # THE REFLECTIVITY CODE CHOOSES WHICH BAT TO USE
     att_bar1 = {'name':             ['att0', 'att1', 'att2', 'att3', 'att4', 'att5', 'att6', 'att7'],
                 'material':         [  'Mo',   'Mo',   'Mo',   'Mo',   'Mo',   'Mo',   'Mo',   'Mo'],
                 'thickness':        [     0,   25.0,   50.0,   75.0,  100.0,  125.0,  150.0,  175.0],
-                'position':         [  0.22,    1.0,    2.0,    3.0,    4.0,    5.0,    6.0,    7.0],
+                'position':         [  0.0,    1.0,    2.0,    3.0,    4.0,    5.0,    6.0,    7.0],
                 'energy':           [  ener,   ener,   ener,   ener,   ener,   ener,   ener,   ener],
                 'material_att_coef':[   1.0,    1.0,    1.0,    1.0,    1.0,    1.0,    1.0,    1.0],
                 'attenuator_aborp': [   1.0,    1.0,    1.0,    1.0,    1.0,    1.0,    1.0,    1.0]
@@ -191,6 +192,24 @@ def att_setup():
 
     att_bar1 = calc_attenuation(att_bar1, ener)
     att_bar1 = calculate_att_comb(att_bar1,ener)
+
+
+
+    att_bar_23000 = {'name':             ['att0', 'att1', 'att2', 'att3', 'att4', 'att5', 'att6', 'att7'],
+                'material':         [  'Mo',   'Mo',   'Mo',   'Mo',   'Mo',   'Mo',   'Mo',   'Mo'],
+                'thickness':        [     0,   25.0,   50.0,   75.0,  100.0,  125.0,  150.0,  175.0],
+                'position':         [  0.0,    1.0,    2.0,    3.0,    4.0,    5.0,    6.0,    7.0],
+                'energy':           [  ener,   ener,   ener,   ener,   ener,   ener,   ener,   ener],
+                'material_att_coef':[   1.0,    1.0,    1.0,    1.0,    1.0,    1.0,    1.0,    1.0],
+                'attenuator_aborp': [   1.0,    1.0,    1.0,    1.0,    1.0,    1.0,    1.0,    1.0]
+                }
+
+    att_bar_23000['thickness'] = attenuator_thickness_load()
+
+    att_bar_23000 = calc_attenuation(att_bar_23000, ener)
+    att_bar_23000 = calculate_att_comb(att_bar_23000,ener)
+
+
 
     '''
     Create a dictionary for the 2nd set of att that can be inserted in parallel
@@ -203,13 +222,17 @@ def att_setup():
     return att_bar1, att_bar2
     '''
 
-    return att_bar1
+    return att_bar1, att_bar_23000
 
 
 
 
 all_area_dets = [lambda_det, quadem]
 @bpp.stage_decorator(all_area_dets)
+
+
+# THESE ARE ROUTINES TO MEAURE THE ATTENUATOR VALUES AT SPECIFIC ALPHA VALUES AND TO PUT THEM IN THE TABLE
+#THIS DOESNT REALLY BELONG HERE BUT HAD TO BE DONE FIRST
 
 def define_all_att_thickness():
     base_md = {'plan_name': 'calibration_att'}
@@ -328,9 +351,12 @@ def define_att_thickness(attenuator1, attenuator2, th_angle, detector=lambda_det
 
 
 current_att_thickness = attenuator_thickness_load()
+# THE ROUTINES ABOVE ARE TO MEAURE THE ATTENUATOR VALUES AT SPECIFIC ALPHA VALUES AND TO PUT THEM IN THE TABLE
 
+
+# BACK TO THE NORMAL SEQUENCE
 #Load a default attenuation set-up that will be recalculated if needed
-att_bar1 = att_setup()
+att_bar1, att_bar_23000 = att_setup()
 
 # ToDo: Check the T_target to constrain that it only consider T lower than a number
 def best_att(T_target, att_bar1 = att_bar1):

@@ -61,8 +61,7 @@ lambda_det.stats2.total.kind = 'hinted'
 
 lambda_det.stats4.total.kind = 'hinted'
 lambda_det.stats4.kind = 'hinted'
-lambda_det.stats4.total.kind = 'hinted'
-lambda_det.stats4.max_value.kind = 'normal'
+lambda_det.stats4.max_value.kind = 'hinted'
 
 
 # Impose Stats4 to be ROI4 if in the future we need to exclude bad pixels

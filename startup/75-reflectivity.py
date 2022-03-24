@@ -1,4 +1,4 @@
-def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=False):
+def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=False, stth_corr_par=None):
     """
     Macros to set all the parameters in order to record all the required information for further analysis,
     such as the attenuation factors, detector='lambda_det'
@@ -12,6 +12,20 @@ def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=Fa
             N = len(v)
         if N != len(v):
             raise ValueError(f"the key {k} is length {len(v)}, expected {N}")
+    geo.th.user_readback.kind = 'normal'
+    geo.phi.user_readback.kind = 'normal'
+    geo.phix.user_readback.kind = 'normal'
+    geo.ih.user_readback.kind = 'normal'
+    geo.ia.user_readback.kind = 'normal'
+    geo.sh.user_readback.kind = 'normal'
+    geo.oh.user_readback.kind = 'normal'
+    geo.oa.user_readback.kind = 'normal'
+    geo.astth.user_readback.kind = 'normal'
+    geo.stblx.user_readback.kind = 'normal'
+    geo.oa.user_readback.kind = 'normal'
+    geo.tth.user_readback.kind = 'normal'
+    geo.chi.user_readback.kind = 'normal'
+    geo.astth.user_readback.kind = 'normal'
     
 
  #XF:12ID1-ES{Det:Lambda}ROI1:MinX
@@ -35,8 +49,8 @@ def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=Fa
                }
     base_md.update(md or {})
     global attenuation_factor_signal, exposure_time, attenuator_name_signal, default_attenuation
-    attenuator_name_signal = Signal(name='attenuator_name', value='abs1')
-    attenuation_factor_signal = Signal(name='attenuation', value=1e-7)
+    attenuator_name_signal = Signal(name='attenuator_name', value='abs1',kind='normal')
+    attenuation_factor_signal = Signal(name='attenuation', value=1e-7,kind='normal')
     exposure_time = Signal(name='exposure_time', value=1)
     default_attenuation = Signal(name='default-attenuation', value=1e-7)
     # Disable the plot during the reflectivity scan
@@ -48,7 +62,7 @@ def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=Fa
     for i in range(N):
         print('%sst set starting'%i)
         yield from bps.sleep(3) 
-        print(scan_param)
+  #      print(scan_param)
         yield from reflection_scan(scan_param,i, detector=detector, md=md, tilt_stage=tilt_stage, x2_nominal=x2_nominal)                      
         print('%sst set done'%i)
 
@@ -81,8 +95,7 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
     for alpha in np.linspace(alpha_start, alpha_stop, number_points):
         # Move to the good geometry position
         if tilt_stage:
-             print('tilt stage')
-             yield from nab(alpha, alpha)
+             yield from nab(alpha, alpha,0.022)
         else:
             yield from mabt(alpha, alpha, 0)
         #yield from mabt(geo.alpha=0,geo.samchi=x,geo.beta=2*x)
@@ -96,13 +109,16 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
         yield from bps.sleep(wait_time)    
 
 
-        #Deal with the attenuator
+        #Attenuator MODE
         # Set the absorber time to the define exp_time for the measurement
+        # AUTO MODE FIGURES OUT THE APPROPIRAE ATTENUATOR BY DOING TESTS WITH HIGH ATTENUATOR NUMBERS
         if atten_2 == "auto":
             yield from calc_att_auto(alpha, precount_time=precount_time,detector=detector)
+        # CALC MODE FIGURES OUT THE APPROPIRAE ATTENUATOR USING A FORMULA
         elif atten_2 == "calc":
             att = calc_att_from_ai(alpha)
             yield from bps.mv(abs2, atten_2)
+        # THE ATTENUATOR NUMBER IS GIVEN BUT THE OUTPUT ON THE ATTENUATO VALU IS INCORRECT
         else:            
             if isinstance(atten_2,int):
                 att=atten_2
@@ -112,21 +128,28 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
             #     print('The absorber should be auto, calc, or int. Here will use auto.')
             #     yield from calc_att_auto(alphai, precount_time=1)
         #set metadata
+        # IF NOT EQUAL TO AUTO SETTING THE META DATA, THIS CHOOSES THE att_bar data structure to use
+        #  THIS IS INCORRECT SINCE ATTENUATOR VALUES ARE NOT KNOWN.
         if atten_2 != "auto":
             yield from bps.mv(attenuation_factor_signal, att_bar1['attenuator_aborp'][att])
             yield from bps.mv(attenuator_name_signal, att_bar1['name'][att])
 
         # ToDo: is that really usefull now
-        if alpha == alpha_start:
-            print("first point in the scan")
-            yield from bps.mv(shutter, 1)
-            yield from bps.trigger_and_read(all_area_dets, name='precount')
-            yield from bps.mv(shutter, 0)
-            yield from bps.sleep(wait_time)
-            print("finished dummy count")
+       # if alpha == alpha_start:
+       #     print("first point in the scan")
+       #     yield from bps.mv(shutter, 1)
+       #     yield from bps.trigger_and_read(all_area_dets, name='precount')
+       #     yield from bps.mv(shutter, 0)
+       #     yield from bps.sleep(wait_time)
+       #     print("finished dummy count")
 
         yield from bps.mv(shutter, 1)
-        yield from bps.sleep(1)
+    #    yield from bps.sleep(2)
+        yield from det_exposure_time(1,1)
+        yield from bps.mv(exposure_time, 1)
+        yield from bps.trigger_and_read([quadem], name='precount')
+        yield from det_exposure_time(exp_time, exp_time)
+        yield from bps.mv(exposure_time, exp_time)
         yield from bps.trigger_and_read(all_area_dets +
                                         [geo] + 
                                         [S2] +
@@ -153,9 +176,9 @@ def calc_att_from_ai(alphai):
     elif alphai>1.0:
         return 0
 
-
+# THIS DOES A PRECOUNT WITH A HIGH ATTUNATOR VALUE TO DETERMINE THE BEST ATTENUATOR TO USE
 def calc_att_auto(alphai, precount_time=1,detector="lambda_det"):
-    # Move the default attenuator in for the pre-count
+    # Move the default attenuator in for the pre-count based on the value of attenuation define in default_attenuation
     def_att = yield from put_default_absorbers(energy.energy.position,
                                                default_attenuation=default_attenuation.get())
     # Set the exposure time to for the pre-count
@@ -169,7 +192,7 @@ def calc_att_auto(alphai, precount_time=1,detector="lambda_det"):
     else:
         # Read the maximum count on a pixel from the detector
         i_max = ret['%s_stats4_max_value'%detector]['value']
-        # look at the maximum count of the pre-count and adjust the default attenuation
+        # look at the maximum count of the pre-count and adjust the default attenuation, can do multiple iterations
         while (i_max < 100 or i_max > 40000) and default_attenuation.get() < 1:
             if i_max > 40000:
                 # If i_max to high, attenuate more
@@ -215,34 +238,5 @@ def calc_att_auto(alphai, precount_time=1,detector="lambda_det"):
      #   s2_vg_list =         [0.04, 0.04, 0.04, 0.04, 0.04, 0.04] 
      #   exp_time_list =      [    4,   4,    4,    4,    4,    4]
      #   precount_time_list=  [  0.1, 0.1,  0.1,  0.1,  0.1,  0.1]
-
-     #  sapphire air 9.7kev
-      #  alpha_start_list =   [ 0.05, 0.25, 0.30, 0.55,  0.8,  1.3,  2.5]
-      #  alpha_stop_list =    [ 0.25, 0.30, 0.55, 0.80,  1.3,  2.5,  5.1]
-      #  number_points_list = [    5,   6,    6,     6,    6,    6,   7]
-      #  auto_atten_list =    [    5,   4,    3,     2,    1,    0,   0] 
-      #  s2_vg_list =         [0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02] 
-      #  exp_time_list =      [    4,   4,    4,    4,    4,    4,   4 ]
-      #  precount_time_list=  [  0.1, 0.1,  0.1,  0.1,  0.1,  0.1,  0.1]
-
- #  sapphire air 23kev
-      #  alpha_start_list =   [ -0.05, -0.12, -0.20, -0.30,  -0.6,  -3.2]
-      #  alpha_stop_list =    [ -0.12, -0.20, -0.30, -0.60,  -3.2,  -4.0]
-      #  number_points_list = [    8,   5,    6,     7,    7,   5]
-      #  auto_atten_list =    [    4,   3,    2,     1,    0,   0] 
-      #  s2_vg_list =         [0.04, 0.04, 0.04, 0.04, 0.04, 0.04] 
-      #  exp_time_list =      [    4,   4,    4,    4,    20,    20]
-      #  precount_time_list=  [  0.1, 0.1,  0.1,  0.1,  0.1,  0.1]
-
-    # for water 16.1 keV
-    #    alpha_start_list =   [ 0.03, 0.06, 0.10, 0.14,  0.30,  0.5,  1.0]
-    #    alpha_stop_list =    [ 0.06, 0.10, 0.14, 0.30,  0.50,  1.0,  2.2]
-    #    number_points_list = [    4,   5,    5,    9,    7,    10,   20]
-    #    auto_atten_list =    [    5,   5,    4,    3,    2,    1,   0 ] 
-    #    s2_vg_list =         [0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04] 
-    #    exp_time_list =      [    4,   4,    4,    4,    4,    4,   4 ]
-    #    precount_time_list=  [  0.1, 0.1,  0.1,  0.1,  0.1,  0.1,  0.1]
-
-     
 
 

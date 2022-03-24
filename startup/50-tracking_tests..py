@@ -1,7 +1,8 @@
 
-
-
 def phi_track(alpha_ini, alpha_stop, num_alpha):
+    '''
+    Check the crystal phi tracking at different alpha values using monitor 2(before slits 2)
+    '''
     # for eta in range(eta_start, eta_stop, nb_eta):
     # eta
     global dif

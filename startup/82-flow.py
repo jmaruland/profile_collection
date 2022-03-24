@@ -8,7 +8,7 @@ he_pid = EpicsSignal("XF:12ID1-ES{He-Flow}PID1.FBON", name = "he_pid")
 
 def he_on():
     yield from mov(he_pid,1)
-    yield from mov(flow3,2.6)
+    yield from mov(flow3,5)
 
 def he_off():
     yield from mov(he_pid,0)

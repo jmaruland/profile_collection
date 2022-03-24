@@ -51,7 +51,7 @@ def focus_set(voff_ini, voff_stop, num_voff, vector=9):
     global dif    
     dif  = np.zeros((3, num_voff+1))
     for i, voff in enumerate(range(0, num_voff+1, 1)):
-        voff_rel = voff_ini + (i * (voff_stop - voff_ini) / num_voff)10
+        voff_rel = voff_ini + (i * (voff_stop - voff_ini) / num_voff)
         
      #   print(i, voff_ini, voff_rel)
         yield from set_bimorphs(vector, voff_rel) 
