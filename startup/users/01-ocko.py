@@ -1,14 +1,44 @@
 def ocko_1():
     proposal_id("2022_1","309773_ocko")
+    yield from bps.sleep(5)
     yield from shopen()
     yield from he_on() # starts the He flow
-    yield from one_xrf("XFR_TbCl2_control_1mM_20220207",-51)
-    yield from one_xrr("DMPG_80uL+ECGC(10ml)-ML_last+15hrs",-53)
+
+    ###### Inject ECGC at 10:30am, starting macro at 10:40am
+    ### yield from one_xrr("DMPG_water_20220410_run1",43) #p2 = 27.5
+    ### yield from one_xrr("DMPG_ECGC_20220410_run1",-53) #p1 = 28.5
+
+    ###### Add more data points
+    ### yield from one_xrr("DMPG_water_20220410_run2",42) #p2 = 26.7
+    ### yield from one_xrr("DMPG_ECGC_20220410_run2",-52) #p1 = 27.9
+
+    ##### inject AB protein, final concentration = 2.5uM at 12:25pm, 2022-04-10
+    ### yield from one_xrr("DMPG_water_ABpro_20220410_run1",43) #p2 = 26->24 drop, measuring time: 12:35-12:56
+    ### yield from one_xrr("DMPG_ECGC_ABpro_20220410_run1",-53) #p1 = 25->24.5 drop , measuring time: 13:00-13:20
+
+    ### yield from one_xrr("DMPG_water_ABpro_20220410_run2",42) #p2 = 22.7->22.3, measuring time: 13:24-13:45
+    ### yield from one_xrr("DMPG_ECGC_ABpro_20220410_run2",-52) #p1 = 24.2->24.5, measuring time: 13:49-14:09
+
+    ### yield from one_xrr("DMPG_water_ABpro_20220410_run3",41) #p2 = 22.7->24.5, measuring time: 14:13-14:34
+    ### yield from one_xrr("DMPG_ECGC_ABpro_20220410_run3",-51) #p1 = 26.7->31.1, measuring time: 14:38-14:58
+
+    ### yield from one_xrr("DMPG_water_ABpro_20220410_run4",44) #p2 = 29.5->35.3, measuring time: 15:02-15:23
+    ### yield from one_xrr("DMPG_ECGC_ABpro_20220410_run4",-54) #p1 = 34.8->35.3, measuring time: 15:26-15:46
+
+    # yield from one_xrr("DMPG_ECGC_ABpro_20220410_run5",-50) #p1 = 35.4->, measuring time: 15:52-16:11
+
+    ##### inject AB protein, final concentration = 4uM at 16:25pm, 2022-04-10
+    # yield from one_xrr("DMPG_water_ABpro_20220410_run6",43) #p2 = 38.6, measuring time: 16:31, not finished
+    yield from one_xrr("DMPG_ECGC_ABpro_20220410_run6",-53) #p1 = 37.4->39.5, measuring time: 16:40-17:00
+
     yield from he_off()# stops the He flow
     yield from shclose()
 
+
+
 def ocko_2():
     proposal_id("2022_1","309773_ocko")
+    yield from bps.sleep(5)
     yield from shopen()
     yield from he_on() # starts the He flow
  #   yield from one_ref("DMPG(85uL)_2_no_atten_0+AB(x2)+0.75hr",23)
@@ -104,19 +134,43 @@ def sample_height_set_fine_o(value=0,detector=lambda_det):
     yield from set_sh(tmp1)
     Msg('reset_settle_time', sh.settle_time, 0)
 
-
 def xr_scan1(name):
-    #9.7kev
-    alpha_start_list =   [ 0.04, 0.14, 0.20, 0.40,  0.7,  1.2,  2.0]
-    alpha_stop_list =    [ 0.14, 0.20, 0.40, 0.70,  1.2,  2.0,  3.0]
-    number_points_list = [    6,   4,    5,     7,   11,    9,   6]
-    auto_atten_list =    [    6,   5,    4,     3,    2,    2,    1] 
-    s2_vg_list =         [ 0.04, 0.04,0.04,  0.04, 0.04, 0.04,  0.04] 
-    exp_time_list =      [   5,    5,    5,    5,    5,    5,   5]
-    precount_time_list=  [  0.1, 0.1,  0.1,   0.1,  0.1,  0.1,  0.1]
-    wait_time_list=      [    7,   7,    7,     7,    7,   7,    7 ]
-    x2_offset_start_list=[    0,   0,    0,     0,    0,   0,  0.0]
-    x2_offset_stop_list= [    0,   0,    0,     0,    0,   0,    0]
+    # #9.7kev Qz to 0.566
+    # alpha_start_list =   [ 0.04, 0.16, 0.24, 0.40,  0.7,  1.0,  2.0]
+    # alpha_stop_list =    [ 0.16, 0.24, 0.40, 0.70,  1.0,  2.0,  3.3]
+    # number_points_list = [    7,   6,     5,    7,    6,   21,   14]
+    # auto_atten_list =    [    7,   6,     5,    4,    3,    2,   1 ]
+    # s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04,0.04]
+    # exp_time_list =      [    5,   5,     5,    5,     5,    5,  5 ]
+    # precount_time_list=  [  0.1, 0.1,   0.1,   0.1,  0.1,  0.1, 0.1]
+    # wait_time_list=      [    7,   7,     7,     7,    7,   7,   7 ]
+    # x2_offset_start_list=[    0,   0,     0,     0,    0,   0,   0 ]
+    # x2_offset_stop_list= [    0,   0,     0,     0,    0,   0,   0 ]
+
+    #9.7kev Qz to 0.65
+    alpha_start_list =   [ 0.04, 0.16, 0.24, 0.40,  0.7,  1.0,  2.0, 3.0]
+    alpha_stop_list =    [ 0.16, 0.24, 0.40, 0.70,  1.0,  2.0,  3.0, 3.8]
+    number_points_list = [    7,   6,     5,    7,    6,   21,   11,   9]
+    auto_atten_list =    [    7,   6,     5,    4,    3,    2,    1,   0]
+    s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04,0.04,0.04]
+    exp_time_list =      [    5,   5,     5,    5,     5,    5,   5,   5]
+    precount_time_list=  [  0.1, 0.1,   0.1,   0.1,  0.1,  0.1, 0.1, 0.1]
+    wait_time_list=      [    7,   7,     7,     7,    7,   7,    7,   7]
+    x2_offset_start_list=[    0,   0,     0,     0,    0,   0,    0, 0.1]
+    x2_offset_stop_list= [    0,   0,     0,     0,    0,   0,    0, 0.9]
+
+    # #9.7kev Qz to 0.65, remove a few point in the low q
+    # alpha_start_list =   [ 0.10, 0.16, 0.24, 0.40,  0.7,  1.0,  2.0, 3.0]
+    # alpha_stop_list =    [ 0.16, 0.24, 0.40, 0.70,  1.0,  2.0,  3.0, 3.8]
+    # number_points_list = [    4,   6,     5,    7,    6,   21,   11,   9]
+    # auto_atten_list =    [    7,   6,     5,    4,    3,    2,    1,   0]
+    # s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04,0.04,0.04]
+    # exp_time_list =      [    5,   5,     5,    5,     5,    5,   5,   5]
+    # precount_time_list=  [  0.1, 0.1,   0.1,   0.1,  0.1,  0.1, 0.1, 0.1]
+    # wait_time_list=      [    7,   7,     7,     7,    7,   7,    7,   7]
+    # x2_offset_start_list=[    0,   0,     0,     0,    0,   0,    0, 0.1]
+    # x2_offset_stop_list= [    0,   0,     0,     0,    0,   0,    0, 0.9]
+
 
 
     scan_p={"start":alpha_start_list,

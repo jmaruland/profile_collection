@@ -6,7 +6,7 @@ def phi_track(alpha_ini, alpha_stop, num_alpha):
     # for eta in range(eta_start, eta_stop, nb_eta):
     # eta
     global dif
-    
+    yield from bps.mv(geo, -0.1)
     dif  = np.zeros((2, num_alpha+1))
     for i, alpha in enumerate(range(0, num_alpha+1, 1)):
         alpha_re = alpha_ini + (i * (alpha_stop - alpha_ini) / num_alpha)
@@ -41,6 +41,7 @@ def ih_track(alpha_ini, alpha_stop, num_alpha):
 
     global dif
     dif = np.zeros((3, num_alpha+1))
+    yield from bps.mv(geo, -0.1)
     for i, alpha in enumerate(range(0, num_alpha+1, 1)):
         alpha_re = alpha_ini + (i * (alpha_stop - alpha_ini) / num_alpha)
         print(i, alpha_ini, alpha_re)
