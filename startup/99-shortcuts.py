@@ -197,6 +197,9 @@ def test1(detector=lambda_det):
 
 
 fl_roi1= xs.channel1.rois.roi01.value_sum.get()
+# we need to make this hinted to display proplery so we can see if we are saturating.  Best to keep under 500k
+#maybe this will work
+# xs.roi2.kind = 'hinted'
 
 
 def screen():
@@ -207,3 +210,22 @@ def shake():
     for i in range(1000):
         yield from bps.mv(x2,-50)
         yield from bps.mv(x2,-51)
+
+
+def hinted_all():
+    geo.th.user_readback.kind = 'hinted'
+    geo.phi.user_readback.kind = 'hinted'
+    geo.phix.user_readback.kind = 'hinted'
+    geo.ih.user_readback.kind = 'hinted'
+    geo.ia.user_readback.kind = 'hinted'
+    geo.sh.user_readback.kind = 'hinted'
+    geo.oh.user_readback.kind = 'hinted'
+    geo.oa.user_readback.kind = 'hinted'
+    geo.astth.user_readback.kind = 'hinted'
+    geo.stblx.user_readback.kind = 'hinted'
+    geo.oa.user_readback.kind = 'hinted'
+    geo.tth.user_readback.kind = 'hinted'
+    geo.chi.user_readback.kind = 'hinted'
+    geo.astth.user_readback.kind = 'hinted'
+
+    

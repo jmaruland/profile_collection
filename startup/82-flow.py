@@ -19,3 +19,17 @@ def he_off():
 
 
 
+def record (time,number):
+    for i in range(number):
+        record_file = open('/home/xf12id1/.ipython/profile_collection/startup/record','a')
+        e = str(datetime.datetime.now())
+        yield from bps.sleep(time)
+        record_file.write(e[0:19])
+        record_file.write("{:6.3f} {:6.3f} \n".format(o2_per.get(),flow3.get()))
+        print(e,o2_per.get(),flow3.get())
+        record_file.close()
+
+
+
+
+

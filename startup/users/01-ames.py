@@ -1,554 +1,275 @@
+# 9.7 keV
+proposal_id("2022_1","30011_ames")
+from pdb import post_mortem
+
+#    "PNIPAM_3k_AuNPs_5",
+#    "PNIPAM_6k_AuNPs_5",
+#    "PNIPAM_3k_AuNPs_10",
+#    "PNIPAM_6k_AuNPs_10"
 
 
-##Copied from 76-GID in /nsls2/xf12id1/user/2021_c2/..../honghu
+sample_names =[
+    "COOH_PEG5k_AuNP10_100mM_NaCl",
+    "PEG5k_AuNP10_1mM_HCl",
+    "PEG5k_AuNP10_1mM_NaOH",
+    # "NH2_PEG5k_AuNP10_10mM_NaOH"
+]0
+sample_pos =[
+  -77,
+  -38.5,
+   0,
+#    37.6
+]
+
+def ames_m2():
+    for i in range(len(sample_names)):
+        if i == 0:
+            yield from ames_1(sample_names[i],sample_pos[i])
+        else:
+            yield from ames_2(sample_names[i],sample_pos[i])
 
 
- #   yield from one_gid( name=sam, xpos=start_pos, stth = stth, exp_time=30, attenuator=0, beta1=0, beta_off=0.13, det_mode=3) 
+def ames_m():
+    for i in range(len(sample_names)):
+        yield from ames_1(sample_names[i],sample_pos[i])
+  
 
-# -82 -34 16 62
-# -80 -33.5 14.5 60
-# -83 -34 15 60
-# -79 -32 14 58
-# -83 -35 12 58
-#     -33  14
+def ames_2(name,pos):
+    """
+    Putting sleep(5) to allow time for opening and closing
+    the Photon Shutter if this is really needed"""
 
-#sample_1 = "peg1k-NP5_100mM-k"
-#sample_1 = "peg2k-NP10_peg5k-NP5_1-4_100mM-k"
-sample_2 = "peg2k-Ag20_100mM-k"
-sample_3 = "peg2k-Ag20_peg5k-Ag10_100mM-k"
-#sample_4 = "peg1k-NP20_peg2k-NP5_2-1_100mM-k"
+    detector=lambda_det
+    pos1=pos-1
+    pos2=pos+1
+    print(name,pos,pos1,pos2)
+    yield from bps.sleep(5)
+    yield from shopen()
+    yield from he_on() # starts the He flow
+    # yield from one_xrr(name,pos)
+    yield from check_ih()  #Align the spectrometer  height
+   # yield from check_tth() #Align the spectrometer rotation angle
+    yield from sample_height_set_coarse(detector=detector) #scan the detector arm height (sh) from -1 to 1 with 41 points
+    yield from sample_height_set_fine_o(detector=detector)   
+    yield from gisaxs_scan1(name+"_1",pos1)
+    yield from gisaxs_scan1(name+"_2",pos2)
+    yield from he_off()# stops the He flow
+    yield from shclose()
+    yield from bps.sleep(5)
 
-def ames_4():
-#    indent = 1
-    yield from he_on()
-    yield from bps.mv(abs2,6)
+
+def ames_1(name,pos):
+    """
+    Putting sleep(5) to allow time for opening and closing
+    the Photon Shutter if this is really needed"""
+
+    detector=lambda_det
+    pos1=pos-1
+    pos2=pos+1
+    print(name,pos,pos1,pos2)
+    yield from bps.sleep(5)
+    yield from shopen()
+    yield from he_on() # starts the He flow
+    yield from one_xrr(name,pos)
+    yield from sample_height_set_fine_o(detector=detector)   
+    yield from gisaxs_scan1(name+"_1",pos1)
+    yield from gisaxs_scan1(name+"_2",pos2)
+    yield from he_off()# stops the He flow
+    yield from shclose()
+    yield from bps.sleep(5)
+
+def one_xrr(name,xpos,tiltx=0,detector=lambda_det):
+   #     '''Conduct reflectivity measurments'''
+    print("file name=",name)    
+    yield from bps.mv(abs2,5)
+    yield from bps.mv(abs3,0)# reflectivity mode
+    yield from bps.mv(geo.stblx2,xpos)  #move the  Sample Table X2 to xpos
     yield from bps.mv(shutter,1) # open shutter
     yield from check_ih()  #Align the spectrometer  height
-    yield from check_tth() #Align the spectrometer rotation angle
-    #yield from ames_1(sample_1, -81, detector=pilatus100k) 
-    yield from ames_1(sample_2, -33, detector=pilatus100k)
-    yield from ames_1(sample_3, +15.5, detector=pilatus100k)
-    #yield from ames_1(sample_4, +61, detector=pilatus100k)
-    yield from shclose()
-    yield from he_off()
-
-def ames_1(sam, xpos_start,detector=lambda_det):
+   # yield from check_tth() #Align the spectrometer rotation angle
+    yield from sample_height_set_coarse(detector=detector) #scan the detector arm height (sh) from -1 to 1 with 41 points
+    yield from sample_height_set_fine_o(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
+    #yield from bps.mv(shutter,1) # open shutter
+    #yield from check_astth(detector=detector)   #Align the detector arm rotation angle# comment out as it might affect OFFSET
+    yield from xr_scan1(name)
+    yield from bps.mv(shutter,0) # close shutter
+    yield from mabt(0.2,0.2,0)
+  
+def sample_height_set_coarse(value=0,detector=lambda_det):
+    geo.sh.user_readback.kind = 'hinted'
     yield from bps.mv(geo.det_mode,1)
- #   yield from sample_height_set_coarse(detector=detector) #scan the detector arm height (sh) from -1 to 1 with 41 points
- #   yield from sample_height_set_fine(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
-    
-    yield from one_ref(name=sam, xpos=xpos_start, tiltx=0,detector=pilatus100k) 
-    
-    yield from mabt(0.08,0.08,0)
-
-    # This takes the GID
-    yield from bps.mv(geo.det_mode,2)
-    alphai = 0.11
-    yield from bps.mvr(x2,-0.5)
-    print("at 1")
-    # yield from gid_scan(md={'sample_name': sam + '_GID-'},
-    #                     exp_time = 1,
-    #                     detector = pilatus300k,
-    #                     alphai = alphai,
-    #                     attenuator=1)
-
-    # yield from bps.mvr(x2,1.0)
-    # yield from gid_scan(md={'sample_name': sam +'_GID+'},
-    #                     exp_time = 1,
-    #                     detector = pilatus300k,
-    #                     alphai = alphai,
-    #                     attenuator=1)
-
-
-
-    yield from gid_scan_stitch(md={'sample_name': sam + '_GID-'},
-                        exp_time = 1,
-                        detector = pilatus300k,
-                        alphai = alphai,
-                        attenuator=1)
-    yield from gid_scan_stitch(md={'sample_name': sam + '_GID-5s'},
-                        exp_time = 5,
-                        detector = pilatus300k,
-                        alphai = alphai,
-                        attenuator=1)
-
-
-    yield from bps.mvr(x2,1.0)
-    yield from gid_scan_stitch(md={'sample_name': sam +'_GID+'},
-                        exp_time = 1,
-                        detector = pilatus300k,
-                        alphai = alphai,
-                        attenuator=1)
-    yield from gid_scan_stitch(md={'sample_name': sam +'_GID+5s'},
-                        exp_time = 5,
-                        detector = pilatus300k,
-                        alphai = alphai,
-                        attenuator=1)
-
-
-def tmp():
-    alphai=0.11
-    yield from gid_scan_stitch(md={'sample_name': "zero" + '_GID'},
-                        exp_time = 5,
-                        detector = pilatus300k,
-                        alphai = alphai,
-                        attenuator=1)
-
-def cfn(name):
-    # This takes the reflectivity
-    yield from bps.mv(geo.stblx2,0.2)
-
-    yield from bps.mv(flow3,3.2) # need to change back to 3.1
-    yield from bps.mv(geo.det_mode,1)
-    
-    # sets sample height at alpha=0.08
-    yield from sample_height_set()
-
-    print('Sleeping time before reflectivity')
-    yield from bps.sleep(10)
-    yield from bps.mv(flow3,2.7)
-    
-    # takes the reflectivity
-    yield from fast_scan(name)
-
-    # sets sample height at alpha=0.08 so that it is ready for GID
-    yield from bps.mv(abs2,6)
-    yield from mabt(0.08,0.08,0)
-    
+    yield from bps.mv(abs2,5)
+    yield from mabt(0.05,0.05,0)
+    tmp1=geo.sh.position
     print('Start the height scan before GID')
-    yield from sample_height_set()
-
-    # This takes the GID
-    yield from bps.mv(geo.det_mode,2)
-    alphai = 0.11
-    yield from gid_scan(md={'sample_name': name+'_GID'},
-                        exp_time = 1,
-                        detector = pilatus100k,
-                        alphai = alphai,
-                        attenuator=1)
-
-    yield from bps.mvr(geo.stblx2,2)
-    yield from sample_height_set()
-    yield from bps.mv(geo.det_mode,2)
-    alphai = 0.11
-    yield from gid_scan(md={'sample_name': name+'_fresh1_GID'},
-                        exp_time = 1,
-                        detector = pilatus100k,
-                        alphai = alphai,
-                        attenuator=1)
-
-    yield from bps.mvr(geo.stblx2,-4)
-    yield from sample_height_set()
-    yield from bps.mv(geo.det_mode,2)
-    alphai = 0.11
-    yield from gid_scan(md={'sample_name': name+'_fresh2_GID'},
-                        exp_time = 1,
-                        detector = pilatus100k,
-                        alphai = alphai,
-                        attenuator=1)
-    
-    yield from bps.mv(flow3,2.7)
-    yield from bps.mv(geo.stblx2,0.2)
+    Msg('reset_settle_time', sh.settle_time, value)
+ #   yield from bp.rel_scan([detector],sh,-0.1,0.1,21,per_step=shutter_flash_scan)
+ #   tmp2=peaks.cen['%s_stats2_total'%detector.name]
+    yield from det_exposure_time_new(detector, 1,1)
+    local_peaks = PeakStats(sh.user_readback.name, '%s_stats2_total'%detector.name)
+    yield from bpp.subs_wrapper(bp.rel_scan([detector],sh,-1,1,13,per_step=shutter_flash_scan), local_peaks)
+    print("at #1")
+    tmp2 = local_peaks.cen #get the height for roi2 of detector.name with max intens
+    print("at #2")
+    yield from bps.mv(sh,tmp2-0.00)
+    yield from set_sh(tmp1)
+    Msg('reset_settle_time', sh.settle_time, 0)
 
 
 
-# gid_dets = [pilatus300k, quadem]
-# @bpp.stage_decorator(gid_dets)
-def gid_cfn_cal(md=None, exp_time=1, detector = 'pilatus300k', alphai = 0.1, attenuator=2):
-    # Bluesky command to record metadata
-    base_md = {'plan_name': 'gid',
-               'detector': detector, 
-               'energy': energy.energy.position,
-               'alphai': alphai,
-            # ...
-           }
-
-    base_md.update(md or {})
-    bec.disable_plots()
-    yield from bps.open_run(md=base_md)
-
-    # Creation of a fignal to record the attenuation
-    yield from bps.mv(abs2, attenuator)# to avoid pilatus saturation
-    attenuation = calculate_att_comb([np.sum(current_att_thickness[0:attenuator+1])], ['Mo'], energy.energy.position)
-    attenuation_factor_signal = Signal(name='attenuation', value = attenuation[0])
-
-    # Set and record the exposure time to 0.1 for the precount
-    exposure_time = Signal(name='exposure_time', value = exp_time)
-    yield from det_exposure_time_pilatus(exp_time, exp_time)
-
-    # Move to the good geometry position
-    yield from mabt(alphai, 0, 0) # gid poistion with beam stop
-    yield from bps.sleep(5)
-
-    # yield from bps.mv(abs2, 0)
-    # yield from bps.mv(abs2, 3)# to avoid pilatus saturation
-    # yield from bps.mv(attenuation_factor_signal, 1)
-
-    # yield from bps.mvr(geo.stblx2, -1) # move stable X2
-    
-    yield from bps.mv(shutter,1)
-    yield from bps.sleep(0.5) # add this because the QuadEM I0
-    yield from bps.trigger_and_read(gid_dets + [geo] + [attenuation_factor_signal] + [exposure_time], name='primary')
-    yield from bps.mv(shutter,0)
-
-
-    yield from bps.mv(abs2, 6)
-    yield from mabt(alphai, 0, -1) # gid poistion without beam stop
-    yield from bps.sleep(5)
-
-    yield from bps.mv(shutter,1)
-    yield from bps.sleep(0.5) # add this because the QuadEM I0
-    yield from bps.trigger_and_read(gid_dets + [geo] + [attenuation_factor_signal] + [exposure_time], name='primary')
-    yield from bps.mv(shutter,0)
-
-
-    yield from bps.mv(abs2, 6)
-    yield from mabt(alphai, 0, -2) # gid poistion without beam stop
-    yield from bps.sleep(5)
-    yield from bps.mv(shutter,1)
-    yield from bps.sleep(0.5) # add this because the QuadEM I0
-    yield from bps.trigger_and_read(gid_dets + [geo] + [attenuation_factor_signal] + [exposure_time], name='primary')
-    yield from bps.mv(shutter,0)
-
-    # Bluesky command to stop recording metadata
-    yield from close_run()
-    bec.enable_plots()
-    # yield from bps.mv(abs2, 5)
-    print('The gid is over')
-                       
-
-
-def cfn_3():
-
-    # name_cfn = { 1: 'AuNR_5_19_stock',
-    #              2: 'AuNR_5_19_T6K',
-    #              3: 'AuNR_5_19_E6K',
-    # }
-    # name_cfn = { 1: 'AuNR_5_19_stock_10mMNaCl', # add 20.2uL 1M NaCl @9:35pm 06/30/21
-    #              2: 'AuNR_5_19_T6K_10mMNaCl',
-    #              3: 'AuNR_5_19_E6K_10mMNaCl',
-    # }
-    # name_cfn = { 1: 'AuNR_5_19_stock_100mMNaCl', # add 36.6uL 5M NaCl @11:35pm 06/30/21
-    #              2: 'AuNR_5_19_T6K_100mMNaCl',
-    #              3: 'AuNR_5_19_E6K_100mMNaCl',
-    # }
-    # name_cfn = { 1: 'AuNR_10_30_E6K', # add 2ml @7:32pm 07/01/21
-    #              2: 'AuNR_10_30_T6K',
-    #              #3: 'AuNR_5_19_E6K_100mMNaCl',
-    # }
-    # name_cfn = { 1: 'AuNR_10_30_E6K_10mMNaCl', # add 20.2uL 1M NaCl @8:53pm 07/01/21
-    #              2: 'AuNR_10_30_T6K_10mMNaCl',
-    #              #3: 'AuNR_5_19_E6K_100mMNaCl',
-    # }
-    # name_cfn = { 1: 'AuNR_10_30_E6K_100mMNaCl', # add 36.6uL 5M NaCl @10.43pm 07/01/21
-    #              2: 'AuNR_10_30_T6K_100mMNaCl',
-    #              #3: 'AuNR_5_19_E6K_100mMNaCl',
-    # }
-    # name_cfn = { #1: 'AuNR_10_30_E6K_100mMNaCl', # add 36.6uL 5M NaCl @10.43pm 07/01/21
-    #              2: 'AuNR_10_30_T6K_100mMNaCl_LowConc',  #remove 1340 ul solution and then add 1340 100mMNaCl to make the NP conc as the E6K
-    #              #3: 'AuNR_5_19_E6K_100mMNaCl',
-    # }
-    # name_cfn = { 1: 'AuNR_5_19_E2K', # add 2ml, 12 nM @12:51 am 07/02/21
-    #              2: 'AuNR_5_19_T2K', # add 2ml, 12 nM @12:51 am 07/02/21
-    #              #3: 'AuNR_5_19_E6K_100mMNaCl',
-    # }
-    # name_cfn = { 1: 'AuNR_5_19_E2K_10mMNaCl', # add 20.2uL 1M NaCl @2am 07/02/21
-    #              2: 'AuNR_5_19_T2K_10mMNaCl', # add 20.2uL 1M NaCl @2am 07/02/21
-    #              #3: 'AuNR_5_19_E6K_100mMNaCl',
-    # }
-    # name_cfn = { 1: 'AuNR_5_19_E2K_100mMNaCl', # add 36.6uL 5M NaCl @3:05am 07/02/21
-    #              2: 'AuNR_5_19_T2K_100mMNaCl', # add 36.6uL 5M NaCl @3:05am 07/02/21
-    #              #3: 'AuNR_5_19_E6K_100mMNaCl',
-    # }
-    # name_cfn = { 1: 'AuNR_5_19_E2KS6k_10mMNaCl', # add 2ml, 10 nM and 20.2uL 1M NaCl @5:04am 07/02/21
-    #              2: 'AuNR_5_19_E6kS2k_10mMNaCl', # add 2ml, 10 nM and 20.2uL 1M NaCl @5:04am 07/02/21
-    #              #3: 'AuNR_5_19_E6K_100mMNaCl',
-    # } 
-    name_cfn = { 1: 'AuNR_5_19_E2KS6k_100mMNaCl', # add 36.6uL 5M NaCl @6:10am 07/02/21
-                 2: 'AuNR_5_19_E6kS2k_100mMNaCl', # add 36.6uL 5M NaCl @6:10am 07/02/21
-                 #3: 'AuNR_5_19_E6K_100mMNaCl',
-    }  
-
+def sample_height_set_fine_o(value=0,detector=lambda_det):
+    geo.sh.user_readback.kind = 'hinted'
     yield from bps.mv(geo.det_mode,1)
-    # x2_pos1 = -47.6 # -11.3-38.1
-    # tilt1 = 0
-    # x2_pos2 = -10 #  -11.3-0.2
-    # tilt2 = 0
-    # x2_pos2 = -9 # for AuNR_10_30_T6K_100mMNaCl_LowConc
-    # tilt2 = 0
-    # x2_pos3 = -11.3+38.1-0.5
-    # tilt3 = -0.4
-    # x2_pos1 = -50.8
-    # tilt1 = 0
-    # x2_pos2 = -12.5-0.2  
-    # tilt2 = 0
-    # x2_pos1 = -46.4
-    # tilt1 = 0
-    # x2_pos2 = -8.5 
-    # tilt2 = 0
-
-    x2_pos1 = -46.4
-    tilt1 = 0
-
-    x2_pos2 = -8
-    tilt2 = 0
-
-    yield from cfn_ref(name_cfn[1],x2_pos1,tilt1)
-    yield from cfn_gid(name_cfn[1])
-    yield from cfn_ref(name_cfn[2],x2_pos2,tilt2)
-    yield from cfn_gid(name_cfn[2])
-
-    #yield from cfn_ref(name_cfn[3],x2_pos3,tilt3)
-    #yield from cfn_gid(name_cfn[3])
-
-
-
-def cfn_1():
-    '''
-    XR and GID run for one sample cell
-    '''
-    # name_cfn = { 2: 'AuNR_10_50_T6K', # @11:14am 07/01/21
-    # }
-    # name_cfn = { 2: 'AuNR_10_50_T6K_10mMNaCl', # add 20.2uL 1M NaCl @ 12pm 07/01/21
-    # }
-    # name_cfn = { 2: 'AuNR_10_50_T6K_100mMNaCl', # add 36.6uL 5M NaCl @ 12:45pm 07/01/21
-    # }
-
-    # name_cfn = { 2: 'AuNR_10_40_T6K', # @1:27 pm 07/01/21
-    # }
-    #name_cfn = { 2: 'AuNR_10_40_T6K_10mMNaCl', # add 20.2uL 1M NaCl @2:04 pm 07/01/21
-    #}
-    name_cfn = { 2: 'AuNR_10_40_T6K_100mMNaCl', # add 36.6uL 5M NaCl @4:31 pm 07/01/21
-    }
-
-
-    yield from bps.mv(geo.det_mode,1)
-    x2_pos2 = -9.0 #-11.3+2+0.3
-    tilt2 = -0.4
-    yield from cfn_ref(name_cfn[2],x2_pos2,tilt2)
-    yield from cfn_gid(name_cfn[2])
-
-
-# def cfn_gid(name):
-
-#     # sets sample height at alpha=0.08 so that it is ready for GID
-    
-#     print('Start the height scan before GID')
-#     gid_dets = [pilatus300k, quadem]
-#     @bpp.stage_decorator(gid_dets)
-#     if _dx2 == 0:
-#         yield from bps.mv(shutter,1)
-#         yield from ih_set()  #Align the spectrometer  height
-#         yield from tth_set() #Align the spectrometer rotation angle
-#         yield from sample_height_set_fine()
-#     yield from bps.mv(geo.det_mode,2)
-#     alphai = 0.1
-#     yield from gid_scan(md={'sample_name': name+'_GID_pos_' + str(_dx2)+'_exp_' + str(_exp_time)+'s'},
-#                         exp_time = _exp_time,
-#                         detector = 'pilatus300k',
-#                         alphai = alphai,
-#                         attenuator=0)
-
-
-def cfn_ref(name,xpos,tiltx):
-    '''Conduct reflectivity measurments'''
-    print("file name=",name)
-    yield from bps.mv(geo.stblx2,xpos)  #move the  Sample Table X2 to xpos
-    yield from bps.mv(tilt.x,tiltx)  #move the  Sample tilt 
-    yield from bps.mv(shutter,1) # open shutter
-    yield from ih_set()  #Align the spectrometer  height
-    yield from tth_set() #Align the spectrometer rotation angle
-    yield from sample_height_set_coarse() #scan the detector arm height (sh) from -1 to 1 with 41 points
-    yield from sample_height_set_fine()   #scan the detector arm height from -0.2 to 0.2 with 21 points
-    yield from bps.mv(shutter,1) # open shutter
-    # yield from astth_set()   #Align the detector arm rotation angle# comment out as it might affect OFFSET
-    yield from fast_scan(name)
-
-def cfn_20210718_night():
-    yield from he_on()
-    for run_num in range(3):
-        yield from bps.mv(shutter,1) # open shutter
-        yield from cfn_20210718_night_one_scan(run_num)
-        yield from bps.mv(shutter,0) # close shutter
-        yield from bps.sleep(3600 * 2 ) # 
+    yield from bps.mv(abs2,5)
+    yield from mabt(0.05,0.05,0)
+    tmp1=geo.sh.position
+    print('Start the height scan before GID')
+    Msg('reset_settle_time', sh.settle_time, value)
+ #   yield from bp.rel_scan([detector],sh,-0.1,0.1,21,per_step=shutter_flash_scan)
+ #   tmp2=peaks.cen['%s_stats2_total'%detector.name]
+    yield from det_exposure_time_new(detector, 1,1)
+    local_peaks = PeakStats(sh.user_readback.name, '%s_stats2_total'%detector.name)
+    yield from bpp.subs_wrapper(bp.rel_scan([detector],sh,-0.15,0.15,13,per_step=shutter_flash_scan), local_peaks)
+    print("at #1")
+    tmp2 = local_peaks.cen #get the height for roi2 of detector.name with max intens
+    print("at #2")
+    yield from bps.mv(sh,tmp2-0.00)
+    yield from set_sh(tmp1)
+    Msg('reset_settle_time', sh.settle_time, 0)
  
 
-
-def cfn_20210718_night_one_scan(run_num):
-    #yield from he_on()
-    yield from one_ref("S1, 1ul_DSPEP_P14_run=%s"%(run_num),-57+run_num, tiltx=0,detector=pilatus100k)
-    yield from one_ref("S2, 2ul_DSPEP_Px_run=%s"%(run_num), -10+run_num, tiltx=0,detector=pilatus100k)
-    yield from one_ref("S3, 4ul_DSPEP_P38_run=%s"%(run_num), 36+run_num, tiltx=0,detector=pilatus100k)     
-    #yield from he_off()
-
-def cfn_20210719_pm_one_scan( ):
-    yield from he_on()
-    sam = 'S1, DNA-DSPEP_1-5_P34'
-    yield from one_ref(sam,-56 , tiltx=0,detector=pilatus100k)
-
-    yield from bps.mv(geo.stblx2,  -56 + 1 )
-    yield from sample_height_set_fine(detector=pilatus100k)
-    yield from one_gid( name=sam, xpos=-56 + 1, stth = 17.5, exp_time=60, attenuator=0, beta1=0, beta_off=0.13 ) 
-    yield from one_gid( name=sam, xpos=-56 + 1 , stth = 17.5, exp_time=60,attenuator=0, beta1=2, beta_off=0.13 ) 
+def xr_scan1(name):
+    #9.7kev
+    alpha_start_list =   [ 0.04, 0.16, 0.24, 0.40,  0.7,  1.5]
+    alpha_stop_list =    [ 0.16, 0.24, 0.40, 0.70,  1.5,  2.0]
+    number_points_list = [    7,   6,     9,   11,   17,   11]
+    auto_atten_list =    [    7,   6,     5,    4,    3,    2]
+    s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04]
+    exp_time_list =      [    5,   5,     5,    5,     5,    5]
+    precount_time_list=  [  0.1, 0.1,   0.1,   0.1,  0.1,  0.1]
+    wait_time_list=      [    5,   5,     5,     5,    5,   5 ]
+    x2_offset_start_list=[    0,   0,     0,     0,    0,   0 ]
+    x2_offset_stop_list= [    0,   0,     0,     0,    0,   0 ]
 
 
-    sam = 'S2, DNA-DSPEP_1-10_Px'
-    yield from one_ref(sam, -9, tiltx=0,detector=pilatus100k)
+    scan_p={"start":alpha_start_list,
+        "stop":alpha_stop_list,
+        "n":number_points_list,
+        "atten":auto_atten_list,
+        "s2vg":s2_vg_list,
+        "exp_time":exp_time_list,
+        "pre_time":precount_time_list,
+        "wait_time":wait_time_list,
+        "x2_offset_start":x2_offset_start_list,
+        "x2_offset_stop":x2_offset_stop_list}
 
-    yield from bps.mv(geo.stblx2,  -9 + 1 )
-    yield from sample_height_set_fine(detector=pilatus100k)
-    yield from one_gid( name=sam, xpos=-9+1, stth = 17.5, exp_time=60,attenuator=0, beta1=0, beta_off=0.13 ) 
-    yield from one_gid( name=sam, xpos=-9+1, stth = 17.5, exp_time=60,attenuator=0, beta1=2, beta_off=0.13 )   
-
-    sam = 'S3, DNA-DSPEP_1-1_P36'
-    yield from one_ref( sam, 37 , tiltx=0,detector=pilatus100k)     
-
-    yield from bps.mv(geo.stblx2,  37 + 1 )
-    yield from sample_height_set_fine(detector=pilatus100k)
-    yield from one_gid( name=sam, xpos=37+1, stth = 17.5, exp_time=60,attenuator=0, beta1=0, beta_off=0.13 ) 
-    yield from one_gid( name=sam, xpos=37+1, stth = 17.5, exp_time=60,attenuator=0, beta1=2, beta_off=0.13 ) 
-
-def cfn_20210719_pm_np_one_scan( ):
-    yield from he_on()
-    sam = 'S1, DNA-DSPEP_1-5_NP_P32_run1'
-    yield from one_ref(sam,-56 , tiltx=0,detector=pilatus100k)
-
-    yield from bps.mv(geo.stblx2,  -56 + 1 )
-    yield from sample_height_set_fine(detector=pilatus100k)
-    yield from one_gid( name=sam, xpos=-56+0.5, stth = 0, exp_time=1, attenuator=0, beta1=0, beta_off= 0.4, det_mode=2)
-    yield from one_gid( name=sam, xpos=-56+0.75, stth = 0, exp_time=5, attenuator=0, beta1=0, beta_off= 0.4, det_mode=2)
-    yield from one_gid( name=sam, xpos=-56+1, stth = 17.5, exp_time=60, attenuator=0, beta1=0, beta_off=0.13, det_mode=3) 
-    yield from one_gid( name=sam, xpos=-56+1, stth = 17.5, exp_time=60,attenuator=0, beta1=2, beta_off=0.13, det_mode=3) 
-
-    sam = 'S2, DNA-DSPEP_1-10_NP_Px_run1'
-    yield from one_ref(sam, -9, tiltx=0,detector=pilatus100k)
-
-    yield from bps.mv(geo.stblx2,  -9 + 1 )
-    yield from sample_height_set_fine(detector=pilatus100k)
-    yield from one_gid( name=sam, xpos=-9+0.5, stth = 0, exp_time=1, attenuator=0, beta1=0, beta_off= 0.4, det_mode=2)
-    yield from one_gid( name=sam, xpos=-9+0.75, stth = 0, exp_time=5, attenuator=0, beta1=0, beta_off= 0.4, det_mode=2)
-    yield from one_gid( name=sam, xpos=-9+1, stth = 17.5, exp_time=60,attenuator=0, beta1=0, beta_off=0.13, det_mode=3) 
-    yield from one_gid( name=sam, xpos=-9+1, stth = 17.5, exp_time=60,attenuator=0, beta1=2, beta_off=0.13, det_mode=3)   
-
-    sam = 'S3, DNA-DSPEP_1-1_NP_P35_run1'
-    yield from one_ref( sam, 37 , tiltx=0,detector=pilatus100k)     
-
-    yield from bps.mv(geo.stblx2,  37 + 1 )
-    yield from sample_height_set_fine(detector=pilatus100k)
-    yield from one_gid( name=sam, xpos=37+0.5, stth = 0, exp_time=1, attenuator=0, beta1=0, beta_off= 0.4, det_mode=2)
-    yield from one_gid( name=sam, xpos=37+0.75, stth = 0, exp_time=5, attenuator=0, beta1=0, beta_off= 0.4, det_mode=2)
-    yield from one_gid( name=sam, xpos=37+1, stth = 17.5, exp_time=60,attenuator=0, beta1=0, beta_off=0.13, det_mode=3) 
-    yield from one_gid( name=sam, xpos=37+1, stth = 17.5, exp_time=60,attenuator=0, beta1=2, beta_off=0.13, det_mode=3) 
-    #yield from he_off()
+    print(scan_p)
+    yield from bps.mv(geo.det_mode,1)
+    yield from reflection_scan_full(scan_param=scan_p,
+        md={'sample_name': name},
+        detector=lambda_det, 
+        tilt_stage=False,)
 
 
-def cfn_20210719_night_npsalt_one_scan( ):
-    yield from he_on()
-    sam = 'S1, DNA-DSPEP_1-5_NPsalt_P34_run1'
-    yield from one_ref(sam,-56 , tiltx=0,detector=pilatus100k)
-
-    yield from bps.mv(geo.stblx2,  -56 + 1 )
-    yield from sample_height_set_fine(detector=pilatus100k)
-    yield from one_gid( name=sam, xpos=-56+0.5, stth = 0, exp_time=1, attenuator=0, beta1=0, beta_off= 0.4, det_mode=2)
-    yield from one_gid( name=sam, xpos=-56+0.75, stth = 0, exp_time=5, attenuator=0, beta1=0, beta_off= 0.4, det_mode=2)
-    yield from one_gid( name=sam, xpos=-56+1, stth = 17.5, exp_time=60, attenuator=0, beta1=0, beta_off=0.13, det_mode=3) 
-    yield from one_gid( name=sam, xpos=-56+1, stth = 17.5, exp_time=60,attenuator=0, beta1=2, beta_off=0.13, det_mode=3) 
-
-    sam = 'S2, DNA-DSPEP_1-10_NPsalt_Px_run1'
-    yield from one_ref(sam, -9, tiltx=0,detector=pilatus100k)
-
-    yield from bps.mv(geo.stblx2,  -9 + 1 )
-    yield from sample_height_set_fine(detector=pilatus100k)
-    yield from one_gid( name=sam, xpos=-9+0.5, stth = 0, exp_time=1, attenuator=0, beta1=0, beta_off= 0.4, det_mode=2)
-    yield from one_gid( name=sam, xpos=-9+0.75, stth = 0, exp_time=5, attenuator=0, beta1=0, beta_off= 0.4, det_mode=2)
-    yield from one_gid( name=sam, xpos=-9+1, stth = 17.5, exp_time=60,attenuator=0, beta1=0, beta_off=0.13, det_mode=3) 
-    yield from one_gid( name=sam, xpos=-9+1, stth = 17.5, exp_time=60,attenuator=0, beta1=2, beta_off=0.13, det_mode=3)   
-
-    sam = 'S3, DNA-DSPEP_1-1_NPsalt_P42_run1'
-    yield from one_ref( sam, 37 , tiltx=0,detector=pilatus100k)     
-
-    yield from bps.mv(geo.stblx2,  37 + 1 )
-    yield from sample_height_set_fine(detector=pilatus100k)
-    yield from one_gid( name=sam, xpos=37+0.5, stth = 0, exp_time=1, attenuator=0, beta1=0, beta_off= 0.4, det_mode=2)
-    yield from one_gid( name=sam, xpos=37+0.75, stth = 0, exp_time=5, attenuator=0, beta1=0, beta_off= 0.4, det_mode=2)
-    yield from one_gid( name=sam, xpos=37+1, stth = 17.5, exp_time=60,attenuator=0, beta1=0, beta_off=0.13, det_mode=3) 
-    yield from one_gid( name=sam, xpos=37+1, stth = 17.5, exp_time=60,attenuator=0, beta1=2, beta_off=0.13, det_mode=3) 
-    yield from bps.mv(abs2, 6)
+def xr_scan2(name):
+    #9.7kev
+    alpha_start_list =   [ 0.04, 0.16, 0.24, 0.40,  0.7,  1.4,  2.0, 3.0 ]
+    alpha_stop_list =    [ 0.16, 0.24, 0.40, 0.70,  1.4,  2.0,  3.0, 4.0 ]
+    number_points_list = [    7,   6,    5,     7,    8,    7,   6 ,  6  ]
+    auto_atten_list =    [    7,   6,    5,     4,    3,    2,    1,  0  ] 
+    s2_vg_list =         [ 0.04, 0.04,0.04,  0.04, 0.04, 0.04,  0.04,0.04] 
+    exp_time_list =      [    5,   5,    5,    5,     5,    5,   5,   5  ]
+    precount_time_list=  [  0.1, 0.1,  0.1,   0.1,  0.1,  0.1,  0.1, 0.1 ]
+    wait_time_list=      [    7,   7,    7,     7,    7,   7,    7,   7  ]
+    x2_offset_start_list=[    0,   0,    0,     0,    0,   0,  0,     0  ]
+    x2_offset_stop_list= [    0,   0,    0,     0,    0,   0,  0,     0  ]
 
 
-def cfn_20210719_night_npsalt_gid_scan( ):
-    yield from he_on()
-    sam = 'S1, DNA-DSPEP_1-5_NPsalt_P34_run2'
-    yield from bps.mv(geo.stblx2,  -56 + 1 )
-    yield from sample_height_set_fine(detector=pilatus100k)
-    yield from one_gid( name=sam, xpos=-56+0.5, stth = 0, exp_time=1, attenuator=0, beta1=0, beta_off= 0.4, det_mode=2)
-    yield from one_gid( name=sam, xpos=-56+0.75, stth = 0, exp_time=5, attenuator=0, beta1=0, beta_off= 0.4, det_mode=2)
-    yield from one_gid( name=sam, xpos=-56+1, stth = 17.5, exp_time=60, attenuator=0, beta1=0, beta_off=0.13, det_mode=3) 
-    yield from one_gid( name=sam, xpos=-56+1, stth = 17.5, exp_time=60,attenuator=0, beta1=2, beta_off=0.13, det_mode=3) 
+    scan_p={"start":alpha_start_list,
+        "stop":alpha_stop_list,
+        "n":number_points_list,
+        "atten":auto_atten_list,
+        "s2vg":s2_vg_list,
+        "exp_time":exp_time_list,
+        "pre_time":precount_time_list,
+        "wait_time":wait_time_list,
+        "x2_offset_start":x2_offset_start_list,
+        "x2_offset_stop":x2_offset_stop_list}
 
-    sam = 'S2, DNA-DSPEP_1-10_NPsalt_Px_run2'
-    yield from bps.mv(geo.stblx2,  -9 + 1 )
-    yield from sample_height_set_fine(detector=pilatus100k)
-    yield from one_gid( name=sam, xpos=-9+0.5, stth = 0, exp_time=1, attenuator=0, beta1=0, beta_off= 0.4, det_mode=2)
-    yield from one_gid( name=sam, xpos=-9+0.75, stth = 0, exp_time=5, attenuator=0, beta1=0, beta_off= 0.4, det_mode=2)
-    yield from one_gid( name=sam, xpos=-9+1, stth = 17.5, exp_time=60,attenuator=0, beta1=0, beta_off=0.13, det_mode=3) 
-    yield from one_gid( name=sam, xpos=-9+1, stth = 17.5, exp_time=60,attenuator=0, beta1=2, beta_off=0.13, det_mode=3)   
+    print(scan_p)
+    yield from bps.mv(geo.det_mode,1)
+    yield from reflection_scan_full(scan_param=scan_p,
+        md={'sample_name': name},
+        detector=lambda_det, 
+        tilt_stage=False,)
 
-    sam = 'S3, DNA-DSPEP_1-1_NPsalt_P42_run2'
-    yield from bps.mv(geo.stblx2,  37 + 1 )
-    yield from sample_height_set_fine(detector=pilatus100k)
-    yield from one_gid( name=sam, xpos=37+0.5, stth = 0, exp_time=1, attenuator=0, beta1=0, beta_off= 0.4, det_mode=2)
-    yield from one_gid( name=sam, xpos=37+0.75, stth = 0, exp_time=5, attenuator=0, beta1=0, beta_off= 0.4, det_mode=2)
-    yield from one_gid( name=sam, xpos=37+1, stth = 17.5, exp_time=60,attenuator=0, beta1=0, beta_off=0.13, det_mode=3) 
-    yield from one_gid( name=sam, xpos=37+1, stth = 17.5, exp_time=60,attenuator=0, beta1=2, beta_off=0.13, det_mode=3) 
-    yield from bps.mv(abs2, 6)
+    
+def gisaxs_scan1(name,xpos):
+    det_saxs_y_list         = [0,0]
+    det_saxs_y_offset_list  = [0,1]
+    stth_list               = [0,0]
+    exp_time_list           = [2,2]
+    x2_offset_list          = [-0.2,0.2]
+    atten_2_list            = [0,0]
+    wait_time_list          = [5,6]
+    beam_stop_x             = [0,0]
+    beam_stop_y             = [-20,-20]
 
 
+    scan_dict={"det_saxs_y":det_saxs_y_list,
+        "det_saxs_y_offset":det_saxs_y_offset_list,
+        "stth":stth_list,
+        "exp_time":exp_time_list,
+        "x2_offset":x2_offset_list,
+        "atten_2":atten_2_list,
+        "wait_time":wait_time_list,
+        "beam_stop_x":beam_stop_x,
+        "beam_stop_y":beam_stop_y,}
 
-def cfn_20210720_night():
-    yield from he_on()
-    for run_num in range(3):
-        #yield from shopen()
-        yield from bps.mv(shutter,1) # open shutter
-        yield from cfn_20210720_night_npsalt_one_scan( run_num )
-        yield from bps.mv(shutter,0) # close shutter
-        #yield from shclose()
-        #yield from bps.sleep(3600 * .5 ) # 
-    yield from he_off()
 
-def cfn_20210720_night_npsalt_one_scan( run_num ):
+#mode 3 is for GID with no beam stop, mode 2 is for GID mode with the beam stop
+    yield from bps.mv(geo.det_mode,2)
+    yield from bps.mv(geo.stblx2,xpos)  #move the  Sample Table X2 to xpos
+    yield from shopen()
+    yield from beta_gid(1.8,0)
+    print("calling GID_stitch")
+    yield from gid_scan_stitch(scan_dict,
+                                md={'sample_name': name}, 
+                                detector = pilatus300k,
+                                alphai = 0.1)
 
-    ''''
-    Need to add tth and ih check before GID
-    '''
-    yield from he_on()
 
-    sam = 'S1, DNA-DSPEP_1-5_NPsalt_P34_run%i'%(3+run_num)
-    start_pos = -57 + run_num
-    yield from one_ref(sam, start_pos , tiltx=0,detector=pilatus100k)    
-    yield from bps.mv(geo.stblx2,  start_pos + .5 )
-    yield from sample_height_set_fine(detector=pilatus100k)
-    yield from one_gid( name=sam, xpos=start_pos + .25 , stth = 0, exp_time=1, attenuator=0, beta1=0, beta_off= 0.4, det_mode=2)
-    yield from one_gid( name=sam, xpos=start_pos + .25, stth = 0, exp_time=5, attenuator=0, beta1=0, beta_off= 0.4, det_mode=2)
-    yield from one_gid( name=sam, xpos=start_pos + .75, stth = 17.5, exp_time=60, attenuator=0, beta1=0, beta_off=0.13, det_mode=3) 
-    yield from one_gid( name=sam, xpos=start_pos + .75, stth = 17.5, exp_time=60,attenuator=0, beta1=2, beta_off=0.13, det_mode=3) 
+def gid_direct(name):
+    det_saxs_y_list         = [0]
+    det_saxs_y_offset_list  = [0]
+    stth_list               = [0]
+    exp_time_list           = [1]
+    x2_offset_list          = [0]
+    atten_2_list            = [5]
+    wait_time_list          = [1]
+    beam_stop_x             = [-10]
+    beam_stop_y             = [-20]
 
-    sam = 'S2, DNA-DSPEP_1-10_NPsalt_Px_run%i'%(3+run_num)
-    start_pos = -10 + run_num
-    yield from one_ref(sam, start_pos , tiltx=0,detector=pilatus100k)    
-    yield from bps.mv(geo.stblx2,  start_pos + .5 )
-    yield from sample_height_set_fine(detector=pilatus100k)
-    yield from one_gid( name=sam, xpos=start_pos + .25 , stth = 0, exp_time=1, attenuator=0, beta1=0, beta_off= 0.4, det_mode=2)
-    yield from one_gid( name=sam, xpos=start_pos + .25, stth = 0, exp_time=5, attenuator=0, beta1=0, beta_off= 0.4, det_mode=2)
-    yield from one_gid( name=sam, xpos=start_pos + .75, stth = 17.5, exp_time=60, attenuator=0, beta1=0, beta_off=0.13, det_mode=3) 
-    yield from one_gid( name=sam, xpos=start_pos + .75, stth = 17.5, exp_time=60,attenuator=0, beta1=2, beta_off=0.13, det_mode=3) 
 
-    sam = 'S3, DNA-DSPEP_1-1_NPsalt_P42_run%i'%(3+run_num)    
-    start_pos = 36 + run_num
-    # yield from one_ref(sam, start_pos , tiltx=0,detector=pilatus100k)    
-    yield from bps.mv(geo.stblx2,  start_pos + .5 )
-    yield from sample_height_set_fine(detector=pilatus100k)
-    yield from one_gid( name=sam, xpos=start_pos + .25 , stth = 0, exp_time=1, attenuator=0, beta1=0, beta_off= 0.4, det_mode=2)
-    yield from one_gid( name=sam, xpos=start_pos + .25, stth = 0, exp_time=5, attenuator=0, beta1=0, beta_off= 0.4, det_mode=2)
-    yield from one_gid( name=sam, xpos=start_pos + .75, stth = 17.5, exp_time=60, attenuator=0, beta1=0, beta_off=0.13, det_mode=3) 
-    yield from one_gid( name=sam, xpos=start_pos + .75, stth = 17.5, exp_time=60,attenuator=0, beta1=2, beta_off=0.13, det_mode=3) 
+    scan_dict={"det_saxs_y":det_saxs_y_list,
+        "det_saxs_y_offset":det_saxs_y_offset_list,
+        "stth":stth_list,
+        "exp_time":exp_time_list,
+        "x2_offset":x2_offset_list,
+        "atten_2":atten_2_list,
+        "wait_time":wait_time_list,
+        "beam_stop_x":beam_stop_x,
+        "beam_stop_y":beam_stop_y,}
+
+
+#mode 3 is for GID with no beam stop, mode 2 is for GID mode with the beam stop
+    yield from bps.mv(geo.det_mode,3)
+    yield from bps.mv(geo.sh,-1)
+    yield from bps.mv(fp_saxs.y1,9,fp_saxs.y2,18)
+    print("calling GID_stitch")
+    yield from gid_scan_stitch(scan_dict,
+                                md={'sample_name': name}, 
+                                detector = pilatus300k,
+                                alphai = 0.00)
+
+
