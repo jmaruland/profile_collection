@@ -25,7 +25,7 @@ def record (time,number):
         e = str(datetime.datetime.now())
         yield from bps.sleep(time)
         record_file.write(e[0:19])
-        record_file.write("{:6.3f} {:6.3f} \n".format(o2_per.get(),flow3.get()))
+        record_file.write(" {:6.3f} {:6.3f} \n".format(o2_per.get(),flow3.get()))
         print(e,o2_per.get(),flow3.get())
         record_file.close()
 
