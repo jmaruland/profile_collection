@@ -15,7 +15,7 @@ from pathlib import Path
 EpicsSignal.set_defaults(connection_timeout=10)
 EpicsSignalRO.set_defaults(connection_timeout=10)
 
-configure_base(get_ipython().user_ns, "jpls")
+configure_base(get_ipython().user_ns, "opls")
 
 publisher = Publisher("xf12id1-ws2:5577")
 RE.subscribe(publisher)
