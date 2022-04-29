@@ -1,5 +1,6 @@
 # pull various motors into the global name space
 
+from re import A
 from bluesky.plans import rel_scan as dscan
 #dscan = bp.rel_scan
 count =  bp.count
@@ -119,7 +120,7 @@ offset_counter =1
 
 def save_offsets():
     global offset_counter
-    motor_file = open('/home/xf12id1/.ipython/profile_collection/startup/offsets','a')
+    motor_file = open('/nsls2/xf12id1/bsui_parameters/offsets','a')
     e = str(datetime.datetime.now())
     offset_counter = offset_counter + 1
     if offset_counter%10 == 0:
@@ -147,7 +148,7 @@ def save_offsets():
     save_param()
 
 def offset_read():
-    motor_file1 = open('/home/xf12id1/.ipython/profile_collection/startup/offsets_1','r')
+    motor_file1 = open('/nsls2/xf12id1/bsui_parameters/offsets','r')
     tmp=motor_file1.read()
     print(tmp)
 
@@ -173,7 +174,7 @@ def save_param():
         pass  
     else:
         old_paras = new_paras  
-        parameter_file = open('/home/xf12id1/.ipython/profile_collection/startup/parameters','a')
+        parameter_file = open('/nsls2/xf12id1/bsui_parameters/geo_parameters','a')
         etime = str(datetime.datetime.now())
         parameter_file .write(etime[0:19])
         if offset_counter%10 == 0:
@@ -229,3 +230,13 @@ def hinted_all():
     geo.astth.user_readback.kind = 'hinted'
 
     
+def plot_scans(a):
+    '''
+    to save a list of scan numbers to a file
+    '''
+    plot_file=open("/nsls2/xf12id1/tmp/plot_scans_numbers", 'w')
+    plot_file.write('\t'.join(str(scan_num) for scan_num in a)+"\n")
+
+
+
+
