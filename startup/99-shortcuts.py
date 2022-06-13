@@ -9,6 +9,7 @@ x1 = tab1.x
 y1 = tab1.y
 z1 = tab1.z
 x2 = geo.stblx2
+stblx = geo.stblx
 
 th=geo.th
 tth=geo.tth
@@ -151,7 +152,7 @@ def offset_read():
     motor_file1 = open('/nsls2/xf12id1/bsui_parameters/offsets','r')
     tmp=motor_file1.read()
     print(tmp)
-
+  
     
 old_paras = ''   
 def save_param():
@@ -181,8 +182,7 @@ def save_param():
             parameter_file .write(" Energy    L01     L02     L03      L04    L05     L06    L11    L12     L13     L14\n")
             parameter_file .write(etime[0:19])
         parameter_file.write( new_paras )     
-    
-    
+
      
     
 def test1(detector=lambda_det):

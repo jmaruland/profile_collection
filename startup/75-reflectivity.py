@@ -12,22 +12,22 @@ def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=Fa
             N = len(v)
         if N != len(v):
             raise ValueError(f"the key {k} is length {len(v)}, expected {N}")
-    geo.th.user_readback.kind = 'normal'
-    geo.phi.user_readback.kind = 'normal'
-    geo.phix.user_readback.kind = 'normal'
-    geo.ih.user_readback.kind = 'normal'
-    geo.ia.user_readback.kind = 'normal'
-    geo.sh.user_readback.kind = 'normal'
-    geo.oh.user_readback.kind = 'normal'
-    geo.oa.user_readback.kind = 'normal'
-    geo.astth.user_readback.kind = 'normal'
-    geo.stblx.user_readback.kind = 'normal'
-    geo.oa.user_readback.kind = 'normal'
-    geo.tth.user_readback.kind = 'normal'
-    geo.chi.user_readback.kind = 'normal'
-    geo.astth.user_readback.kind = 'normal'
+    # geo.th.user_readback.kind = 'normal'
+    # geo.phi.user_readback.kind = 'normal'
+    # geo.phix.user_readback.kind = 'normal'
+    # geo.ih.user_readback.kind = 'normal'
+    # geo.ia.user_readback.kind = 'normal'
+    # geo.sh.user_readback.kind = 'normal'
+    # geo.oh.user_readback.kind = 'normal'
+    # geo.oa.user_readback.kind = 'normal'
+    # geo.astth.user_readback.kind = 'normal'
+    # geo.stblx.user_readback.kind = 'normal'
+    # geo.oa.user_readback.kind = 'normal'
+    # geo.tth.user_readback.kind = 'normal'
+    # geo.chi.user_readback.kind = 'normal'
+    # geo.astth.user_readback.kind = 'normal'
+    unhinted_ref() ## change all hinted settings to 'normal'
     
-
  #XF:12ID1-ES{Det:Lambda}ROI1:MinX
     # Bluesky command to record metadata
     base_md = {'plan_name': 'reflection_scan',
@@ -58,12 +58,13 @@ def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=Fa
     # Bluesky command to start the document
     yield from bps.open_run(md=base_md)
     x2_nominal= geo.stblx2.position
+    blocky_nominal= block.y.position ## add blocky pos (HZ, 06102022)
 
     for i in range(N):
         print('%sst set starting'%i)
         yield from bps.sleep(3) 
   #      print(scan_param)
-        yield from reflection_scan(scan_param,i, detector=detector, md=md, tilt_stage=tilt_stage, x2_nominal=x2_nominal)                      
+        yield from reflection_scan(scan_param,i, detector=detector, md=md, tilt_stage=tilt_stage, x2_nominal=x2_nominal,blocky_nominal=blocky_nominal)                      
         print('%sst set done'%i)
 
     # Bluesky command to stop recording metadata
@@ -72,12 +73,13 @@ def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=Fa
     # puts in absorber to protect the detctor      
     yield from bps.mv(abs2, 5)
     print('The reflectivity scan is over')
+    hinted_ref() ## change hinted settings
 print(f'Loading {__file__}')
 all_area_dets = [quadem, lambda_det, AD1, AD2, o2_per]
 
  
 @bpp.stage_decorator(all_area_dets)
-def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False,x2_nominal=0):
+def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False,x2_nominal=0,blocky_nominal=0):
         
     alpha_start =   scan_param["start"][i]
     alpha_stop =    scan_param["stop"][i]
@@ -89,24 +91,40 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
     wait_time =     scan_param["wait_time"][i]
     x2_offset_start =     scan_param["x2_offset_start"][i]
     x2_offset_stop =     scan_param["x2_offset_stop"][i]
+    block_offset   =     scan_param["beam_block_offset"][i]
 
-    
+# setting up so that if alpha is moved negative that there is an extra wait
+    alpha_old=5
     print(alpha_start,"----",alpha_stop,atten_2)
     for alpha in np.linspace(alpha_start, alpha_stop, number_points):
         # Move to the good geometry position
         if tilt_stage:
              yield from nab(alpha, alpha,0.022)
         else:
-            yield from mabt(alpha, alpha, 0)
+            if alpha >= alpha_old:
+                yield from mabt(alpha, alpha, 0)
+            else:
+                yield from mabt(alpha-0.1, alpha-0.1, 0)
+                yield from mabt(alpha, alpha, 0)
+
+
         #yield from mabt(geo.alpha=0,geo.samchi=x,geo.beta=2*x)
         fraction  = (alpha-alpha_start)/(alpha_stop-alpha_start)
-        x2_fraction =fraction*(x2_offset_stop-x2_offset_start)
+        x2_fraction =fraction*(x2_offset_stop-x2_offset_start) + x2_offset_start ## Need to add x2_offset_start (HZ)
         # Set the exposure time to the define exp_time for the measurement
         yield from det_exposure_time(exp_time, exp_time)
         yield from bps.mv(exposure_time, exp_time)
         yield from bps.mv(S2.vg,s2_vg)
         yield from bps.mv(geo.stblx2,x2_nominal+x2_fraction)
+        # yield from bps.mv(block.y,x2_nominal+x2_fraction+block_offset) # large trough
+        # yield from bps.mv(block.y,blocky_nominal+x2_fraction+block_offset) # small trough, multiple slits
+        if x2_offset_stop != x2_offset_start: 
+            yield from bps.sleep(2) # sleep every time after x2 move (HZ)
         yield from bps.sleep(wait_time)    
+        if alpha <= alpha_old:
+            yield from bps.sleep(10)  
+            print("wating an extra 10 sec")  
+        alpha_old =alpha
 
 
         #Attenuator MODE

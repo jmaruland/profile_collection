@@ -1,60 +1,108 @@
-def ocko_1():
-    proposal_id("2022_2","310747_ocko")
-    yield from bps.sleep(5)
+# 14.4 keV
+def cfn_Feb2022():
+    '''
+    Three troughs in a row; suphase: NP-A, water, NP-A, 12 mL
+    lipid compositions: 100%A, 100%A, 100%B, 30uL
+
+
+    '''
+    proposal_id("2022_1","309161_zhang")
+
+    # Run 1: 12 mL 5nM AuNPs, no lipid, no salt, load sample 9:12pm
+    samp_name_dict = {
+        # 1: 't1_NP-A_run1',
+        # 2: 't2_Water_run1',
+        # 3: 't3_NP-A_run1',
+
+        # ## Run 2: spread lipid 100%A, 100%A, 100%B. 2pm, 2022-02-13; pressure 32.8, 36.5 mN/m.
+        # 1: 't1_NP-A_lipid-A_run1',
+        # 2: 't2_Water_lipid-A_run1',
+        # 3: 't3_NP-A_lipid-B_run1',
+
+        # ## Run 3: inject NaCl to 200 mM NaCl. 3:45pm, 2022-02-13; pressure 31.4, 35.8 mN/m.
+        # 1: 't1_NP-A_lipid-A_NaCl_run1',
+        # 2: 't2_Water_lipid-A_NaCl_run1',
+        # 3: 't3_NP-A_lipid-B_NaCl_run1',
+
+        # ## Run 4: keep running, x2-1 5:16pm, 2022-02-13; pressure 27.8, 32.1 mN/m.
+        # 1: 't1_NP-A_lipid-A_NaCl_run2',
+        # 2: 't2_Water_lipid-A_NaCl_run2',
+        # 3: 't3_NP-A_lipid-B_NaCl_run2',
+
+        # ## Run 5: keep running, x2+1 6:50pm, 2022-02-13; pressure 26.6, 31.0 mN/m.
+        # 1: 't1_NP-A_lipid-A_NaCl_run3',
+        # 2: 't2_Water_lipid-A_NaCl_run3',
+        # 3: 't3_NP-A_lipid-B_NaCl_run3',
+
+        # ## Run 6: keep running, x2-2  8:23pm, 2022-02-13; pressure 25.7, 30.1 mN/m. reduced points in xrr
+        # 1: 't1_NP-A_lipid-A_NaCl_run4',
+        # 2: 't2_Water_lipid-A_NaCl_run4',
+        # 3: 't3_NP-A_lipid-B_NaCl_run4',
+
+        ## Run 7: keep running, x2  9:21pm, 2022-02-13; pressure 25.3, 29.7 mN/m. reduced points in xrr
+        1: 't1_NP-A_lipid-A_NaCl_run5',
+        2: 't2_Water_lipid-A_NaCl_run5',
+        3: 't3_NP-A_lipid-B_NaCl_run5',
+
+    }
+
+    detector=lambda_det
     yield from shopen()
     yield from he_on() # starts the He flow
 
-    ###### Inject ECGC at 10:30am, starting macro at 10:40am
-    ### yield from one_xrr("DMPG_water_20220410_run1",43) #p2 = 27.5
-    ### yield from one_xrr("DMPG_ECGC_20220410_run1",-53) #p1 = 28.5
+    if False:
+        #trough2, middle
+        x2_trough2 = -12.5+1
+        yield from one_xrr(samp_name_dict[2], x2_trough2)
+        yield from det_exposure_time_new(detector, 1.0, 1.0) # rest exposure time to 1s
+        yield from sample_height_set_fine_o(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
+        yield from gid_scan1(samp_name_dict[2]+'_gid')
+        yield from gisaxs_scan1(samp_name_dict[2]+'_gisaxs')
 
-    ###### Add more data points
-    ### yield from one_xrr("DMPG_water_20220410_run2",42) #p2 = 26.7
-    ### yield from one_xrr("DMPG_ECGC_20220410_run2",-52) #p1 = 27.9
 
-    ##### inject AB protein, final concentration = 2.5uM at 12:25pm, 2022-04-10
-    ### yield from one_xrr("DMPG_water_ABpro_20220410_run1",43) #p2 = 26->24 drop, measuring time: 12:35-12:56
-    ### yield from one_xrr("DMPG_ECGC_ABpro_20220410_run1",-53) #p1 = 25->24.5 drop , measuring time: 13:00-13:20
+    if True:
+        #trough1, front
+        x2_trough1 = -61.5-1 ### pressure 1
+        yield from one_xrr(samp_name_dict[1], x2_trough1)
+        yield from det_exposure_time_new(detector, 1.0, 1.0) # rest exposure time to 1s
+        yield from sample_height_set_fine_o(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
+        # yield from gid_scan1(samp_name_dict[1]+'_gid')
+        yield from gisaxs_scan1(samp_name_dict[1]+'_gisaxs')
+    
 
-    ### yield from one_xrr("DMPG_water_ABpro_20220410_run2",42) #p2 = 22.7->22.3, measuring time: 13:24-13:45
-    ### yield from one_xrr("DMPG_ECGC_ABpro_20220410_run2",-52) #p1 = 24.2->24.5, measuring time: 13:49-14:09
-
-    ### yield from one_xrr("DMPG_water_ABpro_20220410_run3",41) #p2 = 22.7->24.5, measuring time: 14:13-14:34
-    ### yield from one_xrr("DMPG_ECGC_ABpro_20220410_run3",-51) #p1 = 26.7->31.1, measuring time: 14:38-14:58
-
-    ### yield from one_xrr("DMPG_water_ABpro_20220410_run4",44) #p2 = 29.5->35.3, measuring time: 15:02-15:23
-    ### yield from one_xrr("DMPG_ECGC_ABpro_20220410_run4",-54) #p1 = 34.8->35.3, measuring time: 15:26-15:46
-
-    # yield from one_xrr("DMPG_ECGC_ABpro_20220410_run5",-50) #p1 = 35.4->, measuring time: 15:52-16:11
-
-    ##### inject AB protein, final concentration = 4uM at 16:25pm, 2022-04-10
-    # yield from one_xrr("DMPG_water_ABpro_20220410_run6",43) #p2 = 38.6, measuring time: 16:31, not finished
-    # yield from one_xrr("DMPG_ECGC_ABpro_20220410_run6",-53) #p1 = 37.4->39.5, measuring time: 16:40-17:00
-
-    yield from one_xrr("water_large_trough_2_sleep_with backward_corr",-12.5)
+    if True:
+        ###trough3, back
+        x2_trough3 = 34-1 # 34+1 ### pressure 2
+        yield from one_xrr(samp_name_dict[3], x2_trough3)
+        yield from det_exposure_time_new(detector, 1.0, 1.0)
+        yield from sample_height_set_fine_o(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
+        # yield from gid_scan1(samp_name_dict[3]+'_gid')
+        yield from gisaxs_scan1(samp_name_dict[3]+'_gisaxs')
 
     yield from he_off()# stops the He flow
     yield from shclose()
 
 
-
-def ocko_2():
-    proposal_id("2022_1","309773_ocko")
-    yield from bps.sleep(5)
+def cfn_1():
+    proposal_id("2022_1","309161_zhang")
     yield from shopen()
-    yield from he_on() # starts the He flow
- #   yield from one_ref("DMPG(85uL)_2_no_atten_0+AB(x2)+0.75hr",23)
- #   yield from gid_scan1a("DMPG(85uL)_2_no_atten_0+AB(x2)+0.75hr")
-
-    yield from one_ref("water_final_2",22)
-    yield from gid_scan1a("water_fina_2l")
-    yield from he_off() # stops the He flow
+    #yield from he_on() # starts the He flow
+    #yield from one_xrf("XFR_TbCl2_control_1mM_20220207",-51)
+    yield from one_xrr("DMPG_80uL+ECGC(10ml)-ML_last+15hrs",-53)
+    yield from he_off()# stops the He flow
     yield from shclose()
 
-#def ccny_gid():gid_scan2
-#    yield from gid_single("GDS_gid_run11_7",7)
-#    yield from gid_single("GDS_gid_run11_10",10)
-#    yield from gid_single("GDS_gid_run11_13",13)
+def cfn_2():
+    proposal_id("2022_1","309161_zhang")
+    yield from shopen()
+    yield from he_on() # starts the He flow
+    #  yield from one_xrf("KI_2mM_pH7,ODA,#3",17)
+    yield from one_xrr("DMPG(105)_water",18)
+    yield from gid_scan1("GDS_XRR_SF_Run_15_GID_20220206")
+    #  yield from one_xrf("KBr_2mM_pH7,ODA,#1",-51)
+    yield from one_ref("DMPG(105)_ECGC",-53)
+    yield from gid_scan1("DMPG(105)_ECGC")
+    yield from he_off() # stops the He flow
 
 
 
@@ -64,7 +112,6 @@ def one_xrr(name,xpos,tiltx=0,detector=lambda_det):
     yield from bps.mv(abs2,5)
     yield from bps.mv(abs3,0)
     yield from bps.mv(geo.stblx2,xpos)  #move the  Sample Table X2 to xpos
-    yield from bps.mv(block.y,xpos)  #move the  block to xpos
     yield from bps.mv(shutter,1) # open shutter
     yield from check_ih()  #Align the spectrometer  height
    # yield from check_tth() #Align the spectrometer rotation angle
@@ -116,6 +163,7 @@ def sample_height_set_coarse(value=0,detector=lambda_det):
     Msg('reset_settle_time', sh.settle_time, 0)
 
 
+
 def sample_height_set_fine_o(value=0,detector=lambda_det):
     geo.sh.user_readback.kind = 'hinted'
     yield from bps.mv(geo.det_mode,1)
@@ -136,72 +184,31 @@ def sample_height_set_fine_o(value=0,detector=lambda_det):
     yield from set_sh(tmp1)
     Msg('reset_settle_time', sh.settle_time, 0)
 
+
 def xr_scan1(name):
-    # #9.7kev Qz to 0.566
-    # alpha_start_list =   [ 0.04, 0.16, 0.24, 0.40,  0.7,  1.0,  2.0]
-    # alpha_stop_list =    [ 0.16, 0.24, 0.40, 0.70,  1.0,  2.0,  3.3]
-    # number_points_list = [    7,   6,     5,    7,    6,   21,   14]
-    # auto_atten_list =    [    7,   6,     5,    4,    3,    2,   1 ]
-    # s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04,0.04]
-    # exp_time_list =      [    5,   5,     5,    5,     5,    5,  5 ]
-    # precount_time_list=  [  0.1, 0.1,   0.1,   0.1,  0.1,  0.1, 0.1]
-    # wait_time_list=      [    7,   7,     7,     7,    7,   7,   7 ]
-    # x2_offset_start_list=[    0,   0,     0,     0,    0,   0,   0 ]
-    # x2_offset_stop_list= [    0,   0,     0,     0,    0,   0,   0 ]
+    # #14.4kev
+    # alpha_start_list =   [ 0.04, 0.14, 0.20, 0.40,  0.7,  1.2,  2.0]
+    # alpha_stop_list =    [ 0.14, 0.20, 0.40, 0.70,  1.2,  2.0,  3.0]
+    # number_points_list = [    6,   4,   11,     7,   11,    9,    6]
+    # auto_atten_list =    [    6,   5,    4,     3,    2,    1,    1] 
+    # s2_vg_list =         [ 0.03, 0.04,0.04,  0.04, 0.04, 0.04, 0.04] 
+    # exp_time_list =      [   5,    5,    5,     5,    5,    5,    5]
+    # precount_time_list=  [  0.1, 0.1,  0.1,   0.1,  0.1,  0.1,  0.1]
+    # wait_time_list=      [    7,   7,    7,     7,    7,   7,    7 ]
+    # x2_offset_start_list=[    0,   0,    0,     0,    0,   0,   0.2]
+    # x2_offset_stop_list= [    0,   0,    0,     0,    0,   0.2, 0.7]
 
-    #9.7kev Qz to 0.65, more overlap
-    alpha_start_list =   [ 0.04, 0.14, 0.24, 0.40,  0.65, 0.95,  1.9, 2.9]
-    alpha_stop_list =    [ 0.18, 0.28, 0.44, 0.72,  1.05,  2.1,  3.1, 3.8]
-    number_points_list = [    8,   8,     8,    9,    9,   23,   13,  10]
-    auto_atten_list =    [    7,   6,     5,    4,    3,    2,    1,   0]
-    s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04,0.04,0.04]
-    exp_time_list =      [    5,   5,     5,    5,     5,    5,   5,   5]
-    precount_time_list=  [  0.1, 0.1,   0.1,   0.1,  0.1,  0.1, 0.1, 0.1]
-    wait_time_list=      [    5,   5,     5,     5,    5,   5,    5,   5]
-    x2_offset_start_list=[    0,   0,     0,     0,    0,   0,   0.5,  1.5]
-    x2_offset_stop_list= [    0,   0,     0,     0,    0,   0.5, 1.5,  2.5]
-    block_offset_list=   [    0,   0,     0,     0,    0,   0,    0,  0]
-
-
-    # #9.7kev Qz to 0.65
-    # alpha_start_list =   [ 0.04, 0.16, 0.24, 0.40,  0.7,  1.0,  2.0, 3.0]
-    # alpha_stop_list =    [ 0.16, 0.24, 0.40, 0.70,  1.0,  2.0,  3.0, 3.8]
-    # number_points_list = [    7,   6,     5,    7,    6,   21,   11,   9]
-    # auto_atten_list =    [    7,   6,     5,    4,    3,    2,    1,   0]
-    # s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04,0.04,0.04]
-    # exp_time_list =      [    5,   5,     5,    5,     5,    5,   5,   5]
-    # precount_time_list=  [  0.1, 0.1,   0.1,   0.1,  0.1,  0.1, 0.1, 0.1]
-    # wait_time_list=      [    7,   7,     7,     7,    7,   7,    7,   7]
-    # x2_offset_start_list=[    0,   0,     0,     0,    0,   0,    0, 0.1]
-    # x2_offset_stop_list= [    0,   0,     0,     0,    0,   0,    0, 0.9]
-
-
-
-    #     #9.7kev Qz to 0.65, sleep to 12s
-    # alpha_start_list =   [ 0.04, 0.16, 0.24, 0.40,  0.7,  1.0,  2.0, 3.0]
-    # alpha_stop_list =    [ 0.16, 0.24, 0.40, 0.70,  1.0,  2.0,  3.0, 3.8]
-    # number_points_list = [    7,   6,     5,    7,    6,   21,   11,   9]
-    # auto_atten_list =    [    7,   6,     5,    4,    3,    2,    1,   0]
-    # s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04,0.04,0.04]
-    # exp_time_list =      [    5,   5,     5,    5,     5,    5,   5,   5]
-    # precount_time_list=  [  0.1, 0.1,   0.1,   0.1,  0.1,  0.1, 0.1, 0.1]
-    # wait_time_list=      [   12,  12,    12,    12,   12,  12,   12,  12]
-    # x2_offset_start_list=[    0,   0,     0,     0,    0,   0,    0, 0.1]
-    # x2_offset_stop_list= [    0,   0,     0,     0,    0,   0,    0, 0.9]
-
-
-    # #9.7kev Qz to 0.65, remove a few point in the low q
-    # alpha_start_list =   [ 0.10, 0.16, 0.24, 0.40,  0.7,  1.0,  2.0, 3.0]
-    # alpha_stop_list =    [ 0.16, 0.24, 0.40, 0.70,  1.0,  2.0,  3.0, 3.8]
-    # number_points_list = [    4,   6,     5,    7,    6,   21,   11,   9]
-    # auto_atten_list =    [    7,   6,     5,    4,    3,    2,    1,   0]
-    # s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04,0.04,0.04]
-    # exp_time_list =      [    5,   5,     5,    5,     5,    5,   5,   5]
-    # precount_time_list=  [  0.1, 0.1,   0.1,   0.1,  0.1,  0.1, 0.1, 0.1]
-    # wait_time_list=      [    7,   7,     7,     7,    7,   7,    7,   7]
-    # x2_offset_start_list=[    0,   0,     0,     0,    0,   0,    0, 0.1]
-    # x2_offset_stop_list= [    0,   0,     0,     0,    0,   0,    0, 0.9]
-
+    ## reduce hight angle for monitoring the in situ reaction
+    alpha_start_list =   [ 0.04, 0.14, 0.20, 0.40,  0.7,  1.2]
+    alpha_stop_list =    [ 0.14, 0.20, 0.40, 0.70,  1.2,  2.0]
+    number_points_list = [    6,   4,   11,     7,   11,    9]
+    auto_atten_list =    [    6,   5,    4,     3,    2,    1] 
+    s2_vg_list =         [ 0.03, 0.04,0.04,  0.04, 0.04, 0.04] 
+    exp_time_list =      [   5,    5,    5,     5,    5,    5]
+    precount_time_list=  [  0.1, 0.1,  0.1,   0.1,  0.1,  0.1]
+    wait_time_list=      [    7,   7,    7,     7,    7,    7]
+    x2_offset_start_list=[    0,   0,    0,     0,    0,    0]
+    x2_offset_stop_list= [    0,   0,    0,     0,    0,  0.2]
 
 
     scan_p={"start":alpha_start_list,
@@ -213,11 +220,7 @@ def xr_scan1(name):
         "pre_time":precount_time_list,
         "wait_time":wait_time_list,
         "x2_offset_start":x2_offset_start_list,
-        "x2_offset_stop":x2_offset_stop_list,
-        "beam_block_offset":block_offset_list}
-        
-
-        
+        "x2_offset_stop":x2_offset_stop_list}
 
 
     print(scan_p)
@@ -270,8 +273,10 @@ def gid_scan1(name):
     x2_offset_list          = [0,0,0,0]
     atten_2_list            = [0,0,0,0]
     wait_time_list          = [5,5,5,5]
-    beam_stop_x             = [-65,-65,-65,-65]
+    # beam_stop_x             = [-65,-65,-65,-65]
     beam_stop_y             = [-24,-24,-24,-24]
+    ## beam_stop for GISAXS
+    beam_stop_x             = [81.4,81.4, 81.4,81.4]
 
 
     scan_dict={"det_saxs_y":det_saxs_y_list,
@@ -282,7 +287,8 @@ def gid_scan1(name):
         "atten_2":atten_2_list,
         "wait_time":wait_time_list,
         "beam_stop_x":beam_stop_x,
-        "beam_stop_y":beam_stop_y,}
+        "beam_stop_y":beam_stop_y,
+        }
 
 
 #mode 3 is for GID with no beam stop, mode 2 is for GID mode with the beam stop
@@ -295,38 +301,7 @@ def gid_scan1(name):
                                 detector = pilatus300k,
                                 alphai = 0.06)
 
-def gid_scan1a(name):
-    det_saxs_y_list         = [-20,-20,65,65]
-    det_saxs_y_offset_list  = [0,1,0,1]
-    stth_list               = [10.5,10.5,10.5,10.5]
-    exp_time_list           = [20,20,20,20]
-    x2_offset_list          = [0,0,0,0]
-    atten_2_list            = [0,0,0,0]
-    wait_time_list          = [5,5,5,5]
-    beam_stop_x             = [-65,-65,-65,-65]
-    beam_stop_y             = [-24,-24,-24,-24]
 
-
-    scan_dict={"det_saxs_y":det_saxs_y_list,
-        "det_saxs_y_offset":det_saxs_y_offset_list,
-        "stth":stth_list,
-        "exp_time":exp_time_list,
-        "x2_offset":x2_offset_list,
-        "atten_2":atten_2_list,
-        "wait_time":wait_time_list,
-        "beam_stop_x":beam_stop_x,
-        "beam_stop_y":beam_stop_y,}
-
-
-#mode 3 is for GID with no beam stop, mode 2 is for GID mode with the beam stop
-    yield from bps.mv(geo.det_mode,3)
-    yield from bps.mv(geo.sh,-1)
-    yield from bps.mv(fp_saxs.y1,11,fp_saxs.y2,22)
-    print("calling GID_stitch")
-    yield from gid_scan_stitch(scan_dict,
-                                md={'sample_name': name}, 
-                                detector = pilatus300k,
-                                alphai = 0.06)
 
 
 def gid_scan2(name):
@@ -337,8 +312,11 @@ def gid_scan2(name):
     x2_offset_list          = [0,0,0,0]
     atten_2_list            = [0,0,0,0]
     wait_time_list          = [5,5,5,5]
-    beam_stop_x             = [-65,-65,-65,-65]
+    # beam_stop_x             = [-65,-65,-65,-65]
     beam_stop_y             = [-24,-24,-24,-24]
+    ## beam_stop for GISAXS
+    beam_stop_x             = [81.4,81.4, 81.4,81.4]
+
 
 
     scan_dict={"det_saxs_y":det_saxs_y_list, 
@@ -363,15 +341,15 @@ def gid_scan2(name):
                                 alphai = 0.06)
 
 def gid_direct(name):
-    det_saxs_y_list         = [-20]
+    det_saxs_y_list         = [0]
     det_saxs_y_offset_list  = [0]
     stth_list               = [0]
     exp_time_list           = [1]
     x2_offset_list          = [0]
-    atten_2_list            = [5]
+    atten_2_list            = [2]
     wait_time_list          = [1]
-    beam_stop_x             = [-65]
-    beam_stop_y             = [-24]
+    beam_stop_x             = [0]
+    beam_stop_y             = [0]
 
 
     scan_dict={"det_saxs_y":det_saxs_y_list,
@@ -386,9 +364,9 @@ def gid_direct(name):
 
 
 #mode 3 is for GID with no beam stop, mode 2 is for GID mode with the beam stop
-    yield from bps.mv(geo.det_mode,3)
+    yield from bps.mv(geo.det_mode,2)
     yield from bps.mv(geo.sh,-1)
-    yield from bps.mv(fp_saxs.y1,9,fp_saxs.y2,18)
+    yield from bps.mv(fp_saxs.y1,11,fp_saxs.y2,22)
     print("calling GID_stitch")
     yield from gid_scan_stitch(scan_dict,
                                 md={'sample_name': name}, 
@@ -425,6 +403,7 @@ def gid_single(name,stth_0):
 #mode 3 is for GID with no beam stop, mode 2 is for GID mode with the beam stop
     yield from bps.mv(geo.det_mode,3)
     yield from bps.mv(geo.sh,-1)
+
     yield from bps.mv(fp_saxs.y1,0,fp_saxs.y2,0)
     print("calling GID_stitch")
     yield from gid_scan_stitch(scan_dict,
@@ -433,3 +412,51 @@ def gid_single(name,stth_0):
                                 alphai = 0.06)
 
 
+    
+def gisaxs_scan1(name):
+    det_saxs_y_list         = [0,0]
+    det_saxs_y_offset_list  = [0,1]
+    stth_list               = [0,0]
+    exp_time_list           = [20,20]
+    x2_offset_list          = [-0.4,0.4]
+    atten_2_list            = [0,0]
+    wait_time_list          = [5,5]
+    beam_stop_x             = [81.4,81.4]
+    # beam_stop_y             = [-20,-20]
+    beam_stop_y             = [-24,-24]
+
+
+    scan_dict={"det_saxs_y":det_saxs_y_list,
+        "det_saxs_y_offset":det_saxs_y_offset_list,
+        "stth":stth_list,
+        "exp_time":exp_time_list,
+        "x2_offset":x2_offset_list,
+        "atten_2":atten_2_list,
+        "wait_time":wait_time_list,
+        "beam_stop_x":beam_stop_x,
+        "beam_stop_y":beam_stop_y,}
+
+
+#mode 3 is for GID with no beam stop, mode 2 is for GID mode with the beam stop
+    yield from bps.mv(geo.det_mode,2)
+    yield from beta_gid(2.3,0)
+    print("calling GID_stitch")
+    yield from gid_scan_stitch(scan_dict,
+                                md={'sample_name': name}, 
+                                detector = pilatus300k,
+                                alphai = 0.1)
+
+
+def xr_checks(detector=lambda_det):
+    yield from bps.mv(geo.det_mode,1)
+    yield from bps.mv(shutter,1) # open shutter
+    yield from det_exposure_time_new(detector, 1.0, 1.0)
+    yield from check_ih()  #Align the spectrometer  height
+  #  yield from check_tth() #Align the spectrometer rotation angle
+    #yield from check_sh_coarse(0.05,detector=detector) #scan the detector arm height (sh) from -1 to 1 with 41 points
+    # yield from check_sh_fine(0.05,detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
+    #yield from bps.mv(shutter,1) # open shutter
+    #yield from check_astth(detector=detector)   #Align the detector arm rotation angle# comment out as it might affec
+
+        # yield from sample_height_set_coarse(detector=detector) #scan the detector arm height (sh) from -1 to 1 with 41 points
+    yield from sample_height_set_fine_o(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
