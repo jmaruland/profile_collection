@@ -12,11 +12,8 @@ from event_model import RunRouter
 import event_model
 from pathlib import Path
 
-EpicsSignal.set_defaults(connection_timeout=10)
-EpicsSignalRO.set_defaults(connection_timeout=10)
-#Tom suggests this change due to the timout errors
-#EpicsSignal.set_defaults(connection_timeout=10, timeout=60, write_timeout=60)
-#EpicsSignalRO.set_defaults(connection_timeout=10, timeout=60)
+EpicsSignal.set_defaults(connection_timeout=10, timeout=60, write_timeout=60)
+EpicsSignalRO.set_defaults(connection_timeout=10, timeout=60)
 
 configure_base(
     get_ipython().user_ns, 
