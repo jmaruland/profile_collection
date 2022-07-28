@@ -26,20 +26,7 @@ oh=geo.oh
 oa=geo.oa
 stth=geo.stth
 abs1=S1.absorber1
-abs2=S3.absorber1
-abs3=S4.absorber1
-bpmy=S5.position1
-  
-def set_sh(new_value):
-    yield Msg('reset_user_position', geo.sh, new_value)
-    save_offsets()
-
-def set_ih(new_value):
-    yield Msg('reset_user_position', geo.ih, new_value)
-    save_offsets()
- 
-def set_ia(new_value):
-    yield Msg('reset_user_position', geo.ia, new_value)
+abs2=S3.absorber1parkon', geo.ia, new_value)
     save_offsets()
 
 def set_phi(new_value):

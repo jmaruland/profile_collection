@@ -107,7 +107,7 @@ def reflection_fluorescence_scan(scan_param, i, detector='xs', md={}, tilt_stage
         #yield from mabt(geo.alpha=0,geo.samchi=x,geo.beta=2*x)
         fraction  = (alpha-alpha_start)/(alpha_stop-alpha_start)
         x2_fraction =fraction*(x2_offset_stop-x2_offset_start)
-        # Set the exposure time to the define exp_time for the measurement
+        # Set the exposure time to the define exp_time for the measuarement
         yield from det_exposure_time(exp_time, exp_time)
         yield from bps.mv(exposure_time, exp_time)
         yield from bps.mv(S2.vg,s2_vg)

@@ -1,60 +1,76 @@
-def ocko_1():
-    proposal_id("2022_2","310747_ocko")
+#Notes from Ben on how to set sh zero from the direct beam
+#%mov abs2 5 : moves the attenuator to 5
+#RE(shopen()): opens the shutter
+#RE(mabt(0,0,0)): goes to the direct beam
+#open the fast shutter by the screen or by the command 
+#%mov shutter 1
+#manual click the start on the lambda_detector, set to 1 sec collect time 
+#by the screen you can use RE(bp.count([lambda_det])
+#if there is no beam then lower the sh(sample height steps of about 0.1mm) and count again
+#if there is beam then raise the sample height (steps of about 0.1 mm) and count again
+#when it is close enough
+#RE(set_sh(0)) 
+# set title below for ccny_1
+# run cntrl S to save the file
+# from blue sky you need to reread the macro
+# %run -i .ipython/profile_collection/startup/users/97-ccny-2.py
+# RE(ccny_1())
+
+#if the direct beam is not in the middle of the center box (up down) this means that astth is off.
+#mov astth by hand using the screen, counting at each time till it is in the middle of the box
+#RE(set_astth(22.566))
+
+def ccny_1():
+    proposal_id("2022_2","309891_tu")
+
     yield from bps.sleep(5)
     yield from shopen()
     yield from he_on() # starts the He flow
 
-    ###### Inject ECGC at 10:30am, starting macro at 10:40am
-    ### yield from one_xrr("DMPG_water_20220410_run1",43) #p2 = 27.5
-    ### yield from one_xrr("DMPG_ECGC_20220410_run1",-53) #p1 = 28.5
+    sample_x2 = 0
+    # sample_name = "SF_5x_300uL_16.7"
+    # sample_name = "SF_wait_15_compress_8p5_300uL_5x_early2"
+    # sample_name = "SF_12p2_StartingP_wait15_300uL_5x_PlatCheck__Current28p2"
+    sample_name = "CTAB_19C+h50uL_1e-3_c16"
 
-    ###### Add more data points
-    ### yield from one_xrr("DMPG_water_20220410_run2",42) #p2 = 26.7
-    ### yield from one_xrr("DMPG_ECGC_20220410_run2",-52) #p1 = 27.9
+    yield from one_xrr(sample_name,sample_x2)
 
-    ##### inject AB protein, final concentration = 2.5uM at 12:25pm, 2022-04-10
-    ### yield from one_xrr("DMPG_water_ABpro_20220410_run1",43) #p2 = 26->24 drop, measuring time: 12:35-12:56
-    ### yield from one_xrr("DMPG_ECGC_ABpro_20220410_run1",-53) #p1 = 25->24.5 drop , measuring time: 13:00-13:20
-
-    ### yield from one_xrr("DMPG_water_ABpro_20220410_run2",42) #p2 = 22.7->22.3, measuring time: 13:24-13:45
-    ### yield from one_xrr("DMPG_ECGC_ABpro_20220410_run2",-52) #p1 = 24.2->24.5, measuring time: 13:49-14:09
-
-    ### yield from one_xrr("DMPG_water_ABpro_20220410_run3",41) #p2 = 22.7->24.5, measuring time: 14:13-14:34
-    ### yield from one_xrr("DMPG_ECGC_ABpro_20220410_run3",-51) #p1 = 26.7->31.1, measuring time: 14:38-14:58
-
-    ### yield from one_xrr("DMPG_water_ABpro_20220410_run4",44) #p2 = 29.5->35.3, measuring time: 15:02-15:23
-    ### yield from one_xrr("DMPG_ECGC_ABpro_20220410_run4",-54) #p1 = 34.8->35.3, measuring time: 15:26-15:46
-
-    # yield from one_xrr("DMPG_ECGC_ABpro_20220410_run5",-50) #p1 = 35.4->, measuring time: 15:52-16:11
-
-    ##### inject AB protein, final concentration = 4uM at 16:25pm, 2022-04-10
-    # yield from one_xrr("DMPG_water_ABpro_20220410_run6",43) #p2 = 38.6, measuring time: 16:31, not finished
-    # yield from one_xrr("DMPG_ECGC_ABpro_20220410_run6",-53) #p1 = 37.4->39.5, measuring time: 16:40-17:00
-
-    yield from one_xrr("DPPC_32_small_trough_1",-70)
-
+    # yield from bps.mv(geo.stblx2,sample_x2-2)  #move the  Sample Table X2 to xpos
+    # yield from det_exposure_time_new(detector, 1.0, 1.0) # rest exposure time to 1s
+    # yield from sample_height_set_fine_o(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
+    # yield from gid_scan_tth(sample_name)
+    # detector=lambda_det
+    yield from det_exposure_time_new(detector, 1.0, 1.0) # rest exposure time to 1s
+    yield from bps.mv(abs2,5)
     yield from he_off()# stops the He flow
     yield from shclose()
 
 
+def ccny_multi():
+    proposal_id("2022_2","309891_tu")
 
-def ocko_2():
-    proposal_id("2022_1","309773_ocko")
     yield from bps.sleep(5)
     yield from shopen()
     yield from he_on() # starts the He flow
- #   yield from one_ref("DMPG(85uL)_2_no_atten_0+AB(x2)+0.75hr",23)
- #   yield from gid_scan1a("DMPG(85uL)_2_no_atten_0+AB(x2)+0.75hr")
 
-    yield from one_ref("water_final_2",22)
-    yield from gid_scan1a("water_fina_2l")
-    yield from he_off() # stops the He flow
+    sample_x2 = -60 # the position of the sample
+    sample_name = "water_small_kibron"
+    sample_x2_offset = -3.5 # trough move to back, the measured spot moves to the front
+    wait_time = 5 # in min
+    run_cycle = 5  # the total number of runs
+
+    for ii in range(run_cycle):
+        
+        sample_x2_updated = sample_x2 + sample_x2_offset*ii
+        yield from one_xrr(sample_name+f'_run{ii+1}',sample_x2_updated)
+        yield from print(f'Start incubating for {wait_time} min.')
+        yield from bps.sleep(wait_time*60)
+
+    # detector=lambda_det
+    yield from det_exposure_time_new(lambda_det, 1.0, 1.0) # rest exposure time to 1s
+    yield from bps.mv(abs2,5)
+    yield from he_off()# stops the He flow
     yield from shclose()
-
-#def ccny_gid():gid_scan2
-#    yield from gid_single("GDS_gid_run11_7",7)
-#    yield from gid_single("GDS_gid_run11_10",10)
-#    yield from gid_single("GDS_gid_run11_13",13)
 
 
 
@@ -137,17 +153,7 @@ def sample_height_set_fine_o(value=0,detector=lambda_det):
     Msg('reset_settle_time', sh.settle_time, 0)
 
 def xr_scan1(name):
-    # #9.7kev Qz to 0.566
-    # alpha_start_list =   [ 0.04, 0.16, 0.24, 0.40,  0.7,  1.0,  2.0]
-    # alpha_stop_list =    [ 0.16, 0.24, 0.40, 0.70,  1.0,  2.0,  3.3]
-    # number_points_list = [    7,   6,     5,    7,    6,   21,   14]
-    # auto_atten_list =    [    7,   6,     5,    4,    3,    2,   1 ]
-    # s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04,0.04]
-    # exp_time_list =      [    5,   5,     5,    5,     5,    5,  5 ]
-    # precount_time_list=  [  0.1, 0.1,   0.1,   0.1,  0.1,  0.1, 0.1]
-    # wait_time_list=      [    7,   7,     7,     7,    7,   7,   7 ]
-    # x2_offset_start_list=[    0,   0,     0,     0,    0,   0,   0 ]
-    # x2_offset_stop_list= [    0,   0,     0,     0,    0,   0,   0 ]
+
 
     #9.7kev Qz to 0.65, more overlap
     alpha_start_list =   [ 0.04, 0.14, 0.24, 0.40,  0.65, 0.95,  1.9, 2.9]
@@ -157,10 +163,10 @@ def xr_scan1(name):
     s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04,0.04,0.04]
     exp_time_list =      [    5,   5,     5,    5,     5,    5,   5,   5]
     precount_time_list=  [  0.1, 0.1,   0.1,   0.1,  0.1,  0.1, 0.1, 0.1]
-    wait_time_list=      [    5,   5,     5,     5,    5,   5,    5,   5]
-    x2_offset_start_list=[    0,   0,     0,     0,    0,   0,   0.5,  1.5]
-    x2_offset_stop_list= [    0,   0,     0,     0,    0,   0.5, 1.5,  2.5]
-    block_offset_list=   [    0,   0,     0,     0,    0,   0,    0,  0]
+    wait_time_list=      [    5,   5,     5,     5,    5,    5,   5,   5]
+    x2_offset_start_list=[    0,   0,     0,     0,    0,    0, -0.5, -1.5]
+    x2_offset_stop_list= [    0,   0,     0,     0,    0,  -0.5, -1.5, -2.5]
+    block_offset_list=   [    0,   0,     0,     0,    0,   0,    0,   0]
 
 
     # #9.7kev Qz to 0.65
@@ -233,11 +239,11 @@ def xrf_scan1(name):
     alpha_start_list =   [ 0.03, 0.12]
     alpha_stop_list =    [ 0.11, 0.32]
     number_points_list = [   7,   5]
-    auto_atten_list =    [   3,  3] 
+    auto_atten_list =    [   0,  0] 
     s2_vg_list =         [ 0.04, 0.04] 
-    exp_time_list =      [   2,   17]
+    exp_time_list =      [   8,   8]
     precount_time_list=  [  0.1, 0.1]
-    wait_time_list=      [    0,   0]
+    wait_time_list=      [    5,   5]
     x2_offset_start_list=[    0.8,   0.8]
     x2_offset_stop_list= [    0.8,   0.8]
 
@@ -252,8 +258,6 @@ def xrf_scan1(name):
         "wait_time":wait_time_list,
         "x2_offset_start":x2_offset_start_list,
         "x2_offset_stop":x2_offset_stop_list}
-
-
 
     print(scan_p)
     yield from bps.mv(geo.det_mode,1)
@@ -359,6 +363,7 @@ def gid_scan1a(name):
         "beam_stop_x":beam_stop_x,
         "beam_stop_y":beam_stop_y,}
 
+
 #mode 3 is for GID with no beam stop, mode 2 is for GID mode with the beam stop
     yield from bps.mv(geo.det_mode,3)
     # yield from bps.mv(geo.sh,-1)
@@ -368,6 +373,7 @@ def gid_scan1a(name):
                                 md={'sample_name': name}, 
                                 detector = pilatus300k,
                                 alphai = 0.06)
+
 
 def gid_scan2(name):
     det_saxs_y_list         = [-20,-20,-20,-20]

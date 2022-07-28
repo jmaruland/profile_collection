@@ -12,8 +12,8 @@ def spec_factory(name, doc):
 
 
 run_router = RunRouter([spec_factory])
-
 #RE.subscribe(run_router)
+# NotImplementedError: The suitcase.specfile.Serializer is not designed to handle more than one descriptor.  If you need this functionality, please request it at https://github.com/NSLS-II/suitcase/issues. Until that time, this DocumentToSpec callback will raise a NotImplementedError if you try to use it with two event streams.
 
 #this is run to install pymca
 #conda create -n pymca_testing python
@@ -21,9 +21,4 @@ run_router = RunRouter([spec_factory])
 #conda install -c conda-forge pymca pyqt
 # conda install -c conda-forge matplotlib
 #pymca
-
-
-###
-
-# NotImplementedError: The suitcase.specfile.Serializer is not designed to handle more than one descriptor.  If you need this functionality, please request it at https://github.com/NSLS-II/suitcase/issues. Until that time, this DocumentToSpec callback will raise a NotImplementedError if you try to use it with two event streams.
 

@@ -115,7 +115,9 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
         yield from det_exposure_time(exp_time, exp_time)
         yield from bps.mv(exposure_time, exp_time)
         yield from bps.mv(S2.vg,s2_vg)
-        yield from bps.mv(geo.stblx2,x2_nominal+x2_fraction)
+        if abs(x2_fraction)>0:
+            yield from bps.mv(geo.stblx2,x2_nominal+x2_fraction)
+            yield from bps.sleep(5) # Wait for vibration going away for Kibron troughs (HZ)
         # yield from bps.mv(block.y,x2_nominal+x2_fraction+block_offset) # large trough
         # yield from bps.mv(block.y,blocky_nominal+x2_fraction+block_offset) # small trough, multiple slits
         if x2_offset_stop != x2_offset_start: 

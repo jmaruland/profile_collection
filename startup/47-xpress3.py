@@ -245,3 +245,9 @@ except TimeoutError:
 except Exception as ex:
     xs = None
     print("\nUnexpected error connecting to Xspress3.\n", ex, end="\n\n")
+
+def det_exposure_time_xs(detector, exp_t, meas_t=1):
+    yield from bps.mov(
+        xs.settings.acquire_time, exp_t,
+#      detector.cam.acquire_period, exp_t+0.2,
+        xs.settings.num_images.value, int(meas_t/exp_t))

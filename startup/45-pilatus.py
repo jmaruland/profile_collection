@@ -78,8 +78,8 @@ def set_detector(det):
 
     det.stats1.total.kind = 'hinted'
     det.stats2.total.kind = 'hinted'
-    det.stats3.total.kind = 'hinted'
-    det.stats4.total.kind = 'hinted'
+    det.stats3.total.kind = 'normal'
+    det.stats4.total.kind = 'normal'
 
     det.stats1.kind='hinted'
     det.stats1.centroid.x.kind = 'hinted' 
@@ -87,7 +87,7 @@ def set_detector(det):
     det.stats2.centroid.kind = 'hinted'
 
     det.stats2.max_value.kind = 'normal'
-    det.stats4.max_value.kind = 'hinted'
+    det.stats4.max_value.kind = 'normal'
 
     det.cam.ensure_nonblocking()
 

@@ -70,7 +70,7 @@ def ih_track(alpha_ini, alpha_stop, num_alpha):
     print(dif)
 
 def ih_track_show():
-        import matplotlib.pyplot as pltFOne
+        import matplotlib.pyplot as plt
         plt.figure()
         plt.subplot(211)
         plt.title("IH_track")
