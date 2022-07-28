@@ -235,7 +235,7 @@ def xrf_scan1(name):
     number_points_list = [   7,   5]
     auto_atten_list =    [   3,  3] 
     s2_vg_list =         [ 0.04, 0.04] 
-    exp_time_list =      [   2,   17]
+    exp_time_list =      [   2,   7]
     precount_time_list=  [  0.1, 0.1]
     wait_time_list=      [    0,   0]
     x2_offset_start_list=[    0.8,   0.8]
