@@ -109,14 +109,14 @@ def reflection_fluorescence_scan(scan_param, i, detector='xs', md={}, tilt_stage
         fraction  = (alpha-alpha_start)/(alpha_stop-alpha_start)
         x2_fraction =fraction*(x2_offset_stop-x2_offset_start)
         # Set the exposure time to the define exp_time for the measurement
-        if exp_time <= 8:
+        if exp_time <= 3:
             exp_time_set=exp_time
             number_frames= 1.0
             print(exp_time_set,number_frames)
 
         else:
-            exp_time_set=8;
-            number_frames= math.floor(exp_time/8)+1
+            exp_time_set=3;
+            number_frames= math.floor(exp_time/3)+1
             print(exp_time_set,number_frames)
 
         yield from det_exposure_time(exp_time_set, exp_time_set)
