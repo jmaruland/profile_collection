@@ -24,3 +24,9 @@ def unpark():
     #this restores the two tables.
     yield from bps.mov(ih,0)
     yield from bps.mov(tab1.y,0,tab1.x,0,geo.stblx,450)
+
+
+#If tth doesnt start then
+# buttons in htch and back of module on roor
+# reset logic button for MC1
+# reboot IOC
