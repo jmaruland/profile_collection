@@ -259,7 +259,7 @@ def define_all_att_thickness():
     print('The new calculated attenuators thickness are to %s um while the current were %s um'%(np.around(att_thickness_new, 2), np.around(current_att_thickness, 2)))
     response = input('Do you want to use the new thicknesses? (y/[n]) ')
 
-    if response is 'y' or response is 'Y':
+    if response == 'y' or response == 'Y':
         print('The new attenuators thickness are to %s um'%np.around(att_thickness_new, 2))
         #Need to implement the new thickness
         attenuator_thickness_save(att_thickness_new)
