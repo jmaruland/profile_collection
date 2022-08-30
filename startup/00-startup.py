@@ -7,7 +7,6 @@ import functools
 from ophyd.signal import EpicsSignal, EpicsSignalRO
 # Ben added so that Pymca would work
 from suitcase.utils import MultiFileManager
-from suitcase.specfile import Serializer
 from event_model import RunRouter
 import event_model
 from pathlib import Path
@@ -16,7 +15,7 @@ EpicsSignal.set_defaults(connection_timeout=10, timeout=60, write_timeout=60)
 EpicsSignalRO.set_defaults(connection_timeout=10, timeout=60)
 
 configure_base(
-    get_ipython().user_ns, 
+    get_ipython().user_ns,
     "opls",
     publish_documents_with_kafka=True
 )
@@ -134,4 +133,3 @@ runengine_metadata_dir = appdirs.user_data_dir(appname="bluesky") / Path("runeng
 
 # PersistentDict will create the directory if it does not exist
 RE.md = PersistentDict(runengine_metadata_dir)
-
