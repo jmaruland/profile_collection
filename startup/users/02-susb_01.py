@@ -1,28 +1,32 @@
 # 9.7 keV
 
 def run1():
-    proposal_id("2022_2","310190_arjunkrishna")
+    proposal_id("2022_2","310190_arjunkrishna2")
     yield from bps.sleep(5)
     yield from shopen()
     yield from he_on() # starts the He flow
     detector=lambda_det
 
     samp_name_dict = {
-        1: 'PFOS_0.1MCaCl_125ppm_1', 
-        2: 'PFOS_0.1MCaCl_30ppm_1', 
-        3: 'PFOS_DI_1ppm_1',
+        1: '100mMZnCl2_1', 
+        2: 'PFDA_100mMZnCl2_50ppm_1', 
+        3: 'PFOS_100mMCaCl2_50ppm_1',
         
     }
 
     sam_x2_dict ={
-        1: -68, #flat from -65 to -60  #-65, #-62, # (-63.5,-6.14), # front
-        2: -19, # flat from -15 to -10 # -9, # (-9, 3.5), # middle trough
-        3: 32, # flat from 34.5 to 39.5  #42, # (38, 5.1), # back
-
-     
+        1: -67, #-66, #-68flat from -65 to -60  #-65, #-62, # (-63.5,-6.14), # front
+        2: -17, #-19, flat from -15 to -10 # -9, # (-9, 3.5), # middle trough
+        3: 33, #32 flat from 34.5 to 39.5  #42, # (38, 5.1), # back
     }
 
     samp_run_dict = {
+        1: True,
+        2: True,
+        3: True,
+    }
+
+    xrf_run_dict = {
         1: True,
         2: True,
         3: True,
@@ -36,16 +40,26 @@ def run1():
                 samp_name = samp_name_dict[key]
                 samp_x2 = sam_x2_dict[key]
                 yield from one_xrr(samp_name,samp_x2)
-                #yield from bps.mv(geo.stblx2,samp_x2-0.5)  #move the  Sample Table X2 to xpos
-                #yield from det_exposure_time_new(detector, 1.0, 1.0) # rest exposure time to 1s
-                #yield from sample_height_set_fine_o(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
-                #yield from gisaxs_scan1(samp_name+f'_run{run}')
+                if xrf_run_dict[key]:
+                    print('Starting XRF measurement')
+                    yield from bps.mv(geo.stblx2,samp_x2-0.5)  #move the  Sample Table X2 to xpos
+                    yield from det_exposure_time_new(detector, 1.0, 1.0) # rest exposure time to 1s
+                    yield from sample_height_set_fine_o(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
+                    #yield from gisaxs_scan1(samp_name+f'_run{run}')
+                    yield from xrf_scan1(samp_name)
 
         # print("Starting incubation for 1 hour...")  
         # yield from bps.sleep(1*60*60)
 
+    yield from det_exposure_time_new(detector, 1.0, 1.0) # rest exposure time to 1s
+    yield from bps.mv(geo.det_mode,1)
+    yield from mabt(0,0,0)
+
     yield from he_off()# stops the He flow
     yield from shclose()
+
+
+    
 
 
 
@@ -102,7 +116,7 @@ def sample_height_set_fine_o(value=0,detector=lambda_det):
  #   tmp2=peaks.cen['%s_stats2_total'%detector.name]
     yield from det_exposure_time_new(detector, 1,1)
     local_peaks = PeakStats(sh.user_readback.name, '%s_stats2_total'%detector.name)
-    yield from bpp.subs_wrapper(bp.rel_scan([detector],sh,-0.15,0.15,13,per_step=shutter_flash_scan), local_peaks)
+    yield from bpp.subs_wrapper(bp.rel_scan([detector],sh,-0.10,0.10,20,per_step=shutter_flash_scan), local_peaks)
     print("at #1")
     tmp2 = local_peaks.cen #get the height for roi2 of detector.name with max intens
     print("at #2")
@@ -114,17 +128,44 @@ def sample_height_set_fine_o(value=0,detector=lambda_det):
 def xr_scan1(name):
  
 #      9.7kev Qz to 0.65, more overlap
-    alpha_start_list =   [ 0.04, 0.14, 0.24, 0.40,  0.65,  0.9,  1.9,  2.9]
-    alpha_stop_list =    [ 0.18, 0.28, 0.44, 0.72,  1.05,  2.1,  3.1,  3.8]
-    number_points_list = [    8,   8,     8,    9,    9,   13,   13,   10]
-    auto_atten_list =    [    7,   6,     5,    4,    3,    2,    1,    0]
-    s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04,0.04, 0.04]
-    exp_time_list =      [    5,   5,     5,    5,     5,    5,   5,    5]
-    precount_time_list=  [  0.1, 0.1,   0.1,   0.1,  0.1,  0.1, 0.1,  0.1]
-    wait_time_list=      [    5,   5,     5,     5,    5,   5,    5,    5]
-    x2_offset_start_list=[    0,   0,     0,     0,    0,   0,   0.0, 0.0]
-    x2_offset_stop_list= [    0,   0,     0,     0,    0,   0,   0.0,   0]
-    block_offset_list=   [    0,   0,     0,     0,    0,   0,    0,    0]
+#    alpha_start_list =   [ 0.04, 0.14, 0.24, 0.40,  0.65,  0.9,  1.9,  2.9]
+#   alpha_stop_list =    [ 0.18, 0.28, 0.44, 0.72,  1.05,  2.1,  3.1,  3.8]
+#    number_points_list = [    8,   8,     8,    9,    9,   13,   13,   10]
+#    auto_atten_list =    [    7,   6,     5,    4,    3,    2,    1,    0]
+#    s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04,0.04, 0.04]
+#    exp_time_list =      [    5,   5,     5,    5,     5,    5,   5,    5]
+#    precount_time_list=  [  0.1, 0.1,   0.1,   0.1,  0.1,  0.1, 0.1,  0.1]
+#    wait_time_list=      [    5,   5,     5,     5,    5,   5,    5,    5]
+#    x2_offset_start_list=[    0,   0,     0,     0,    0,   0,   0.0, 0.0]
+#    x2_offset_stop_list= [    0,   0,     0,     0,    0,   0,   0.0,   0]
+#    block_offset_list=   [    0,   0,     0,     0,    0,   0,    0,    0]  
+    
+    #9.7kev Qz to 0.65, more overlap
+    alpha_start_list =   [ 0.04, 0.18, 0.30,  0.4,  0.7,  1.2,  2.0, 3.1]
+    alpha_stop_list =    [ 0.18, 0.30, 0.40,  0.8,  1.3,  2.0,  3.0, 3.9]
+    number_points_list = [    8,   5,     6,    5,    7,    9,   11,   5]
+    auto_atten_list =    [    7,   6,     5,    4,    3,    2,    1,   1]
+    s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04,0.04,0.04]
+    exp_time_list =      [    5,   5,     5,    5,     5,   5,    5,  20]
+    precount_time_list=  [  0.1, 0.1,   0.1,  0.1,   0.1, 0.1,  0.1, 0.1]
+    wait_time_list=      [    5,   5,     5,    5,     5,   5,    5,   5]
+    x2_offset_start_list=[    0,   0,     0,    0,     0,   0,    0,   0]
+    x2_offset_stop_list= [    0,   0,     0,    0,     0,   0,    0,   0]
+    block_offset_list=   [    0,   0,     0,    0,     0,   0,    0,   0]
+
+
+  #  alpha_start_list =   [ 1.8, 3.0]
+  #  alpha_stop_list =    [ 3.0, 3.8]
+  #  number_points_list = [  5,  5]
+  #  auto_atten_list =    [  1,   1]
+  #  s2_vg_list =         [ 0.04,0.04]
+  #  exp_time_list =      [   5,   20]
+  #  precount_time_list=  [    0.1, 0.1]
+  #  wait_time_list=      [      5,   5]
+  #  x2_offset_start_list=[      0,   0]
+
+
+
 
 
     scan_p={"start":alpha_start_list,
@@ -150,16 +191,40 @@ def xr_scan1(name):
 
 def xrf_scan1(name):
     #9.7kev
-    alpha_start_list =   [ 0.03, 0.12]
-    alpha_stop_list =    [ 0.11, 0.32]
-    number_points_list = [   7,   5]
-    auto_atten_list =    [   1,  1] 
-    s2_vg_list =         [ 0.04, 0.04] 
-    exp_time_list =      [   60,   60]
-    precount_time_list=  [  0.1, 0.1]
-    wait_time_list=      [    5,   5]
-    x2_offset_start_list=[    0.8,   0.8]
-    x2_offset_stop_list= [    0.8,   0.8]
+    # alpha_start_list =   [ 0.03, 0.12, 0.25]
+    # alpha_stop_list =    [ 0.11, 0.24, 0.65]
+    # number_points_list = [   8,    6,  9  ]
+    # auto_atten_list =    [   0,    2,   2  ] 
+    # s2_vg_list =         [ 0.04,0.04, 0.04 ] 
+    # exp_time_list =      [  2 ,   10,  10  ]
+    # precount_time_list=  [  0.1, 0.1,  0.1 ]
+    # wait_time_list=      [    0,   0,   0  ]
+    # x2_offset_start_list=[  0.0,   0.0, 0.0]
+    # x2_offset_stop_list= [  0.0,   0.0, 0.0]
+
+    # alpha_start_list =   [ 0.03, 0.11, 0.13, 0.25]
+    # alpha_stop_list =    [ 0.10, 0.12, 0.24, 0.65]
+    # number_points_list = [    8,    2,    6,    9]
+    # auto_atten_list =    [    0,    1,    2,    2] 
+    # s2_vg_list =         [ 0.04, 0.04, 0.04, 0.04] 
+    # exp_time_list =      [    2,   10,   10,   10]
+    # precount_time_list=  [  0.1,  0.1,  0.1,  0.1]
+    # wait_time_list=      [    0,    0,    0,    0]
+    # x2_offset_start_list=[  0.0,  0.0,  0.0,  0.0]
+    # x2_offset_stop_list= [  0.0,  0.0,  0.0,  0.0]
+
+    alpha_start_list =   [ 0.03, 0.11, 0.14, 0.25]
+    alpha_stop_list =    [ 0.10, 0.13, 0.24, 0.45]
+    number_points_list = [    8,    3,    6,    5]
+    auto_atten_list =    [    1,    1,    2,    2] 
+    s2_vg_list =         [ 0.04, 0.04, 0.04, 0.04] 
+    exp_time_list =      [   20,   10,   10,   10]
+    precount_time_list=  [  0.1,  0.1,  0.1,  0.1]
+    wait_time_list=      [    0,    0,    0,    0]
+    x2_offset_start_list=[  0.0,  0.0,  0.0,  0.0]
+    x2_offset_stop_list= [  0.0,  0.0,  0.0,  0.0]
+
+
 
 
     scan_p={"start":alpha_start_list,

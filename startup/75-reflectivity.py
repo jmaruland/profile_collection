@@ -99,7 +99,7 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
     for alpha in np.linspace(alpha_start, alpha_stop, number_points):
         # Move to the good geometry position
         if tilt_stage:
-             yield from nab(alpha, alpha,0.022)
+             yield from nab(alpha, alpha)
         else:
             if alpha >= alpha_old:
                 yield from mabt(alpha, alpha, 0)
@@ -124,7 +124,7 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
             yield from bps.sleep(2) # sleep every time after x2 move (HZ)
         yield from bps.sleep(wait_time)    
         if alpha <= alpha_old:
-            yield from bps.sleep(10)  
+            yield from bps.sleep(10) 
             print("wating an extra 10 sec")  
         alpha_old =alpha
 

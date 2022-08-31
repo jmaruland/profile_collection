@@ -89,6 +89,7 @@ def shopen():
     yield from bps.sleep(1)
     yield from bps.mv(manual_PID_disable_pitch, '0')
     yield from bps.mv(manual_PID_disable_roll, '0')
+    yield from he_on()
     
 
 def shclose():
@@ -96,6 +97,7 @@ def shclose():
     yield from bps.mv(manual_PID_disable_roll, '1')
     yield from bps.sleep(1)
     yield from bps.mv(ph_shutter.close_cmd, 1)
+    yield from he_off()
 
 
 def feedback(action=None):

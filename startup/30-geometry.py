@@ -486,7 +486,7 @@ def nabt(alpha_0,beta_0,stth_0):
     yield from bps.mv(geo.alpha, 0)
     yield from bps.mv(geo.beta,2*beta_0,tilt.y,alpha_0, geo.stth,stth_0)
 
-def nab(alpha_0,beta_0, ssth_corr_par=0.022):
+def nab(alpha_0,beta_0, ssth_corr_par=-0.022):
     """
     Args:
         ssth_corr_par (float): parameter for stth (sample two

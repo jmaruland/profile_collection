@@ -45,9 +45,9 @@ class TIFFPluginWithFileStore(TIFFPlugin, FileStoreTIFFIterativeWrite):
 class Pilatus(SingleTriggerV33, PilatusDetector):
     tiff = Cpt(TIFFPluginWithFileStore,
                suffix="TIFF1:",
-               write_path_template="/nsls2/xf12id1/data/pilatus100k/%Y/%m/%d/",
-               read_path_template= "/nsls2/xf12id1/data/pilatus100k/%Y/%m/%d/",
-               root='/nsls2/xf12id1/data')
+               write_path_template="/nsls2/xf12id1g/data/pilatus100k/%Y/%m/%d/",
+               read_path_template= "/nsls2/xf12id1g/data/pilatus100k/%Y/%m/%d/",
+               root='/nsls2/xf12id1g/data')
 
     roi1 = Cpt(ROIPlugin, 'ROI1:')
     roi2 = Cpt(ROIPlugin, 'ROI2:')
@@ -100,8 +100,8 @@ pilatus100k.tiff.read_path_template = "/nsls2/xf12id1/data/pilatus100k/%Y/%m/%d/
 try:
     pilatus300k = Pilatus("XF:12ID1-ES{Det:P300k}", name="pilatus300k")
     set_detector(pilatus300k)
-    pilatus300k.tiff.write_path_template = "/nsls2/xf12id1/data/pilatus300k/%Y/%m/%d/"
-    pilatus300k.tiff.read_path_template = "/nsls2/xf12id1/data/pilatus300k/%Y/%m/%d/"
+    pilatus300k.tiff.write_path_template = "/nsls2/xf12id1g/data/pilatus300k/%Y/%m/%d/"
+    pilatus300k.tiff.read_path_template = "/nsls2/xf12id1g/data/pilatus300k/%Y/%m/%d/"
 
 except:
     pilatus300k=pilatus100k

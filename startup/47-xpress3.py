@@ -154,9 +154,9 @@ class OPLSXspress3Detector(XspressTriggerFlyable, Xspress3Detector):
         Xspress3FileStoreFlyable,
         "HDF5:",
     #    read_path_template="/nsls2/xf12id1/data/xpress3",
-        read_path_template="/nsls2/xf12id1/data/xpress3/%Y/%m/%d/",
+        read_path_template="/nsls2/xf12id1g/data/xpress3/%Y/%m/%d/",
     #    write_path_template="/nsls2/xf12id1/data/xpress3",
-        write_path_template="/nsls2/xf12id1/data/xpress3/%Y/%m/%d/",
+        write_path_template="/nsls2/xf12id1g/data/xpress3/%Y/%m/%d/",
 
         root="/",
     #    root="/home/xspress3/data",
@@ -249,5 +249,5 @@ except Exception as ex:
 def det_exposure_time_xs(detector, exp_t, meas_t=1):
     yield from bps.mov(
         xs.settings.acquire_time, exp_t,
-#      detector.cam.acquire_period, exp_t+0.2,
+#     c exp_t+0.2,
         xs.settings.num_images.value, int(meas_t/exp_t))

@@ -13,45 +13,84 @@ import json
 import time
 
 
-def isotherm(wait_time=1, clear='no',color='b--',file='tmp',read='no'):
-    directory ='/home/xf12id1/data/isotherms/'
+def isotherm(wait_time=1, clear='no',color='b--',file='tmp',read='no', barrier_speed=50, trough_width=59, area_max=14573):
+    '''
+    Perform isotherm using Kibron trough with moving barrier
+    The pressure is read by AD1
+
+    '''
+    area_scale = barrier_speed/60*trough_width
+    directory ='/nsls2/xf12id1/data/kibron/'
     
-    if clear == 'yes':
-                plt.close()
-                plt.figure()
-                plt.axis([1,2.5,-1,5])
-                plt.xlabel('area')
-                plt.ylabel('pressure')
+    # if clear == 'yes':
+    #     plt.close()
+    #     plt.figure()
+    #     plt.axis([1,2.5,-1,5])
+    #     plt.xlabel('area')
+    #     plt.ylabel('pressure')
     pressure=[]
     area=[]
-    shutter_orig= shutter.get()
-    for n in range(1000):
+    run_time=[]
+    time_start = time.time()
+    # plt.figure()
+    # plt.xlabel('Area (mm^2)')
+    # plt.ylabel('Pressure (mN/m)')
+    # plt.show()
+    for n in range(10000):
+        # print("1")
         if read != 'no':
-            g=open('/home/xf12id1/data/isotherms/tmp','r+')
-            [area2,pressure2]=json.load(g)
-            plt.plot(area2,pressure2,color)
+            filename=directory+file
+            g=open(filename,'r+')
+            # g=open('/nsls2/xf12id1/data/kibron','r+')
+            [run_time2,pressure2]=json.load(g)
+            plt.figure()
+            plt.plot(area_max-area_scale*run_time2,pressure2*10,color)
+            # plt.xlabel('Time (s)')
+            plt.xlabel('Area (mm^2)')
+            plt.ylabel('Pressure (mN/m)')
+            plt.show()
             break
-        if shutter.get() == shutter_orig:
-            plt.plot(area,pressure,color)
+        k=open('/nsls2/xf12id1/data/kibron/run','r+')
+        stop=json.load(k)
+
+        # print(stop)
+
+        if stop ==0:
+            print('Running...')
+            # plt.plot(area,pressure,color)
             pressure_t=AD1.get()
-            area_t=AD2.get()
-            print(area_t,pressure_t)
+            time_t=time.time()-time_start
+            area_t=area_max-area_scale*time_t
+            print('Run time %.1fs: Pressure = %.2f mN/m'%(time_t,pressure_t*10))
             pressure.append(pressure_t)
             area.append(area_t)
-            plt.plot(area,pressure,color)
-            plt.show()
-            plt.pause(0.0001)
-            yield from bps.mov(shutter,1)
+            run_time.append(time_t)
+            time.sleep(wait_time)
+            # plt.plot(time_t,pressure_t,'ob')
+            # plt.show()
+            # plt.plot(area,pressure,color)
+            # plt.show()
+            # plt.pause(0.0001)
+        #    yield from bps.mov(shutter,1)
  #           yield from bp.count([pilatus100k]) # gid
-            yield from bps.mov(shutter,0)
-            yield from bps.sleep(wait_time)
+        #    yield from bps.mov(shutter,0)
+         #   yield from bps.sleep(wait_time)
         else:
-            plt.plot(area,pressure,color)
+            print('Stopped!')
+            # plt.plot(area,pressure,color)
+            # plt.show()
+            # plt.pause(0.0001)
+            plt.figure()
+            # plt.plot(run_time,pressure)
+            # plt.xlabel('Time (s)')
+            plt.plot(area,pressure)
+            plt.xlabel('Area (mm^2)')
+            plt.ylabel('Pressure (mN/m)')
             plt.show()
-            plt.pause(0.0001)
+
             filename= directory+file
             f=open(filename,'w')
-            json.dump([area,pressure],f)
+            json.dump([run_time, area, pressure],f)
             break
 
 

@@ -94,10 +94,10 @@ def check_ih():
     yield from bps.mv(sh,-1)  # move the Sample vertical translation to -1
     yield from bps.mv(shutter,1) # open shutter
     print('resetting ih')
-    #yield from bp.rel_scan([quadem],ih,-0.15,0.15,16)  #scan the quadem detector against XtalDfl-height
+    #yield from bp.rel_scan([quadem],ih,-0.1,0.15,16)  #scan the quadem detector against XtalDfl-height
     #tmp=peaks.cen['quadem_current3_mean_value']  #get the height for roi2 of quadem with a max intensity 
     local_peaks = PeakStats(ih.user_readback.name, quadem.current3.mean_value.name)
-    yield from bpp.subs_wrapper(bp.rel_scan([quadem],ih,-0.15,0.15,16), local_peaks)
+    yield from bpp.subs_wrapper(bp.rel_scan([quadem],ih,-0.10,0.10,21), local_peaks)
     tmp = local_peaks.cen  #get the height for roi2 of quadem with a max intens
     yield from bps.mv(ih,tmp)  #move the XtalDfl to this height
     yield from set_ih(0)  #set this height as 0

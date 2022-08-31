@@ -31,7 +31,7 @@ def ocko_1():
     # yield from one_xrr("DMPG_water_ABpro_20220410_run6",43) #p2 = 38.6, measuring time: 16:31, not finished
     # yield from one_xrr("DMPG_ECGC_ABpro_20220410_run6",-53) #p1 = 37.4->39.5, measuring time: 16:40-17:00
 
-    yield from one_xrr("DPPC_32_small_trough_1",-70)
+    yield from one_xrr("Water_3",-32)
 
     yield from he_off()# stops the He flow
     yield from shclose()
@@ -96,15 +96,12 @@ def one_xrf(name,xpos,tiltx=0,detector=lambda_det):
 
         
 def sample_height_set_coarse(value=0,detector=lambda_det):
-    geo.sh.user_readback.kind = 'hinted'
-    yield from bps.mv(geo.det_mode,1)
-    yield from bps.mv(abs2,5)
-    yield from mabt(0.05,0.05,0)
-    tmp1=geo.sh.position
-    print('Start the height scan before GID')
-    Msg('reset_settle_time', sh.settle_time, value)
- #   yield from bp.rel_scan([detector],sh,-0.1,0.1,21,per_step=shutter_flash_scan)
- #   tmp2=peaks.cen['%s_stats2_total'%detector.name]
+    geo.sh.user_readback.kind = 'hinted'   xrf_run_dict = {
+        1: True,
+        2: True,
+        3: True,
+    }
+
     yield from det_exposure_time_new(detector, 1,1)
     local_peaks = PeakStats(sh.user_readback.name, '%s_stats2_total'%detector.name)
     yield from bpp.subs_wrapper(bp.rel_scan([detector],sh,-1,1,13,per_step=shutter_flash_scan), local_peaks)
@@ -136,10 +133,12 @@ def sample_height_set_fine_o(value=0,detector=lambda_det):
     yield from set_sh(tmp1)
     Msg('reset_settle_time', sh.settle_time, 0)
 
-def xr_scan1(name):
-    # #9.7kev Qz to 0.566
-    # alpha_start_list =   [ 0.04, 0.16, 0.24, 0.40,  0.7,  1.0,  2.0]
-    # alpha_stop_list =    [ 0.16, 0.24, 0.40, 0.70,  1.0,  2.0,  3.3]
+def xr_scan1(name):   xrf_run_dict = {
+        1: True,
+        2: True,
+        3: True,
+    }
+
     # number_points_list = [    7,   6,     5,    7,    6,   21,   14]
     # auto_atten_list =    [    7,   6,     5,    4,    3,    2,   1 ]
     # s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04,0.04]
@@ -150,9 +149,9 @@ def xr_scan1(name):
     # x2_offset_stop_list= [    0,   0,     0,     0,    0,   0,   0 ]
 
     #9.7kev Qz to 0.65, more overlap
-    alpha_start_list =   [ 0.04, 0.14, 0.24, 0.40,  0.65, 0.95,  1.9, 2.9]
-    alpha_stop_list =    [ 0.18, 0.28, 0.44, 0.72,  1.05,  2.1,  3.1, 3.8]
-    number_points_list = [    8,   8,     8,    9,    9,   23,   13,  10]
+    alpha_start_list =   [ 0.04, 0.14, 0.26,  0.4,  0.7,  1.2,  1.8, 2.9]
+    alpha_stop_list =    [ 0.18, 0.30, 0.44,  0.8,  1.3,  2.0,  3.0, 3.8]
+    number_points_list = [    8,   9,    10,    9,    7,   9,   13,  10]
     auto_atten_list =    [    7,   6,     5,    4,    3,    2,    1,   0]
     s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04,0.04,0.04]
     exp_time_list =      [    5,   5,     5,    5,     5,    5,   5,   5]
@@ -195,17 +194,12 @@ def xr_scan1(name):
     # alpha_stop_list =    [ 0.16, 0.24, 0.40, 0.70,  1.0,  2.0,  3.0, 3.8]
     # number_points_list = [    4,   6,     5,    7,    6,   21,   11,   9]
     # auto_atten_list =    [    7,   6,     5,    4,    3,    2,    1,   0]
-    # s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04,0.04,0.04]
-    # exp_time_list =      [    5,   5,     5,    5,     5,    5,   5,   5]
-    # precount_time_list=  [  0.1, 0.1,   0.1,   0.1,  0.1,  0.1, 0.1, 0.1]
-    # wait_time_list=      [    7,   7,     7,     7,    7,   7,    7,   7]
-    # x2_offset_start_list=[    0,   0,     0,     0,    0,   0,    0, 0.1]
-    # x2_offset_stop_list= [    0,   0,     0,     0,    0,   0,    0, 0.9]
+    # s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04,    xrf_run_dict = {
+        1: True,
+        2: True,
+        3: True,
+    }
 
-
-
-    scan_p={"start":alpha_start_list,
-        "stop":alpha_stop_list,
         "n":number_points_list,
         "atten":auto_atten_list,
         "s2vg":s2_vg_list,
@@ -230,16 +224,16 @@ def xr_scan1(name):
 
 def xrf_scan1(name):
     #9.7kev
-    alpha_start_list =   [ 0.03, 0.12]
-    alpha_stop_list =    [ 0.11, 0.32]
-    number_points_list = [   7,   5]
-    auto_atten_list =    [   3,  3] 
-    s2_vg_list =         [ 0.04, 0.04] 
-    exp_time_list =      [   2,   7]
-    precount_time_list=  [  0.1, 0.1]
-    wait_time_list=      [    0,   0]
-    x2_offset_start_list=[    0.8,   0.8]
-    x2_offset_stop_list= [    0.8,   0.8]
+    alpha_start_list =   [ 0.03, 0.13, 0.35]
+    alpha_stop_list =    [ 0.12, 0.33, 0.65]
+    number_points_list = [   9,   11,   7  ]
+    auto_atten_list =    [   0,    2,   2  ] 
+    s2_vg_list =         [ 0.04,0.04, 0.04 ] 
+    exp_time_list =      [   1,   10,  10  ]
+    precount_time_list=  [  0.1, 0.1,  0.1 ]
+    wait_time_list=      [    0,   0,   0  ]
+    x2_offset_start_list=[  0.0,   0.0, 0.0]
+    x2_offset_stop_list= [  0.0,   0.0, 0.0]
 
 
     scan_p={"start":alpha_start_list,

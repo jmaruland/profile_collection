@@ -1,7 +1,8 @@
 def park():
     yield from bps.mov(shutter,0)
     # this parks the two tables.
-    yield from bps.mov(geo.stblx,650,geo.tth,30)
+    # yield from bps.mov(geo.stblx,650,geo.tth,30)
+    yield from bps.mov(geo.stblx,650,geo.tth,25) # change tth 30 to 25, HZ, Aug2022
 
     yield from bps.mov(ih,100)
     # this moves the th and two theta

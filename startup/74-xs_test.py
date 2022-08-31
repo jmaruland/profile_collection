@@ -104,18 +104,18 @@ def reflection_fluorescence_scan(scan_param, i, detector='xs', md={}, tilt_stage
         else:
             tmp=1
             #print('regular')
-            #yield from mabt(alpha, alpha, 0)
+            yield from mabt(alpha, alpha, 0)
         #yield from mabt(geo.alpha=0,geo.samchi=x,geo.beta=2*x)
         fraction  = (alpha-alpha_start)/(alpha_stop-alpha_start)
         x2_fraction =fraction*(x2_offset_stop-x2_offset_start)
         # Set the exposure time to the define exp_time for the measurement
-        if exp_time <= 3:
+        if exp_time <= 48:
             exp_time_set=exp_time
             number_frames= 1.0
             print(exp_time_set,number_frames)
 
         else:
-            exp_time_set=3;
+            exp_time_set=48;
             number_frames= math.floor(exp_time/3)+1
             print(exp_time_set,number_frames)
 

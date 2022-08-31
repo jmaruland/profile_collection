@@ -229,10 +229,10 @@ def gid_scan_stitch(scan_dict={}, md=None, detector = pilatus300k, alphai = 0.1 
   #  print(alphai)
   #  print(scan_dict)
    # def gid_method(md, detector, alphai, scan_dict):
-    yield from gid_method(md=md,
-                          detector=detector,
-                          alphai=alphai,
-                          scan_dict=scan_dict)
+    # yield from gid_method(md=md,
+    #                       detector=detector,
+    #                       alphai=alphai,
+    #                       scan_dict=scan_dict)
 
 
 
