@@ -5,7 +5,7 @@ from suitcase.specfile import Serializer
 
 
 def spec_factory(name, doc):
-    directory = "/nsls2/xf12id1/specfiles/"
+    directory = "/nsls2/xf12id1g/specfiles/"
     file_prefix = "opls_spec_" + time.strftime("%Y_%m_%d")
     # Add plan names to this list to live export additional types of plans
     plan_alowed_list = {'scan', 'rel_scan', 'gid', 'count'}
