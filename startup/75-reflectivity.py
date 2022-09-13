@@ -108,6 +108,7 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
                 yield from mabt(alpha, alpha, 0)
 
 
+
         #yield from mabt(geo.alpha=0,geo.samchi=x,geo.beta=2*x)
         fraction  = (alpha-alpha_start)/(alpha_stop-alpha_start)
         x2_fraction =fraction*(x2_offset_stop-x2_offset_start) + x2_offset_start ## Need to add x2_offset_start (HZ)
@@ -167,7 +168,7 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
     #    yield from bps.sleep(2)
         yield from det_exposure_time(1,1)
         yield from bps.mv(exposure_time, 1)
-        yield from bps.trigger_and_read([quadem], name='precount')
+    #    yield from bps.trigger_and_read([quadem], name='precount')
         yield from det_exposure_time(exp_time, exp_time)
         yield from bps.mv(exposure_time, exp_time)
         yield from bps.trigger_and_read(all_area_dets +
@@ -178,7 +179,7 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
                                         [exposure_time],
                                         name='primary')
         yield from bps.mv(shutter, 0)
-        
+    
 
 def calc_att_from_ai(alphai):
     if alphai<0.15:
