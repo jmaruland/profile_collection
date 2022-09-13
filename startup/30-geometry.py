@@ -445,7 +445,7 @@ if IN_SIM_MODE:
         mtr.set(mtr.get().readback)
         mtr.readback.kind = 'normal'
 else:
-    geo = Geometry("XF:12ID1-ES", name="geo")
+    geo = Geometry("SXF:12ID1-ES", name="geo")
 
     [   
         setattr(getattr(geo, k).user_readback, "kind", "hinted")
