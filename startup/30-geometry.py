@@ -436,16 +436,18 @@ class SynGeometry(Geometry):
     oa = Cpt(SynAxis, doc="β, output arm rotation", value=0.0)
     oh = Cpt(SynAxis, doc="output arm vertical rotation", value=0.0)
 
-IN_SIM_MODE = False # bool(sim_flag.get() > 0)
-
+# changed to True to test out PYMCA
+IN_SIM_MODE = True # bool(sim_flag.get() > 0)
+# Prefix the PV with "S" for simulations
 if IN_SIM_MODE:
-    geo = SynGeometry("XF:12ID1-ES", name="geo")
+    geo = SynGeometry("SXF:12ID1-ES", name="geo")
     for atr in SynGeometry._real:
         mtr = getattr(geo, atr)
         mtr.set(mtr.get().readback)
         mtr.readback.kind = 'normal'
+
 else:
-    geo = Geometry("SXF:12ID1-ES", name="geo")
+    geo = Geometry("XF:12ID1-ES", name="geo")
 
     [   
         setattr(getattr(geo, k).user_readback, "kind", "hinted")
