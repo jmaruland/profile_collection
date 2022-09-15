@@ -96,7 +96,7 @@ def one_xrf(name,xpos,tiltx=0,detector=lambda_det):
 
         
 def sample_height_set_coarse(value=0,detector=lambda_det):
-    geo.sh.user_readback.kind = 'hinted'   xrf_run_dict = {
+    xrf_run_dict = {
         1: True,
         2: True,
         3: True,
@@ -133,11 +133,7 @@ def sample_height_set_fine_o(value=0,detector=lambda_det):
     yield from set_sh(tmp1)
     Msg('reset_settle_time', sh.settle_time, 0)
 
-def xr_scan1(name):   xrf_run_dict = {
-        1: True,
-        2: True,
-        3: True,
-    }
+def xr_scan1(name): 
 
     # number_points_list = [    7,   6,     5,    7,    6,   21,   14]
     # auto_atten_list =    [    7,   6,     5,    4,    3,    2,   1 ]
@@ -149,17 +145,30 @@ def xr_scan1(name):   xrf_run_dict = {
     # x2_offset_stop_list= [    0,   0,     0,     0,    0,   0,   0 ]
 
     #9.7kev Qz to 0.65, more overlap
-    alpha_start_list =   [ 0.04, 0.14, 0.26,  0.4,  0.7,  1.2,  1.8, 2.9]
-    alpha_stop_list =    [ 0.18, 0.30, 0.44,  0.8,  1.3,  2.0,  3.0, 3.8]
-    number_points_list = [    8,   9,    10,    9,    7,   9,   13,  10]
-    auto_atten_list =    [    7,   6,     5,    4,    3,    2,    1,   0]
-    s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04,0.04,0.04]
-    exp_time_list =      [    5,   5,     5,    5,     5,    5,   5,   5]
-    precount_time_list=  [  0.1, 0.1,   0.1,   0.1,  0.1,  0.1, 0.1, 0.1]
-    wait_time_list=      [    5,   5,     5,     5,    5,   5,    5,   5]
-    x2_offset_start_list=[    0,   0,     0,     0,    0,   0,   0.5,  1.5]
-    x2_offset_stop_list= [    0,   0,     0,     0,    0,   0.5, 1.5,  2.5]
-    block_offset_list=   [    0,   0,     0,     0,    0,   0,    0,  0]
+    #alpha_start_list =   [ 0.04, 0.14, 0.26,  0.4,  0.7,  1.2,  1.8, 2.9]
+    #alpha_stop_list =    [ 0.18, 0.30, 0.44,  0.8,  1.3,  2.0,  3.0, 3.8]
+    #number_points_list = [    8,   9,    10,    9,    7,   9,   13,  10]
+    #auto_atten_list =    [    7,   6,     5,    4,    3,    2,    1,   0]
+    #s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04,0.04,0.04]
+    #exp_time_list =      [    5,   5,     5,    5,     5,    5,   5,   5]
+    #precount_time_list=  [  0.1, 0.1,   0.1,   0.1,  0.1,  0.1, 0.1, 0.1]
+    #wait_time_list=      [    5,   5,     5,     5,    5,   5,    5,   5]
+    #x2_offset_start_list=[    0,   0,     0,     0,    0,   0,   0.5,  1.5]
+    #x2_offset_stop_list= [    0,   0,     0,     0,    0,   0.5, 1.5,  2.5]
+    #block_offset_list=   [    0,   0,     0,     0,    0,   0,    0,  0]
+
+    alpha_start_list =   [ 0.04]
+    alpha_stop_list =    [ 0.18]
+    number_points_list = [    3]
+    auto_atten_list =    [    7]
+    s2_vg_list =         [ 0.04]
+    exp_time_list =      [    5]
+    precount_time_list=  [  0.1]
+    wait_time_list=      [    5]
+    x2_offset_start_list=[    0]
+    x2_offset_stop_list= [    0]
+    block_offset_list=   [    0]
+
 
 
     # #9.7kev Qz to 0.65
@@ -195,11 +204,9 @@ def xr_scan1(name):   xrf_run_dict = {
     # number_points_list = [    4,   6,     5,    7,    6,   21,   11,   9]
     # auto_atten_list =    [    7,   6,     5,    4,    3,    2,    1,   0]
     # s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04,    xrf_run_dict = {
-        1: True,
-        2: True,
-        3: True,
-    }
-
+      
+    scan_p={"start":alpha_start_list,
+        "stop":alpha_stop_list,
         "n":number_points_list,
         "atten":auto_atten_list,
         "s2vg":s2_vg_list,
