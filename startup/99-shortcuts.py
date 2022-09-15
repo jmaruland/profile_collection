@@ -197,7 +197,7 @@ def test1(detector=lambda_det):
     yield from bp.scan([lambda_det],geo.alpha,0.12,0.28,geo.beta,0.28,0.12,21)
 
 
-fl_roi1= xs.channel1.rois.roi01.value_sum.get()
+# fl_roi1= xs.channel1.rois.roi01.value_sum.get() # commented out by HZ, 2022-09-13
 # we need to make this hinted to display proplery so we can see if we are saturating.  Best to keep under 500k
 #maybe this will work
 # xs.roi2.kind = 'hinted'
