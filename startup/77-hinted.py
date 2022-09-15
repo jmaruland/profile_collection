@@ -32,7 +32,10 @@ def hinted_ref():
     # 
     motor_list = [th, phi, phix, ih, ia, sh, oh, oa, astth, stblx, tth, chi]
     for one_motor in motor_list:
-        hinted_motor(one_motor, read_attr='user_readback', kind='hinted')
+        try:
+            hinted_motor(one_motor, read_attr='user_readback', kind='hinted')
+        except:
+            hinted_motor(one_motor, read_attr='readback', kind='hinted') # for simulation mode
 
 
 def unhinted_ref():
@@ -40,7 +43,10 @@ def unhinted_ref():
     # these motors are defined in the 99-shortcut.py
     motor_list = [th, phi, phix, ih, ia, sh, oh, oa, astth, stblx, tth, chi]
     for one_motor in motor_list:
-        hinted_motor(one_motor, read_attr='user_readback', kind='normal')
+        try:
+            hinted_motor(one_motor, read_attr='user_readback', kind='normal')
+        except:
+            hinted_motor(one_motor, read_attr='readback', kind='normal') # for simulation mode
 
 
 
