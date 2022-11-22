@@ -1,4 +1,4 @@
-def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=False, stth_corr_par=None):
+def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=False, stth_corr_par=None, usekibron = False):
     """
     Macros to set all the parameters in order to record all the required information for further analysis,
     such as the attenuation factors, detector='lambda_det'
@@ -56,18 +56,23 @@ def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=Fa
     # Disable the plot during the reflectivity scan
     bec.disable_plots()
     # Bluesky command to start the document
+    # moved this line so we get a single UID per sub-scan
     yield from bps.open_run(md=base_md)
     x2_nominal= geo.stblx2.position
     blocky_nominal= block.y.position ## add blocky pos (HZ, 06102022)
 
     for i in range(N):
+        # yield from bps.open_run(md=base_md)
         print('%sst set starting'%i)
         yield from bps.sleep(3) 
   #      print(scan_param)
-        yield from reflection_scan(scan_param,i, detector=detector, md=md, tilt_stage=tilt_stage, x2_nominal=x2_nominal,blocky_nominal=blocky_nominal)                      
+        yield from reflection_scan(scan_param,i, detector=detector, md=md, tilt_stage=tilt_stage, usekibron = usekibron, x2_nominal=x2_nominal,blocky_nominal=blocky_nominal)                      
         print('%sst set done'%i)
+        # yield from bps.close_run()
+
 
     # Bluesky command to stop recording metadata
+    #moved this to inside the loop
     yield from bps.close_run()
     bec.enable_plots()
     # puts in absorber to protect the detctor      
@@ -79,7 +84,7 @@ all_area_dets = [quadem, lambda_det, AD1, AD2, o2_per]
 
  
 @bpp.stage_decorator(all_area_dets)
-def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False,x2_nominal=0,blocky_nominal=0):
+def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False,x2_nominal=0,blocky_nominal=0, usekibron = False):
         
     alpha_start =   scan_param["start"][i]
     alpha_stop =    scan_param["stop"][i]
@@ -103,8 +108,17 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
         else:
             if alpha >= alpha_old:
                 yield from mabt(alpha, alpha, 0)
+
+                # if alpha-alpha_old < 0.05: ## added by HZ 2022-10-17 due to low geometry resolution
+                #     yield from mabt(alpha-0.1, alpha-0.1, 0)
+                #     yield from bps.sleep(1)
+                #     yield from mabt(alpha, alpha, 0)
+                # else:
+                #     yield from mabt(alpha, alpha, 0)
+
             else:
                 yield from mabt(alpha-0.1, alpha-0.1, 0)
+                yield from bps.sleep(1)
                 yield from mabt(alpha, alpha, 0)
 
 
@@ -171,14 +185,27 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
     #    yield from bps.trigger_and_read([quadem], name='precount')
         yield from det_exposure_time(exp_time, exp_time)
         yield from bps.mv(exposure_time, exp_time)
-        yield from bps.trigger_and_read(all_area_dets +
-                                        [geo] + 
-                                        [S2] +
-                                        [attenuation_factor_signal] +
-                                        [attenuator_name_signal] +
-                                        [exposure_time],
-                                        name='primary')
+
+        if usekibron:
+            kibron.update() # to update the kibron parameters
+            yield from bps.trigger_and_read(all_area_dets +
+                                [kibron] + 
+                                [geo] + 
+                                [S2] +
+                                [attenuation_factor_signal] +
+                                [attenuator_name_signal] +
+                                [exposure_time],
+                                name='primary')
+        else:
+            yield from bps.trigger_and_read(all_area_dets +
+                                            [geo] + 
+                                            [S2] +
+                                            [attenuation_factor_signal] +
+                                            [attenuator_name_signal] +
+                                            [exposure_time],
+                                            name='primary')
         yield from bps.mv(shutter, 0)
+        
     
 
 def calc_att_from_ai(alphai):

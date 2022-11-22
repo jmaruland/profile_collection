@@ -153,9 +153,13 @@ class OPLSXspress3Detector(XspressTriggerFlyable, Xspress3Detector):
     hdf5 = Cpt(
         Xspress3FileStoreFlyable,
         "HDF5:",
-    #    read_path_template="/nsls2/xf12id1/data/xpress3",
+    # #    read_path_template="/nsls2/xf12id1/data/xpress3",
+    #     read_path_template="/nsls2/xf12id1/data/xpress3/%Y/%m/%d/",
+    # #    write_path_template="/nsls2/xf12id1/data/xpress3",
+    #     write_path_template="/nsls2/xf12id1/data/xpress3/%Y/%m/%d/",
+
+
         read_path_template="/nsls2/xf12id1g/data/xpress3/%Y/%m/%d/",
-    #    write_path_template="/nsls2/xf12id1/data/xpress3",
         write_path_template="/nsls2/xf12id1g/data/xpress3/%Y/%m/%d/",
 
         root="/",
@@ -251,3 +255,26 @@ def det_exposure_time_xs(detector, exp_t, meas_t=1):
         xs.settings.acquire_time, exp_t,
 #     c exp_t+0.2,
         xs.settings.num_images.value, int(meas_t/exp_t))
+
+
+# Here is how I restart it
+ 
+# ssh xf12id1-xspress3 -l xspress3
+# pass: x5pr3553
+ 
+# (this is in the xspress3 minipc manual).
+ 
+# cd /epics/iocs/xspress3, check config file there, you'll see the port is 5000
+ 
+# telnet localhost 5000
+# ctrl-x to restart
+ 
+# you can also get the port by
+# manage-iocs report
+ 
+ 
+# After restarting the ioc, xspress3 parameters need to be initialized by restart bluesky
+# Also need to restart the CSS (refresh does not work)
+ 
+ 
+

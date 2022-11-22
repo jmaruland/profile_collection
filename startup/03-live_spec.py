@@ -1,13 +1,28 @@
 # Initialize the filename to today's date.
 import time
 from event_model import RunRouter
-from suitcase.specfile import Serializer
+# from suitcase.specfile import Serializer
+
+# to test the Serializer locally, Oct2022
+import importlib
+suitcaseSpecfile = importlib.import_module('03-suitcase-specfile')
+Serializer = suitcaseSpecfile.Serializer
 
 
 def spec_factory(name, doc):
-    directory = "/nsls2/xf12id1g/specfiles/"
+    directory = "/nsls2/xf12id1/specfiles/"
     file_prefix = "opls_spec_" + time.strftime("%Y_%m_%d")
-    # Add plan names to this list to live export additional types of plans
+    
+# # skip multiple motor scans
+#     dims =doc.get('hints', {}).get('dimensions', [])
+#     if len(dims) and (len(dims[0][0]) > 1):
+#         return [], []
+
+    # if doc.get('motors') != None: ## for test in the simulation mode
+    #     if len(doc.get('motors',{})) > 1:
+    #         return [], []
+
+# Add plan names to this list to live export additional types of plans
     plan_alowed_list = {'scan', 'rel_scan', 'gid', 'count'}
     if doc.get('plan_name', '') in plan_alowed_list:
         return [Serializer(directory, file_prefix=file_prefix, flush=False)], []

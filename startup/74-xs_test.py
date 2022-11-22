@@ -1,6 +1,6 @@
 saturate = EpicsSignal("XF:12ID1-ES{Xsp:1}:C1_ROI1:Value_RBV", name="xs_sum")
 #saturate.value
-def reflection_fluorescence_scan_full(scan_param, md=None, detector=xs, tilt_stage=False):
+def reflection_fluorescence_scan_full_test(scan_param, md=None, detector=xs, tilt_stage=False):
     """
     Macros to set all the parameters in order to record all the required information for further analysis,
     such as the attenuation factors, detector='lambda_det'
@@ -65,7 +65,7 @@ def reflection_fluorescence_scan_full(scan_param, md=None, detector=xs, tilt_sta
         yield from bps.mv(xs.capture_mode, 1)
         yield from bps.mv(xs.total_points, scan_param["n"][i])
         
-        yield from reflection_fluorescence_scan(scan_param,i, detector=detector, md=md, tilt_stage=tilt_stage, x2_nominal=x2_nominal)                      
+        yield from reflection_fluorescence_scan_test(scan_param,i, detector=detector, md=md, tilt_stage=tilt_stage, x2_nominal=x2_nominal)                      
         print('%sst set done'%i)
 
     # Bluesky command to stop recording metadata
@@ -80,7 +80,7 @@ all_area_dets_fluo = [saturate, quadem, xs, AD1, AD2, o2_per]
 
  
 @bpp.stage_decorator(all_area_dets_fluo)
-def reflection_fluorescence_scan(scan_param, i, detector='xs', md={}, tilt_stage=False,x2_nominal=0):
+def reflection_fluorescence_scan_test(scan_param, i, detector='xs', md={}, tilt_stage=False,x2_nominal=0):
         
     alpha_start =   scan_param["start"][i]
     alpha_stop =    scan_param["stop"][i]
@@ -115,7 +115,7 @@ def reflection_fluorescence_scan(scan_param, i, detector='xs', md={}, tilt_stage
             print(exp_time_set,number_frames)
 
         else:
-            exp_time_set=48;
+            exp_time_set=20
             number_frames= math.floor(exp_time/3)+1
             print(exp_time_set,number_frames)
 

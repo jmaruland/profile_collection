@@ -3,7 +3,11 @@ from pyrsistent import s
 
 #a comment goes here  test and again
 def ocko_1():
-    proposal_id("2022_2","310747_ocko2")
+    yield from bps.mv(lambda_det.oper_mode,1)
+    yield from bps.mv(lambda_det.low_thr,6.5)
+
+
+    proposal_id("2022_3","311547_ocko")
     yield from bps.sleep(5)
     yield from shopen()
     yield from he_on() # starts the He flow
@@ -14,22 +18,16 @@ def ocko_1():
      #   2: 'PFDA_100mMZnCl2_50ppm_1', 
      #   3: 'ODA_10mN_2mMKI',
 
-        # 1: 'Water_Kibron_medium',
-        # 1: 'Mea19_0p32mgpml_40uL_CdSCO2_1mM_pH6_run1',
-        # 1: 'Mea19_0p32mgpml_40uL_CdCl2_0p1mM_pH6_run2_P20mN',
-        # 1: 'Mea19_0p32mgpml_40uL_CdCl2_0p1mM_pH6_run3_P30mN',
-        # 1: 'Mea19_0p32mgpml_40uL_CdCl2_0p1mM_pH6_run4_P40mN',
-        # 1: 'Mea19_0p32mgpml_40uL_CdCl2_0p1mM_pH6_run5_P47mN',
-        # 1: 'Mea19_0p032mgpml_310uL_CdCl2_0p1mM_pH6_run1_P4mN_Trough30mL',
-        # 1: 'Mea19_0p032mgpml_355uL_CdCl2_0p1mM_pH6_run2_P21mN_Trough30mL',
-        # 1: 'Water_Trough30mL_glass_run1',
-        1: 'Water_Trough30mL_glass_run2_highq',
+
+         1: 'Water_Trough_1',
+        # 1: 'DPPC_manulCompress_thinBarrier_P33', ## 40 mL water, 11uL 1mg/mL DPPC (should use 37mL water)
+        #1: 'KI_10mM'
 
     }
 
     sam_x2_pos ={
         # 1: -56,
-        1: 17,
+        1: 0,
         # 1: -73, #-66, #-68flat from -65 to -60  #-65, #-62, # (-63.5,-6.14), # front
         # 2: -17, #-19, flat from -15 to -10 # -9, # (-9, 3.5), # middle trough
         # 3: 39, #32 flat from 34.5 to 39.5  #42, # (38, 5.1), # back
@@ -56,17 +54,17 @@ def ocko_1():
 
     gisaxs_run_dict = {
         1: False,
-        2: True,
-        3: True,
+        2: False,
+        3: False,
     }
 
     sh_offset_dict = {
         1: False,
         2: False,
-        3: True,
+        3: False,
     }
 
-    slit_hg_gisaxs = [0.2]
+    slit_hg_gisaxs = [0.3]
 
     run_cycle = 1
     for ii in range(run_cycle):
@@ -91,7 +89,7 @@ def ocko_1():
 
             if xr_run_dict[key]:
                 print('Starting XRR measurement')
-                yield from one_xrr_new(samp_name,samp_x2)
+                yield from one_xrr_new(samp_name+f'_run{ii+1}',samp_x2)
             
             if xrf_run_dict[key]:
                 print('Starting XRF measurement')
@@ -117,6 +115,92 @@ def ocko_1():
 
     yield from he_off()# stops the He flow
     yield from shclose()
+
+
+
+
+def ocko_multi_xrr():
+    yield from bps.mv(lambda_det.oper_mode,1)
+    yield from bps.mv(lambda_det.low_thr,6.5)
+
+    proposal_id("2022_3","311547_ocko")
+    yield from bps.sleep(5)
+    yield from shopen()
+    yield from he_on() # starts the He flow
+    detector=lambda_det
+
+    samp_name_dict = {
+         1: 'Water_Noise_Test',
+    }
+
+    sam_x2_pos ={
+        1: 0,
+    }
+
+
+    run_cycle = 2
+    for ii in range(run_cycle):
+        for key in samp_name_dict:
+            samp_name = samp_name_dict[key]
+            samp_x2 = sam_x2_pos[key]
+            yield from bps.mv(S2.hg, 0.3)
+            yield from bps.mv(geo.stblx2,samp_x2)  #move the  Sample Table X2 to xpos
+
+            
+            yield from check_ih()
+            yield from check_phi() #resets phi, the crystal deflector at mab(0,0,0)
+            yield from sample_height_set_coarse(detector=detector) #scan the detector arm height (sh) from -1 to 1 with 41 points
+            yield from sample_height_set_fine_o(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
+            yield from one_xrr_new(samp_name+f'_runA{ii+1}',expo_time = 5, wait_time = 10, reverse_mode = True)
+            yield from bps.mv(abs2,6)
+            yield from det_exposure_time_new(detector, 1.0, 1.0) # rest exposure time to 1s
+
+            yield from check_ih()
+            yield from check_phi() #resets phi, the crystal deflector at mab(0,0,0)
+            yield from sample_height_set_coarse(detector=detector) #scan the detector arm height (sh) from -1 to 1 with 41 points
+            yield from sample_height_set_fine_o(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
+            yield from one_xrr_new(samp_name+f'_runB{ii+1}',expo_time = 5, wait_time = 10, reverse_mode = False)
+            yield from bps.mv(abs2,6)
+            yield from det_exposure_time_new(detector, 1.0, 1.0) # rest exposure time to 1s
+
+            yield from check_ih()
+            yield from check_phi() #resets phi, the crystal deflector at mab(0,0,0)
+            yield from sample_height_set_coarse(detector=detector) #scan the detector arm height (sh) from -1 to 1 with 41 points
+            yield from sample_height_set_fine_o(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
+            yield from one_xrr_new(samp_name+f'_runC{ii+1}',expo_time = 5, wait_time = 30, reverse_mode = False)
+            yield from bps.mv(abs2,6)
+            yield from det_exposure_time_new(detector, 1.0, 1.0) # rest exposure time to 1s
+            
+            yield from check_ih()
+            yield from check_phi() #resets phi, the crystal deflector at mab(0,0,0)
+            yield from sample_height_set_coarse(detector=detector) #scan the detector arm height (sh) from -1 to 1 with 41 points
+            yield from sample_height_set_fine_o(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
+            yield from one_xrr_new(samp_name+f'_runD{ii+1}',expo_time = 30, wait_time = 10, reverse_mode = False)
+            yield from bps.mv(abs2,6)
+            yield from det_exposure_time_new(detector, 1.0, 1.0) # rest exposure time to 1s
+
+            yield from check_ih()
+            yield from check_phi() #resets phi, the crystal deflector at mab(0,0,0)
+            yield from sample_height_set_coarse(detector=detector) #scan the detector arm height (sh) from -1 to 1 with 41 points
+            yield from sample_height_set_fine_o(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
+            yield from one_xrr_new(samp_name+f'_runE{ii+1}',expo_time = 5, wait_time = 30, reverse_mode = True)
+            yield from bps.mv(abs2,6)
+            yield from det_exposure_time_new(detector, 1.0, 1.0) # rest exposure time to 1s
+
+
+        # print("Starting incubation for 1 hour...")  
+        # yield from bps.sleep(1*60*60)
+
+    yield from det_exposure_time_new(detector, 1.0, 1.0) # rest exposure time to 1s
+    yield from bps.mv(geo.det_mode,1)
+    yield from mabt(0,0,0)
+
+    yield from he_off()# stops the He flow
+    yield from shclose()
+
+
+
+
 
 
 def ocko_2():
@@ -157,7 +241,7 @@ def one_xrr(name,xpos,tiltx=0,detector=lambda_det):
     yield from bps.mv(shutter,0) # open shutter
     yield from mabt(0.2,0.2,0)
 
-def one_xrr_new(name,xpos,tiltx=0,detector=lambda_det):
+def one_xrr_new(name,expo_time = 5, wait_time = 10, reverse_mode = False, tiltx=0,detector=lambda_det):
    #     '''Conduct reflectivity measurments'''
     print("file name=",name)    
     yield from bps.mv(abs2,5)
@@ -165,7 +249,10 @@ def one_xrr_new(name,xpos,tiltx=0,detector=lambda_det):
  #   yield from bps.mv(geo.stblx2,xpos)  #move the  Sample Table X2 to xpos
  #   yield from bps.mv(block.y,xpos)  #move the  block to xpos
     yield from bps.mv(shutter,1) # open shutter
-    yield from xr_scan1(name)
+    # yield from xr_scan1(name)
+
+    yield from xr_scan1(name, expo_time = expo_time, wait_time = wait_time, reverse_mode = reverse_mode) # 2022-11-21, HZ
+
     yield from bps.mv(shutter,0) # open shutter
     yield from mabt(0.2,0.2,0)
 
@@ -230,46 +317,45 @@ def sample_height_set_fine_o(value=0,detector=lambda_det):
     yield from set_sh(tmp1)
     Msg('reset_settle_time', sh.settle_time, 0)
 
-def xr_scan1(name):
+
+def xr_scan1(name, expo_time = 5, wait_time = 10, reverse_mode = False):
  
-# #      9.7kev Qz to 0.65, more overlap
-#     alpha_start_list =   [ 0.04, 0.14, 0.24, 0.40,  0.65,  0.9,  1.9,  2.9]
-#     alpha_stop_list =    [ 0.18, 0.28, 0.44, 0.72,  1.05,  2.1,  3.1,  3.9]
-#     number_points_list = [    8,   8,     8,    9,    9,   13,   13,   11]
-#     auto_atten_list =    [    7,   6,     5,    4,    3,    2,    1,    0]
-#     s2_vg_list =         [ 0.02, 0.02, 0.04,  0.04, 0.04, 0.04,0.04, 0.04]
-#     exp_time_list =      [    5,   5,     5,    5,     5,    5,   5,    5]
-#     precount_time_list=  [  0.1, 0.1,   0.1,   0.1,  0.1,  0.1, 0.1,  0.1]
-#     wait_time_list=      [    5,   5,     5,     5,    5,   5,    5,    5]
-#     x2_offset_start_list=[    0,   0,     0,     0,    0,   0,   0.0, 0.0]
-#     x2_offset_stop_list= [    0,   0,     0,     0,    0,   0,   0.0,   0]
-#     block_offset_list=   [    0,   0,     0,     0,    0,   0,    0,    0]  
-    alpha_start_list =   [ 0.9,  1.9,  2.9]
-    alpha_stop_list =    [ 2.1,  3.1,  3.9]
-    number_points_list = [  13,   13,   11]
-    auto_atten_list =    [   2,    1,    0]
-    s2_vg_list =         [ 0.04,0.04, 0.04]
-    exp_time_list =      [    5,   5,    5]
-    precount_time_list=  [  0.1, 0.1,  0.1]
-    wait_time_list=      [   5,    5,    5]
-    x2_offset_start_list=[   0,   0.0, 0.0]
-    x2_offset_stop_list= [   0,   0.0,   0]
-    block_offset_list=   [   0,    0,    0]  
-    
+
     # #9.7kev Qz to 0.65, more overlap
     # alpha_start_list =   [ 0.04, 0.18, 0.30,  0.4,  0.7,  1.2,  2.0, 3.1]
     # alpha_stop_list =    [ 0.18, 0.30, 0.40,  0.8,  1.3,  2.0,  3.0, 3.9]
-    # number_points_list = [    8,   5,     6,    5,    7,    9,   11,   5]
+    # number_points_list = [    8,   7,     6,    5,    7,    9,   11,   5]
     # auto_atten_list =    [    7,   6,     5,    4,    3,    2,    1,   1]
     # s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04,0.04,0.04]
     # exp_time_list =      [    5,   5,     5,    5,     5,   5,    5,  20]
     # precount_time_list=  [  0.1, 0.1,   0.1,  0.1,   0.1, 0.1,  0.1, 0.1]
-    # wait_time_list=      [   15,  15,    15,   15,    15,  15,   15,  15]
+    # wait_time_list=      [   10,  10,    10,   10,    10,  10,   10,  10]
     # x2_offset_start_list=[    0,   0,     0,    0,     0,   0,  0.5, 1.5]
     # x2_offset_stop_list= [    0,   0,     0,    0,     0, 0.5,  1.5, 2.5]
     # block_offset_list=   [    0,   0,     0,    0,     0,   0,    0,   0]
 
 
+    #14.4kev 
+    alpha_start_list =   [ 0.03, 0.12, 0.18, 0.40,  0.72,  1.2,  1.9]
+    alpha_stop_list =    [ 0.13, 0.22, 0.46, 0.80,  1.36,  2.0,  2.8]
+    number_points_list = [   11,   11,   15,   11,    9,    9,    10]
+    auto_atten_list =    [    6,    5,    4,    3,    2,    1,     0]
+
+    s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04, 0.04]
+    # exp_time_list =      [    5,   5,     5,    5,     5,   5,     5]
+    exp_time_list =      [expo_time for _ in range(len(alpha_start_list))]
+    
+    precount_time_list=  [  0.1, 0.1,   0.1,  0.1,   0.1, 0.1,   0.1]
+    # wait_time_list=      [   10,  10,    10,   10,    10,  10,    10]
+    wait_time_list=      [wait_time for _ in range(len(alpha_start_list))]
+
+    x2_offset_start_list=[    0,   0,     0,    0,     0,   0,  -0.5]
+    x2_offset_stop_list= [    0,   0,     0,    0,     0, -0.5,   -2]
+    block_offset_list=   [    0,   0,     0,    0,     0,   0,     0]
+
+
+    if reverse_mode:
+        alpha_start_list, alpha_stop_list = alpha_stop_list, alpha_start_list
 
     #9.7kev Qz to 0.65, more overlap
     # alpha_start_list =   [ 0.04, 0.18, 0.30,  0.4,  0.7,  1.2,  2.0, 3.1]

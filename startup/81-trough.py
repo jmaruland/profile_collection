@@ -29,6 +29,7 @@ def isotherm(wait_time=1, clear='no',color='b--',file='tmp',read='no', barrier_s
     #     plt.xlabel('area')
     #     plt.ylabel('pressure')
     pressure=[]
+    pressure2=[]
     area=[]
     run_time=[]
     time_start = time.time()
@@ -36,15 +37,15 @@ def isotherm(wait_time=1, clear='no',color='b--',file='tmp',read='no', barrier_s
     # plt.xlabel('Area (mm^2)')
     # plt.ylabel('Pressure (mN/m)')
     # plt.show()
-    for n in range(10000):
+    for n in range(1000):
         # print("1")
         if read != 'no':
             filename=directory+file
             g=open(filename,'r+')
             # g=open('/nsls2/xf12id1/data/kibron','r+')
-            [run_time2,pressure2]=json.load(g)
+            [run_time3,pressure3]=json.load(g)
             plt.figure()
-            plt.plot(area_max-area_scale*run_time2,pressure2*10,color)
+            plt.plot(area_max-area_scale*run_time3,pressure3*10,color)
             # plt.xlabel('Time (s)')
             plt.xlabel('Area (mm^2)')
             plt.ylabel('Pressure (mN/m)')
@@ -54,15 +55,16 @@ def isotherm(wait_time=1, clear='no',color='b--',file='tmp',read='no', barrier_s
         stop=json.load(k)
 
         # print(stop)
-
+        print('Running...')
         if stop ==0:
-            print('Running...')
             # plt.plot(area,pressure,color)
             pressure_t=AD1.get()
+            pressure_t2=AD2.get()
             time_t=time.time()-time_start
             area_t=area_max-area_scale*time_t
-            print('Run time %.1fs: Pressure = %.2f mN/m'%(time_t,pressure_t*10))
+            print('Run time %.1fs: Pressure = %.2f mN/m, Pressure2 = %.2f mN/m'%(time_t,pressure_t*10, pressure_t2*10))
             pressure.append(pressure_t)
+            pressure2.append(pressure_t2)
             area.append(area_t)
             run_time.append(time_t)
             time.sleep(wait_time)
@@ -90,7 +92,8 @@ def isotherm(wait_time=1, clear='no',color='b--',file='tmp',read='no', barrier_s
 
             filename= directory+file
             f=open(filename,'w')
-            json.dump([run_time, area, pressure],f)
+            json.dump([run_time, area, pressure,pressure2],f)
             break
+
 
 

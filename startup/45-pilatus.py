@@ -91,10 +91,11 @@ def set_detector(det):
 
     det.cam.ensure_nonblocking()
 
-pilatus100k = Pilatus("XF:12ID1-ES{Det:P100k}", name="pilatus100k")
-set_detector(pilatus100k)
-pilatus100k.tiff.write_path_template = "/nsls2/xf12id1/data/pilatus100k/%Y/%m/%d/"
-pilatus100k.tiff.read_path_template = "/nsls2/xf12id1/data/pilatus100k/%Y/%m/%d/"
+# on 10/10/22 we commented out the following 4 lines since the 100k server was not working
+#pilatus100k = Pilatus("XF:12ID1-ES{Det:P100k}", name="pilatus100k")
+#set_detector(pilatus100k)
+#pilatus100k.tiff.write_path_template = "/nsls2/xf12id1/data/pilatus100k/%Y/%m/%d/"
+#pilatus100k.tiff.read_path_template = "/nsls2/xf12id1/data/pilatus100k/%Y/%m/%d/"
 
 
 try:

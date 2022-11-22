@@ -26,6 +26,7 @@ def direct_beam():
     yield from bps.movr(sh,-0.2)
     alphai = 0.11
 
+
 def check_sh_fine(value=0.05,detector=lambda_det):
     yield from bps.mv(geo.det_mode,1)
     yield from bps.mv(abs2,5)
@@ -84,6 +85,24 @@ def sample_height_set_fine_pilatus(detector = pilatus300k):
     yield from set_sh(tmp1)
 
 
+def check_phi():
+    '''Align the deflector crystal phi
+    '''
+    yield from bps.mv(geo.det_mode,1)  #move lamda detector in ?
+    yield from bps.mv(abs2,6)   #move the second absorber in 
+    yield from mabt(0,0,0)    # don't understand???, 
+    #yield from det_exposure_time_new([lambda_det], 1,1)
+    tmp1=geo.phi.position
+    yield from bps.mv(shutter,1) # open shutter
+    print('resetting phi') 
+    local_peaks = PeakStats(phi.user_readback.name, quadem.current2.mean_value.name)
+    yield from bpp.subs_wrapper(bp.rel_scan([quadem],phi,-0.010,0.010,21), local_peaks)
+    tmp = local_peaks.cen  #get the height for roi2 of quadem with a max intens
+    yield from bps.mv(phi,tmp)  #move the XtalDfl to this height
+    yield from set_phi(tmp1)  #set this height as 0
+    yield from bps.mv(shutter,0) # close shutter
+
+
 
 def check_ih():
     '''Align the Align the spectrometer stage height
@@ -97,7 +116,7 @@ def check_ih():
     #yield from bp.rel_scan([quadem],ih,-0.1,0.15,16)  #scan the quadem detector against XtalDfl-height
     #tmp=peaks.cen['quadem_current3_mean_value']  #get the height for roi2 of quadem with a max intensity 
     local_peaks = PeakStats(ih.user_readback.name, quadem.current3.mean_value.name)
-    yield from bpp.subs_wrapper(bp.rel_scan([quadem],ih,-0.10,0.10,21), local_peaks)
+    yield from bpp.subs_wrapper(bp.rel_scan([quadem],ih,0.10,-0.10,21), local_peaks)
     tmp = local_peaks.cen  #get the height for roi2 of quadem with a max intens
     yield from bps.mv(ih,tmp)  #move the XtalDfl to this height
     yield from set_ih(0)  #set this height as 0
@@ -175,7 +194,7 @@ def check_linear_slits():
     # eta
     global dif    
     dif  = np.zeros((4, 18))
-    slit_width=[0.01,0.01,0.02,0.02,0.03,0.03,0.04,0.04,0.05,0.05,0.06,0.06,0.07,0.07,0.08,0.08,0.09,0.09]
+    slit_width=[-0.01,0.00,0.01,0.02,0.03,0.03,0.04,0.04,0.05,0.05,0.06,0.06,0.07,0.07,0.08,0.08,0.09,0.09]
     for i,j in enumerate(slit_width):
         yield from bps.mov(S2.vg,j)
         yield from bp.count([quadem,lambda_det]) 
@@ -189,8 +208,9 @@ def mplot2():
     plt.figure()
     plt.plot(dif[0, :], 5*dif[3, :],color='r',label="detector/monitor")
     plt.plot(dif[0, :], dif[2, :]/4,'g',label="detector")
-    plt.plot(dif[0, :], dif[1, :]/0.006,'b',label="monitor")
+    plt.plot(dif[0, :], dif[1, :]/0.0003,'b',label="monitor")
     plt.xlabel('s2.vg')
     plt.ylabel('counts/monitor')
+    plt.legend()
     plt.show()
     return

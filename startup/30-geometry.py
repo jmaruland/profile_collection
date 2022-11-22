@@ -68,6 +68,13 @@ class DetectorOffsets(Device):
     #det3 = Cpt(EpicsSignal, "L_13", kind="config")
 from ophyd.sim import SynAxis as _SynAxis
 
+#class Geometry_recip(PseudoPositioner):
+#    L = Cpt(PseudoSingle, "", kind="hinted")
+#   _lambda= geo.wlength
+#    geo.alpha= np.deg2rad(pseudo_pos.stth) np.asin(L*_lambda/(4*np.pi))
+#    geo.beta = geo.alpha
+#    yield from mabt(alpha,beta,0)
+
 
 
 class Geometry(PseudoPositioner):
@@ -217,7 +224,9 @@ class Geometry(PseudoPositioner):
         # by convention in this function:
         #  - angles in degrees are not prefixed by underscores
         #  - angles in radians are prefixed by underscores
-        track_mode = bool(self.track_mode.get())
+        #track_mode = bool(self.track_mode.get())
+        track_mode = self.track_mode.get()
+
 
         if pseudo_pos.alpha > 90:
             msg = f"Unobtainable position: alpha({a}) is greater than 90 degrees"
@@ -226,6 +235,10 @@ class Geometry(PseudoPositioner):
         # get pseudo positions in radians
         _alpha = np.deg2rad(pseudo_pos.alpha)
         _beta = np.deg2rad(pseudo_pos.beta)
+        
+        if track_mode ==2:
+             _beta=_alpha
+        # print(track_mode,_alpha*180/np.pi,_beta*180/np.pi)
         _stth = np.deg2rad(pseudo_pos.stth)
         cE = np.cos(self.Eta.get())
         sE = np.sin(self.Eta.get())
@@ -364,6 +377,7 @@ class Geometry(PseudoPositioner):
 
         phi = real_pos.phi * (np.pi / 180.0)
         chi = real_pos.chi * (np.pi / 180.0)
+        #if geo.track_mode.get() ==2: self.beta=self.alpha
 
         tmp = 2 * bragg * np.cos(phi) * np.sin(chi) - np.sin(self.Eta.get())
         if np.fabs(tmp) > 1:
@@ -437,7 +451,7 @@ class SynGeometry(Geometry):
     oh = Cpt(SynAxis, doc="output arm vertical rotation", value=0.0)
 
 # changed to True to test out PYMCA
-IN_SIM_MODE = True # bool(sim_flag.get() > 0)
+IN_SIM_MODE = False # bool(sim_flag.get() > 0)
 # Prefix the PV with "S" for simulations
 if IN_SIM_MODE:
     geo = SynGeometry("SXF:12ID1-ES", name="geo")

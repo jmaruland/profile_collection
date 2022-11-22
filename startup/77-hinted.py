@@ -87,6 +87,12 @@ def hinted_quadem_mean(channel_list=[2,3], attrs_list=['mean_value']):
 
 
 #### TODO need to check omitted.
+# quadem.current_names.ch2.kind = 'omitted'
+
+
+
+
+
 # Hinted setting for lambda detector, 
 def hinted_lambda_single(channel, kind='hinted'):
     '''hinted setting for single channel of lambda_det with sub read_attrs'''
@@ -154,3 +160,34 @@ def print_attrs_kind_motors():
     motor_list = [th, phi, phix, ih, ia, sh, oh, oa, astth, stblx, tth, chi]
     for one_motor in motor_list:
         print(one_motor.name, one_motor.user_readback.kind)
+
+def spec_writer_omit():
+    quadem.current1.mean_value.kind='omitted'
+    quadem.current4.mean_value.kind='omitted'
+    quadem.current_names.ch1.kind='omitted'
+    quadem.current_names.ch2.kind='omitted'
+    quadem.current_names.ch3.kind='omitted'
+    quadem.current_names.ch4.kind='omitted'
+    quadem.current_offset_calcs.ch1.kind='omitted'
+    quadem.current_offset_calcs.ch2.kind='omitted'
+    quadem.current_offset_calcs.ch3.kind='omitted'
+    quadem.current_offset_calcs.ch4.kind='omitted'
+    quadem.current_offsets.ch1.kind='omitted'
+    quadem.current_offsets.ch2.kind='omitted'
+    quadem.current_offsets.ch3.kind='omitted'
+    quadem.current_offsets.ch4.kind='omitted'
+    quadem.current_scales.ch1.kind='omitted'
+    quadem.current_scales.ch2.kind='omitted'
+    quadem.current_scales.ch3.kind='omitted'
+    quadem.current_scales.ch4.kind='omitted'
+    quadem.em_range.kind='omitted'
+    quadem.position_offset_calc_x.kind='omitted'
+    quadem.position_offset_calc_y.kind='omitted'
+    quadem.position_scale.x.kind='omitted'
+    quadem.position_scale.Y.kind='omitted'
+
+
+
+
+
+

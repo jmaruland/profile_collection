@@ -14,20 +14,21 @@ def reflection_fluorescence_scan_full(scan_param, md=None, detector=xs, tilt_sta
             N = len(v)
         if N != len(v):
             raise ValueError(f"the key {k} is length {len(v)}, expected {N}")
-    geo.th.user_readback.kind = 'normal'
-    geo.phi.user_readback.kind = 'normal'
-    geo.phix.user_readback.kind = 'normal'
-    geo.ih.user_readback.kind = 'normal'
-    geo.ia.user_readback.kind = 'normal'
-    geo.sh.user_readback.kind = 'normal'
-    geo.oh.user_readback.kind = 'normal'
-    geo.oa.user_readback.kind = 'normal'
-    geo.astth.user_readback.kind = 'normal'
-    geo.stblx.user_readback.kind = 'normal'
-    geo.oa.user_readback.kind = 'normal'
-    geo.tth.user_readback.kind = 'normal'
-    geo.chi.user_readback.kind = 'normal'
-    geo.astth.user_readback.kind = 'normal'
+    # geo.th.user_readback.kind = 'normal'
+    # geo.phi.user_readback.kind = 'normal'
+    # geo.phix.user_readback.kind = 'normal'
+    # geo.ih.user_readback.kind = 'normal'
+    # geo.ia.user_readback.kind = 'normal'
+    # geo.sh.user_readback.kind = 'normal'
+    # geo.oh.user_readback.kind = 'normal'
+    # geo.oa.user_readback.kind = 'normal'
+    # geo.astth.user_readback.kind = 'normal'
+    # geo.stblx.user_readback.kind = 'normal'
+    # geo.oa.user_readback.kind = 'normal'
+    # geo.tth.user_readback.kind = 'normal'
+    # geo.chi.user_readback.kind = 'normal'
+    # geo.astth.user_readback.kind = 'normal'
+    unhinted_ref() ## change all hinted settings to 'normal'
 
 
     base_md = {'plan_name': 'reflection_fluorescence_scan',
@@ -62,6 +63,8 @@ def reflection_fluorescence_scan_full(scan_param, md=None, detector=xs, tilt_sta
         print('%sst set starting'%i)
         yield from bps.sleep(3) 
         print(scan_param)
+        xs.settings.num_images.value=1
+        print("number of frame is 1")
         yield from bps.mv(xs.capture_mode, 1)
         yield from bps.mv(xs.total_points, scan_param["n"][i])
         
@@ -73,7 +76,8 @@ def reflection_fluorescence_scan_full(scan_param, md=None, detector=xs, tilt_sta
     bec.enable_plots()
     # puts in absorber to protect the detctor      
     yield from bps.mv(abs2, 5)
-    print('The reflectivity scan is over')
+    print('The reflectivity_fluorescence scan is over')
+    hinted_ref() ## change hinted settings
 print(f'Loading {__file__}')
 all_area_dets_fluo = [saturate, quadem, xs, AD1, AD2, o2_per]
 # all_area_dets_fluo = [quadem, AD1, AD2, o2_per]
@@ -108,6 +112,7 @@ def reflection_fluorescence_scan(scan_param, i, detector='xs', md={}, tilt_stage
         fraction  = (alpha-alpha_start)/(alpha_stop-alpha_start)
         x2_fraction =fraction*(x2_offset_stop-x2_offset_start)
         # Set the exposure time to the define exp_time for the measuarement
+        xs.settings.acquire_time.set(exp_time)
         yield from det_exposure_time(exp_time, exp_time)
         yield from bps.mv(exposure_time, exp_time)
         yield from bps.mv(S2.vg,s2_vg)

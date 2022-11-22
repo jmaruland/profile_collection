@@ -8,6 +8,15 @@
 #proposal_id("2022_2","309891_tu")
 #proposal_id("2022_2","309773_ocko")
 
+#proposal_id("2022_3","311547_ocko")
+#proposal_id("2022_3","311781_tu")
+#proposal_id("2022_3","308307_dutta")
+#proposal_id("2022_3","310472_zhang")
+#proposal_id("2022_3","311090_arjunkrishna")
+#proposal_id("2022_3","309773_ocko")
+#proposal_id("2022_3","310438_satija")
+
+
 
 
 
@@ -82,7 +91,7 @@ def proposal_id(cycle_id, proposal_id):
         os.makedirs(newDir)
         os.chmod(newDir, stat.S_IRWXU + stat.S_IRWXG + stat.S_IRWXO)
 
-\
+
     newDir = "/nsls2/xf12id1/users/" + str(cycle_id) + "/" + str(proposal_id) + "/XRR_analysis/q_plots"
     try:
         os.stat(newDir)
@@ -99,6 +108,14 @@ def proposal_id(cycle_id, proposal_id):
 
 
     newDir = "/nsls2/xf12id1/users/" + str(cycle_id) + "/" + str(proposal_id) + "/XRR_analysis/summaries"
+    try:
+        os.stat(newDir)
+    except FileNotFoundError:
+        os.makedirs(newDir)
+        os.chmod(newDir, stat.S_IRWXU + stat.S_IRWXG + stat.S_IRWXO)
+
+
+    newDir = "/nsls2/xf12id1/users/" + str(cycle_id) + "/" + str(proposal_id) + "/kibron"
     try:
         os.stat(newDir)
     except FileNotFoundError:
