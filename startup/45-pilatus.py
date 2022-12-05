@@ -122,11 +122,6 @@ def det_exposure_time_pilatus(exp_t, meas_t=1):
     except:
         print('Pilatus 300KW is not connected')
 
-def det_exposure_time(exp_t, meas_t=1):
-    yield from bps.mov(
-        lambda_det.cam.acquire_time, exp_t,
-        lambda_det.cam.acquire_period, exp_t+0.2,
-        lambda_det.cam.num_images, int(meas_t/exp_t))
 
 def det_exposure_time_new(detector, exp_t, meas_t=1):
     yield from bps.mov(
@@ -145,20 +140,3 @@ pil1m_roi2 = EpicsSignal('XF:12ID1-ES{Det:P100k}Stats1:Total_RBV', name= 'test')
 
 
 
-# From: Yin, Zhijian <zyin@bnl.gov>
-# Sent: Saturday, December 11, 2021 8:40:26 PM
-# To: Ocko, Benjamin <ocko@bnl.gov>
-# Subject: Restarting camserver and epics ioc for pilatus300k
- 
-# Here is the procedure of restarting camserver and epics-ioc
-
-# "ssh det@xf12id1-pilatus300k"  passwd: x9user
-# camserver was running in the background
-# telnet localhost 20002
-# ctrl-x should restart
-
-# after camserver screen gives you "*" prompt, exit with ctrl-] (telnet escape), and "quit"
-
-# epics-ioc can be restarted from "reboot" in css
-
-# ZY
