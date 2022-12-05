@@ -124,8 +124,8 @@ class KibronTrough(Device):
                 time.sleep(1)
                 _data = list(self.getData())
                 _area = _data[mtx.uTArea]
-                if _area < max_area * 0.25:
-                    print('Area is less than 25%.')
+                if _area < max_area * 0.15:
+                    print('Area is less than 15%.')
                     break
                 _pressure = _data[mtx.uTPressure]
                 print('Pressure is: %.2f mN/m' %_pressure)

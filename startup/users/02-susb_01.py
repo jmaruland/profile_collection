@@ -1,8 +1,7 @@
-# 9.7 keV
 
 def run1():
     # proposal_id("2022_2","310190_arjunkrishna2")
-    proposal_id("2022_3","311090_arjunkrishna")
+    proposal_id("2022_3","311090_arjunkrishna2")
 
     yield from bps.sleep(5)
     yield from shopen()
@@ -10,45 +9,49 @@ def run1():
     detector=lambda_det
 
     samp_name_dict = {
-        1: 'water_barrier_trough_with_isolation_thresh_5p5_less_atten2_ih_reverse_vg0p04', 
-        2: 'PFDA_100mMZnCl2_50ppm_1', 
-        3: 'PFOS_100mMCaCl2_50ppm_1',
+
+        1: 'PFDA_10ppm_1mMCaCl2_1', 
+        2: '100mMCaCl2_1', 
+        3: 'PFDA_DIW_10ppm_1',
         
     }
 
     sam_x2_dict ={
-     1: -20, #-66, #-68flat from -65 to -60  #-65, #-62, # (-63.5,-6.14), # front
-      #  2: -17, #-19, flat from -15 to -10 # -9, # (-9, 3.5), # middle trough
-      #  3: 33, #32 flat from 34.5 to 39.5  #42, # (38, 5.1), # back
+
+       1: -66.5,      #-66, flat from -65 to -60  #-65, #-62, # (-63.5,-6.14), # front
+       2: -15,      #-19, flat from -15 to -10 # -9, # (-9, 3.5), # middle trough
+       3:  36,    # 32 flat from 34.5 to 39.5  #42, # (38, 5.1), # back
+
     }
 
-    samp_run_dict = {
-        1: True,
+    xrr_run_dict = {
+        1: False,
         2: False,
         3: False,
     }
 
     xrf_run_dict = {
         1: False,
-        2: False,
+        2: True,
         3: False,
     }
 
-    run_cycle = 1
-    for ii in range(run_cycle):
+    for key in samp_name_dict:
+        samp_name = samp_name_dict[key]
+        samp_x2 = sam_x2_dict[key]
+        yield from bps.mv(geo.stblx2,samp_x2)  #move the  Sample Table X2 to xpos
 
-        for key in samp_name_dict:
-            if samp_run_dict[key]:
-                samp_name = samp_name_dict[key]
-                samp_x2 = sam_x2_dict[key]
-                yield from one_xrr(samp_name,samp_x2)
-                if xrf_run_dict[key]:
-                    print('Starting XRF measurement')
-                    yield from bps.mv(geo.stblx2,samp_x2-0.5)  #move the  Sample Table X2 to xpos
-                    yield from det_exposure_time_new(detector, 1.0, 1.0) # rest exposure time to 1s
-                    yield from sample_height_set_fine_o(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
-                    #yield from gisaxs_scan1(samp_name+f'_run{run}')
-                    yield from xrf_scan1(samp_name)
+        if xrr_run_dict[key]:
+            yield from det_exposure_time_new(detector, 1.0, 1.0) # rest exposure time to 1s
+            yield from bps.mv(S2.hg, 0.3)
+            yield from one_xrr(samp_name,samp_x2)
+
+        if xrf_run_dict[key]:
+            print('Starting XRF measurement')
+            yield from bps.mv(geo.stblx2,samp_x2-0.5)  #move the  Sample Table X2 to xpos
+            yield from det_exposure_time_new(detector, 1.0, 1.0) # rest exposure time to 1s
+            yield from sample_height_set_fine_o(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
+            yield from xrf_scan1(samp_name)
 
         # print("Starting incubation for 1 hour...")  
         # yield from bps.sleep(1*60*60)
@@ -119,7 +122,8 @@ def sample_height_set_fine_o(value=0,detector=lambda_det):
  #   tmp2=peaks.cen['%s_stats2_total'%detector.name]
     yield from det_exposure_time_new(detector, 1,1)
     local_peaks = PeakStats(sh.user_readback.name, '%s_stats2_total'%detector.name)
-    yield from bpp.subs_wrapper(bp.rel_scan([detector],sh,-0.10,0.10,20,per_step=shutter_flash_scan), local_peaks)
+    # yield from bpp.subs_wrapper(bp.rel_scan([detector],sh,-0.10,0.10,20,per_step=shutter_flash_scan), local_peaks)
+    yield from bpp.subs_wrapper(bp.rel_scan([detector],sh,-0.15,0.15,21,per_step=shutter_flash_scan), local_peaks)
     print("at #1")
     tmp2 = local_peaks.cen #get the height for roi2 of detector.name with max intens
     print("at #2")
@@ -131,7 +135,7 @@ def sample_height_set_fine_o(value=0,detector=lambda_det):
 def xr_scan1(name):
  
 #      9.7kev Qz to 0.65, more overlap
-#    alpha_start_list =   [ 0.04, 0.14, 0.24, 0.40,  0.65,  0.9,  1.9,  2.9]
+#    alpha_start_list =   [ 0.04, 0.14, 0.24, 0.40,  True0.65,  0.9,  1.9,  2.9]
 #   alpha_stop_list =    [ 0.18, 0.28, 0.44, 0.72,  1.05,  2.1,  3.1,  3.8]
 #    number_points_list = [    8,   8,     8,    9,    9,   13,   13,   10]
 #    auto_atten_list =    [    7,   6,     5,    4,    3,    2,    1,    0]
@@ -156,19 +160,33 @@ def xr_scan1(name):
     # x2_offset_stop_list= [    0,   0,     0,    0,     0,   0,    0,   0]
     # block_offset_list=   [    0,   0,     0,    0,     0,   0,    0,   0]
 
-        #14.4lkevev Qz to 0.65, more overlap
-    alpha_start_list =   [ 0.03, 0.12, 0.18, 0.40,  0.72,  1.3,  1.9]
-    alpha_stop_list =    [ 0.12, 0.20, 0.46, 0.80,  1.36,  2.0,  2.8]
-    number_points_list = [   10,  11,    15,   11,    9,    8,    10]
-    auto_atten_list =    [    5,   4,     3,    2,    1,    0,     0]
-    s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04, 0.04]
-    exp_time_list =      [    5,   5,     5,    5,     5,   5,     5]
-    precount_time_list=  [  0.1, 0.1,   0.1,  0.1,   0.1, 0.1,   0.1]
-    wait_time_list=      [   10,  10,    10,   10,    10,  10,    10]
-    x2_offset_start_list=[    0,   0,     0,    0,     0,   0,   0.5]
-    x2_offset_stop_list= [    0,   0,     0,    0,     0, 0.5,     2]
-    block_offset_list=   [    0,   0,     0,    0,     0,   0,     0]
+    #     #14.4lkev Qz to 0.65, more overlap
+    # alpha_start_list =   [ 0.03, 0.12, 0.18, 0.40,  0.72,  1.3,  1.9]
+    # alpha_stop_list =    [ 0.12, 0.20, 0.46, 0.80,  1.36,  2.0,  2.8]
+    # number_points_list = [   10,  11,    15,   11,    9,    8,    10]
+    # auto_atten_list =    [    5,   4,     3,    2,    1,    0,     0]
+    # s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04, 0.04]
+    # exp_time_list =      [    5,   5,     5,    5,     5,   5,     5]
+    # precount_time_list=  [  0.1, 0.1,   0.1,  0.1,   0.1, 0.1,   0.1]
+    # wait_time_list=      [   10,  10,    10,   10,    10,  10,    10]
+    # x2_offset_start_list=[    0,   0,     0,    0,     0,   0,   0.5]
+    # x2_offset_stop_list= [    0,   0,     0,    0,     0, 0.5,     2]
+    # block_offset_list=   [    0,   0,     0,    0,     0,   0,     0]
 
+
+
+    #14.4kev for running kibron, keep 1 abs
+    alpha_start_list =   [ 0.03, 0.12, 0.18, 0.40,  0.72, 1.52, 2.00]
+    alpha_stop_list =    [ 0.13, 0.22, 0.46, 0.80,  1.60, 2.08, 2.72]
+    number_points_list = [   11,   11,   15,   11,   12,     8,   10]
+    auto_atten_list =    [    6,    5,    4,    3,    2,     1,    1]
+    s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04, 0.04]
+    exp_time_list =      [    5,   5,     5,    5,     5,    5,   30]
+    precount_time_list=  [  0.2, 0.2,   0.2,  0.2,   0.2,  0.2,  0.2]
+    wait_time_list=      [   20,  20,    20,   20,    20,   20,   20]
+    x2_offset_start_list=[    0,   0,     0,    0,     0,    0,  0.6]
+    x2_offset_stop_list= [    0,   0,     0,    0,     0,  0.5,  2.0]
+    block_offset_list=   [    0,   0,     0,    0,     0,   0,     0]
 
 
 
@@ -231,13 +249,13 @@ def xrf_scan1(name):
     # x2_offset_start_list=[  0.0,  0.0,  0.0,  0.0]
     # x2_offset_stop_list= [  0.0,  0.0,  0.0,  0.0]
 
-    alpha_start_list =   [ 0.03, 0.11, 0.14, 0.25]
-    alpha_stop_list =    [ 0.10, 0.13, 0.24, 0.45]
-    number_points_list = [    8,    3,    6,    5]
-    auto_atten_list =    [    1,    1,    2,    2] 
+    alpha_start_list =   [ 0.03, 0.09, 0.14, 0.25]
+    alpha_stop_list =    [ 0.08, 0.13, 0.24, 0.45]
+    number_points_list = [    6,    5,    6,    5]
+    auto_atten_list =    [    1,    2,    2,    2] 
     s2_vg_list =         [ 0.04, 0.04, 0.04, 0.04] 
     exp_time_list =      [   20,   10,   10,   10]
-    precount_time_list=  [  0.1,  0.1,  0.1,  0.1]
+    precount_time_list=  [  0.2,  0.2,  0.2,  0.2]
     wait_time_list=      [    0,    0,    0,    0]
     x2_offset_start_list=[  0.0,  0.0,  0.0,  0.0]
     x2_offset_stop_list= [  0.0,  0.0,  0.0,  0.0]

@@ -1,6 +1,627 @@
 from pyrsistent import s
 
 
+
+def xrr_kibron():
+
+    proposal_id("2022_3","310438_satija")
+    yield from bps.sleep(5)
+    yield from shopen()
+    yield from he_on() # open the He flow
+    detector=lambda_det
+
+
+    HOST, PORT = "10.66.91.26", 9897 ## HZ
+    sock = mtx.connect(HOST, PORT)
+    device = mtx.Trough(sock)
+    kibron = KibronTrough(device, sock)
+
+    yield from bps.mv(lambda_det.oper_mode,1)
+    yield from bps.mv(lambda_det.low_thr,6.5)
+
+
+    
+    # samp_name = 'MEA19_1mMCdCl2_0p1mMNaCO3' # _80uL_0p92mgpml'
+
+    # pressure_list = [7, 14] ## no abs in high angle
+    # samp_x2_list = [-7, -14]
+
+    # pressure_list = [14, 21, 28, 35, 42] ## keep abs = 1 for high angles to minimize radiation demage
+    # samp_x2_list = [-20, -26, -32, -38, -44]
+
+    
+    # samp_name = 'MEA19_0p1mMCd_0p1mMNa_quickGID' # _80uL_0p92mgpml'
+
+    # pressure_list = [  8,  15,  22,  29,  36,  43] ## keep abs = 1 for high angles to minimize radiation demage
+    # samp_x2_list =  [-49, -40, -31, -22, -13,  -4] ## move more for fresh area
+    # samp_x2_list =  [-49, -40, -31, -22, -13,  -4] ## move more for fresh area
+
+
+    # ## Manually run pressure 3.5, 2, 1.5 1.4 at x2 = -70, -68, -66, -64
+    # ## Auto-run the next list
+    # pressure_list = list(range(3,18,3)) + list(range(20, 35, 5)) # [3, 6, 9, 12, 15, 20, 25, 30]
+    # samp_x2_list = [-62+step*2 for step in range(len(pressure_list))] # change 2mm per step
+
+
+    # pressure_list = [40]
+    # samp_x2_list = [-46]
+
+
+    # #### Night run 2022-11-29
+    # samp_name = 'MEA19_0p1mMCd_0p1mMNa_pH5p7' # _80uL_0p92mgpml'
+
+    # # pressure_list = [10]
+    # # samp_x2_list = [-68]
+
+    # pressure_list = [15, 20, 25, 30, 35, 40]
+    # samp_x2_list = [-60+step*8 for step in range(len(pressure_list))] # [-60, -52, -44, -36, -28, -20]
+
+
+    #### Run 2022-11-30
+    samp_name = 'MEA19_0p1mMCd_0p1mMNa_pH6' # _25uL_0p92mgpml, G4_medium'
+
+    # pressure_list = [5]
+    # samp_x2_list = [-72]
+
+    pressure_list = [15, 20, 25, 30, 35]
+    samp_x2_list = [-64+step*8 for step in range(len(pressure_list))]  #
+
+
+
+
+
+    xr_run = True
+    gisaxs_run = True
+
+    usekibron_gid = True
+    compress_gid = True
+
+    samp_sh_offset = None
+    sh_offset = False
+
+    slit_hg_gisaxs = [0.2]
+
+    # run_cycle = 1
+    for ii,(one_pressure, samp_x2) in enumerate(zip(pressure_list,samp_x2_list)):
+        runNum = ii+1
+
+
+        yield from bps.mv(S2.hg, 0.3)
+        yield from bps.mv(geo.stblx2,samp_x2)  #move the  Sample Table X2 to xpos
+        yield from check_ih()
+        yield from check_phi() #resets phi, the crystal deflector at mab(0,0,0)
+
+        # if sh_offset and samp_sh_offset != None:
+        #     print('Starting fast sample height set using offset position: %.2f'%samp_sh_offset)
+        #     sh.user_offset.set(samp_sh_offset)
+        #     yield from sample_height_set_fine_o(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
+        #     samp_sh_offset=sh.user_offset.value
+        #     print('Re-setting sh_offset to:', sh.user_offset.value)
+        
+        # else:
+        #     print('Starting full sample height set')
+        #     yield from sample_height_set_coarse(detector=detector) #scan the detector arm height (sh) from -1.5 to 1.5 with 41 points
+        #     yield from sample_height_set_fine_o(detector=detector) #scan the detector arm height from -0.2 to 0.2 with 21 points
+        #     samp_sh_offset=sh.user_offset.value
+        #     print('Setting sh_offset to:', sh.user_offset.value)
+
+
+        yield from sample_height_set_fine_o(detector=detector) #scan the detector arm height from -0.2 to 0.2 with 21 points
+
+        if xr_run:
+            print('Starting XRR measurement')
+            samp_name_new = samp_name+f'_pressure{one_pressure}'
+            yield from one_xrr_kibron(samp_name_new, expo_time = 5, wait_time = 20, usekibron = True, trough = kibron, compress = True, target_pressure = one_pressure)
+
+
+
+        yield from bps.mv(geo.stblx2,samp_x2+7)  #move the  Sample Table X2 to xpos
+        yield from bps.sleep(10)
+        if usekibron_gid:
+            trough = kibron
+            if compress_gid: # to use compression mode
+                target_pressure = one_pressure
+                print('Compress before the GID')
+                
+                trough.update() # to update the kibron parameters
+                if target_pressure - trough.pressure.get() > 0.5:
+                    print(f'Target pressure is {target_pressure} mN/m')
+                    print(f'Current pressure is {trough.pressure.get()} mN/m')
+                    print('Need to compress!')
+                    trough.runPressureManual(target_pressure = target_pressure, target_speed = 10)
+                    ### codes below ro do a sh alignment
+                # yield from det_exposure_time(1,1)
+                # yield from sample_height_set_fine_o(detector=lambda_det)
+
+
+        if gisaxs_run:
+            print('Starting GISAXS measurement')
+            
+            for kk,slit_hg in enumerate(slit_hg_gisaxs):
+                print('Slit horizontal gap is set to %.2f'%slit_hg)
+                yield from bps.mv(S2.hg, slit_hg)
+                # yield from bps.mv(geo.stblx2,samp_x2+7)  #move the  Sample Table X2 to xpos
+                yield from det_exposure_time_new(detector, 1.0, 1.0) # rest exposure time to 1s
+                yield from sample_height_set_fine_o(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
+                yield from gisaxs_scan1(samp_name+f'_pressure{one_pressure}')
+
+
+        # if xr_run:
+        #     print('Starting XRR measurement')
+        #     samp_name_new = samp_name+f'_pressure{one_pressure}'
+
+        #     yield from bps.mv(geo.stblx2,samp_x2+2)  #move the  Sample Table X2 to xpos
+        #     yield from det_exposure_time_new(detector, 1.0, 1.0) # rest exposure time to 1s
+        #     yield from sample_height_set_fine_o(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
+
+        #     yield from one_xrr_kibron(samp_name_new, expo_time = 5, wait_time = 10, usekibron = True, trough = kibron, compress = True, target_pressure = one_pressure)
+
+        # print("Starting incubation for 1 hour...")  
+        # yield from bps.sleep(1*60*60)
+
+    # print('Here is the sample height offsets after alignment:')
+    # print(samp_sh_offset)
+
+
+    kibron.close()
+    print('Kibron socket is closed.')
+
+
+    yield from det_exposure_time_new(detector, 1.0, 1.0) # rest exposure time to 1s
+    yield from bps.mv(geo.det_mode,1)
+    yield from mabt(0,0,0)
+
+    # yield from he_off()# stops the He flow
+    yield from shclose()
+
+
+
+def one_xrr_kibron_constantP():
+
+    '''
+    Use the constant pressure mode from the kibron (using laptop)
+    '''
+
+    proposal_id("2022_3","310438_satija")
+    yield from bps.sleep(5)
+    yield from shopen()
+    yield from he_on() # open the He flow
+    detector=lambda_det
+
+
+    HOST, PORT = "10.66.91.26", 9897 ## HZ
+    sock = mtx.connect(HOST, PORT)
+    device = mtx.Trough(sock)
+    kibron = KibronTrough(device, sock)
+
+    yield from bps.mv(lambda_det.oper_mode,1)
+    yield from bps.mv(lambda_det.low_thr,6.5)
+
+    yield from bps.mv(S2.hg, 0.3)
+
+
+    samp_name = 'MEA19_0p1mMCd_0p1mMNa_constantP40'
+    samp_x2 = -42
+
+
+
+    
+    yield from bps.mv(geo.stblx2,samp_x2)  #move the  Sample Table X2 to xpos
+    yield from det_exposure_time_new(detector, 1.0, 1.0) # rest exposure time to 1s
+    yield from sample_height_set_fine_o(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
+
+    yield from one_xrr_kibron(samp_name, expo_time = 5, wait_time = 10, usekibron = True, trough = kibron, compress = False)
+
+    kibron.close()
+    print('Kibron socket is closed.')
+
+
+    yield from det_exposure_time_new(detector, 1.0, 1.0) # rest exposure time to 1s
+    yield from bps.mv(geo.det_mode,1)
+    yield from mabt(0,0,0)
+
+    # yield from he_off()# stops the He flow
+    # yield from shclose()
+
+
+
+
+
+def one_xrr_kibron(name,expo_time = 10, wait_time = 10, usekibron = False, trough = None, compress = False, target_pressure = 0, tiltx=0, detector=lambda_det):
+   #     '''Conduct reflectivity measurments'''
+    print("file name=",name)    
+    yield from bps.mv(abs2,5)
+    yield from bps.mv(abs3,0)
+    yield from bps.mv(shutter,1) # open shutter
+
+
+    yield from xr_scan_kibron(name, 
+                expo_time = expo_time, 
+                wait_time = wait_time, 
+                usekibron = usekibron, 
+                trough = trough, 
+                compress = compress,
+                target_pressure = target_pressure, 
+                detector=detector) 
+
+    yield from bps.mv(shutter,0) # open shutter
+    yield from mabt(0.2,0.2,0)
+
+
+
+
+
+def xr_scan_kibron(name, expo_time = 10, wait_time = 10, usekibron = False, trough = None, compress = False, target_pressure = 0, detector=lambda_det):
+ 
+
+    # #14.4kev for running kibron
+    # alpha_start_list =   [ 0.03, 0.12, 0.18, 0.40,  0.72,  1.2,  1.9]
+    # alpha_stop_list =    [ 0.13, 0.22, 0.46, 0.80,  1.36,  2.0,  2.8]
+    # number_points_list = [   11,   11,   15,   11,    9,    9,    10]
+    # auto_atten_list =    [    6,    5,    4,    3,    2,    1,     0]
+    # s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04, 0.04]
+
+    # exp_time_list =      [    5,   5,     5,    5,     5,   5,     5]
+    # # exp_time_list =      [expo_time for _ in range(len(alpha_start_list))]
+
+    # precount_time_list=  [  0.2, 0.2,   0.2,  0.2,   0.2, 0.2,   0.2]
+
+    # # wait_time_list=      [   10,  10,    10,   10,    10,  10,    10]
+    # wait_time_list=      [wait_time for _ in range(len(alpha_start_list))]
+
+    # x2_offset_start_list=[    0,   0,     0,    0,     0,   0,  -0.5]
+    # x2_offset_stop_list= [    0,   0,     0,    0,     0, -0.5, -2.5]
+    # block_offset_list=   [    0,   0,     0,    0,     0,   0,     0]
+
+
+    #14.4kev for running kibron, keep 1 abs
+    alpha_start_list =   [ 0.03, 0.12, 0.18, 0.40,  0.72, 1.60,  2.08]
+    alpha_stop_list =    [ 0.13, 0.22, 0.46, 0.80,  1.60, 2.08,  2.78]
+    number_points_list = [   11,   11,   15,   11,   12,     7,    8]
+    auto_atten_list =    [    6,    5,    4,    3,    2,     1,    1]
+    s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04, 0.04]
+
+    exp_time_list =      [    5,   5,     5,    5,     5,   5,    30]
+    # exp_time_list =      [expo_time for _ in range(len(alpha_start_list))]
+
+    precount_time_list=  [  0.2, 0.2,   0.2,  0.2,   0.2, 0.2,   0.2]
+
+    # wait_time_list=      [   10,  10,    10,   10,    10,  10,    10]
+    wait_time_list=      [wait_time for _ in range(len(alpha_start_list))]
+
+    x2_offset_start_list=[    0,   0,     0,    0,     0,   0,     3]
+    x2_offset_stop_list= [    0,   0,     0,    0,     0,   3,     6]
+    block_offset_list=   [    0,   0,     0,    0,     0,   0,     0]
+
+
+
+
+    # #14.4kev for test
+    # alpha_start_list =   [ 0.12, 0.18, ]
+    # alpha_stop_list =    [ 0.12, 0.18, ]
+    # number_points_list = [    5,    5, ]
+    # auto_atten_list =    [    5,    4, ]
+
+    # s2_vg_list =         [ 0.04, 0.04, ]
+    # # exp_time_list =      [   5,     5]
+    # exp_time_list =      [expo_time for _ in range(len(alpha_start_list))]
+    
+    # precount_time_list=  [  0.2,   0.2, ]
+    # # wait_time_list=      [   10,  10,    10,   10,    10,  10,    10]
+    # wait_time_list=      [wait_time for _ in range(len(alpha_start_list))]
+
+    # x2_offset_start_list=[    0,     0, ]
+    # x2_offset_stop_list= [    0,     0, ]
+    # block_offset_list=   [    0,     0, ]
+
+
+
+    scan_p={"start":alpha_start_list,
+        "stop":alpha_stop_list,
+        "n":number_points_list,
+        "atten":auto_atten_list,
+        "s2vg":s2_vg_list,
+        "exp_time":exp_time_list,
+        "pre_time":precount_time_list,
+        "wait_time":wait_time_list,
+        "x2_offset_start":x2_offset_start_list,
+        "x2_offset_stop":x2_offset_stop_list,
+        "beam_block_offset":block_offset_list}
+
+
+    print(scan_p)
+    yield from bps.mv(geo.det_mode,1)
+    yield from reflection_scan_full_kibron(scan_param=scan_p, 
+        usekibron = usekibron, 
+        trough = trough, 
+        compress = compress,
+        target_pressure = target_pressure, 
+        detector=detector, 
+        md={'sample_name': name},
+
+        tilt_stage=False,)
+
+
+
+def reflection_scan_full_kibron(scan_param, md=None, detector=lambda_det, tilt_stage=False, stth_corr_par=None, usekibron = False, trough = None, compress = False, target_pressure=0):
+    """
+    Macros to set all the parameters in order to record all the required information for further analysis,
+    such as the attenuation factors, detector='lambda_det'
+    :param detector: A string which is the detector name
+    :type detector: string, can be either 'lambda_det' or 'pilatus100k'
+    """
+    # Tom's way of checking to see if all lists are the same length
+    N = None
+    for k, v in scan_param.items():
+        if N is None:
+            N = len(v)
+        if N != len(v):
+            raise ValueError(f"the key {k} is length {len(v)}, expected {N}")
+
+    unhinted_ref() ## change all hinted settings to 'normal'
+    
+ #XF:12ID1-ES{Det:Lambda}ROI1:MinX
+    # Bluesky command to record metadata
+    base_md = {'plan_name': 'reflection_scan',
+               'cycle': RE.md['cycle'],
+               'proposal_number': RE.md['proposal_number'] + '_' + RE.md['main_proposer'],
+               'detector': detector.name, 
+               'energy': energy.energy.position,
+               'rois': [detector.roi1.min_xyz.min_x.get(),
+                        detector.roi1.min_xyz.min_y.get(),
+                        detector.roi2.min_xyz.min_y.get(),
+                        detector.roi3.min_xyz.min_y.get(),
+                        detector.roi2.size.x.get(),
+                        detector.roi2.size.y.get()],
+               'geo_param': [geo.L1.get(), geo.L2.get(), geo.L3.get(), geo.L4.get()],
+               'slit_s1': [S1.top.position - S1.bottom.position, S1.outb.position - S1.inb.position],
+               'slit_s2': [S2.vg.position, S2.hg.position],
+               'x2': [geo.stblx2.position],
+               'tilt stage': tilt_stage,
+               }
+    base_md.update(md or {})
+    global attenuation_factor_signal, exposure_time, attenuator_name_signal, default_attenuation
+    attenuator_name_signal = Signal(name='attenuator_name', value='abs1',kind='normal')
+    attenuation_factor_signal = Signal(name='attenuation', value=1e-7,kind='normal')
+    exposure_time = Signal(name='exposure_time', value=1)
+    default_attenuation = Signal(name='default-attenuation', value=1e-7)
+    # Disable the plot during the reflectivity scan
+    bec.disable_plots()
+    # Bluesky command to start the document
+    # moved this line so we get a single UID per sub-scan
+    # yield from bps.open_run(md=base_md)
+    x2_nominal= geo.stblx2.position
+    blocky_nominal= block.y.position ## add blocky pos (HZ, 06102022)
+
+    sample_name = md['sample_name']
+    for i in range(N):
+        if usekibron:
+            if trough is None:
+                print('Trough is not defined; it should be set to Kibron.')
+                raise ValueError('Trough is not defined!')
+            else:
+                if compress: # to use compression mode
+                    trough.update() # to update the kibron parameters
+                    if target_pressure - trough.pressure.get() > 0.5:
+                        print(f'Target pressure is {target_pressure} mN/m')
+                        print(f'Current pressure is {trough.pressure.get()} mN/m')
+                        print('Need to compress!')
+                        trough.runPressureManual(target_pressure = target_pressure, target_speed = 10)
+
+                        ### codes below ro do a sh alignment
+                        yield from det_exposure_time(1,1)
+                        yield from sample_height_set_fine_o(detector=lambda_det)
+
+                        alpha_start = scan_param['start'][0]
+                        yield from mabt(alpha_start, alpha_start, 0)
+                        yield from bps.sleep(5)
+
+        print('%sst set starting'%i)
+        md={'sample_name': sample_name,
+            'sample_name_scan': sample_name +f'_scan{i}'}
+        base_md.update(md or {})
+        yield from bps.open_run(md=base_md)
+        yield from bps.sleep(3) 
+  #      print(scan_param)
+        yield from reflection_scan(scan_param,i, detector=detector, md=md, tilt_stage=tilt_stage, usekibron = usekibron, trough = trough, compress = False, target_pressure=target_pressure, x2_nominal=x2_nominal,blocky_nominal=blocky_nominal)                      
+        yield from bps.close_run()
+        print('%sst set done'%i)
+
+
+    # Bluesky command to stop recording metadata
+    #moved this to inside the loop
+    # yield from bps.close_run()
+    bec.enable_plots()
+    # puts in absorber to protect the detctor      
+    yield from bps.mv(abs2, 5)
+    quadem.averaging_time.put(1)
+    print('The reflectivity scan is over')
+    hinted_ref() ## change hinted settings
+
+
+
+
+
+
+def run_kibron_compress(target_pressure=10):
+
+    HOST, PORT = "10.66.91.26", 9897 ## HZ
+    sock = mtx.connect(HOST, PORT)
+    device = mtx.Trough(sock)
+    kibron = KibronTrough(device, sock)
+    kibron.runPressureManual(target_pressure=target_pressure, target_speed = 20)
+    kibron.close()
+
+
+def stop_kibron():
+    HOST, PORT = "10.66.91.26", 9897 ## HZ
+    sock = mtx.connect(HOST, PORT)
+    device = mtx.Trough(sock)
+    kibron = KibronTrough(device, sock)
+    kibron.device.call("StepStop")
+    kibron.device.call("StopMeasure")
+    kibron.close()
+
+def test_kibron():
+
+    HOST, PORT = "10.66.91.26", 9897 ## HZ
+    sock = mtx.connect(HOST, PORT)
+    device = mtx.Trough(sock)
+    kibron = KibronTrough(device, sock)
+
+    # Bluesky command to start the document
+    base_md = {'plan_name': 'kibron'}
+    yield from bps.open_run(md=base_md)
+    yield from bps.trigger_and_read([kibron], name='primary')
+    yield from bps.close_run()
+    kibron.close()
+
+
+
+def run_nist():
+
+    proposal_id("2022_3","310438_satija")
+    yield from bps.sleep(5)
+    yield from shopen()
+    yield from he_on() # open the He flow
+    detector=lambda_det
+
+
+    yield from bps.mv(lambda_det.oper_mode,1)
+    yield from bps.mv(lambda_det.low_thr,6.5)
+
+
+    #### Run 2022-11-30
+    # samp_name = 'MEA19_0p1mMCd_0p1mMNa_pH6' # _25uL_0p92mgpml, G4_medium'
+
+    # pressure_list = [5]
+    # samp_x2_list = [-72]
+
+    # pressure_list = [15, 20, 25, 30, 35]
+    # samp_x2_list = [-64+step*8 for step in range(len(pressure_list))]  #
+
+    # pressure_list = [15]
+    # samp_x2_list = [-64] 
+
+    # pressure_list = [20]
+    # samp_x2_list = [-56] 
+
+    # pressure_list = [25]
+    # samp_x2_list = [-48] 
+
+    # pressure_list = [30]
+    # samp_x2_list = [-40] 
+
+    #### 2022-12-01, night run
+    samp_name = 'MEA19_0p1mMCd_10mMPB_pH6' # _25uL_0p92mgpml, G4_medium'
+
+    # pressure_list = [7] # without compression
+    # samp_x2_list = [-74] 
+
+    pressure_list = [20,  20,  20,  20] # constant pressure
+    samp_x2_list = [-64, -56, -48, -40] 
+
+
+
+    xr_run = True
+    gisaxs_run = True
+
+    slit_hg_gisaxs = [0.2]
+
+    # run_cycle = 1
+    for ii,(one_pressure, samp_x2) in enumerate(zip(pressure_list,samp_x2_list)):
+        runNum = ii+1
+
+
+        yield from bps.mv(S2.hg, 0.3)
+        yield from bps.mv(geo.stblx2,samp_x2)  #move the  Sample Table X2 to xpos
+        yield from check_ih()
+        yield from check_phi() #resets phi, the crystal deflector at mab(0,0,0)
+
+        yield from sample_height_set_fine_o(detector=detector) #scan the detector arm height from -0.2 to 0.2 with 21 points
+
+        if xr_run:
+            print('Starting XRR measurement')
+            samp_name_new = samp_name+f'_pressure{one_pressure}'
+            yield from xr_scan_plain(samp_name_new, wait_time = 25)
+
+
+        if gisaxs_run:
+            print('Starting GISAXS measurement')
+            
+            for kk,slit_hg in enumerate(slit_hg_gisaxs):
+                print('Slit horizontal gap is set to %.2f'%slit_hg)
+                yield from bps.mv(S2.hg, slit_hg)
+                yield from bps.mv(geo.stblx2,samp_x2+7)  #move the  Sample Table X2 to xpos
+                yield from bps.sleep(3)
+                yield from det_exposure_time_new(detector, 1.0, 1.0) # rest exposure time to 1s
+                yield from sample_height_set_fine_o(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
+                yield from gisaxs_scan1(samp_name+f'_pressure{one_pressure}')
+
+
+
+    yield from det_exposure_time_new(detector, 1.0, 1.0) # rest exposure time to 1s
+    yield from bps.mv(geo.det_mode,1)
+    yield from mabt(0,0,0)
+
+    # yield from he_off()# stops the He flow
+    yield from shclose()
+
+
+
+
+def xr_scan_plain(name, wait_time = 10, detector=lambda_det):
+ 
+
+    #14.4kev for running kibron, keep 1 abs
+    alpha_start_list =   [ 0.03, 0.12, 0.18, 0.40,  0.72, 1.60,  2.08]
+    alpha_stop_list =    [ 0.13, 0.22, 0.46, 0.80,  1.60, 2.08,  2.78]
+    number_points_list = [   11,   11,   15,   11,   12,     7,    8]
+    auto_atten_list =    [    6,    5,    4,    3,    2,     1,    1]
+    s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04, 0.04]
+
+    exp_time_list =      [    5,   5,     5,    5,     5,   5,    30]
+    # exp_time_list =      [expo_time for _ in range(len(alpha_start_list))]
+
+    precount_time_list=  [  0.2, 0.2,   0.2,  0.2,   0.2, 0.2,   0.2]
+
+    # wait_time_list=      [   10,  10,    10,   10,    10,  10,    10]
+    wait_time_list=      [wait_time for _ in range(len(alpha_start_list))]
+
+    x2_offset_start_list=[    0,   0,     0,    0,     0,   0,     3]
+    x2_offset_stop_list= [    0,   0,     0,    0,     0,   3,     6]
+    block_offset_list=   [    0,   0,     0,    0,     0,   0,     0]
+
+
+
+
+
+
+    scan_p={"start":alpha_start_list,
+        "stop":alpha_stop_list,
+        "n":number_points_list,
+        "atten":auto_atten_list,
+        "s2vg":s2_vg_list,
+        "exp_time":exp_time_list,
+        "pre_time":precount_time_list,
+        "wait_time":wait_time_list,
+        "x2_offset_start":x2_offset_start_list,
+        "x2_offset_stop":x2_offset_stop_list,
+        "beam_block_offset":block_offset_list}
+
+
+    print(scan_p)
+    yield from bps.mv(geo.det_mode,1)
+    yield from reflection_scan_full(scan_param=scan_p,
+        md={'sample_name': name},
+        detector=detector, 
+        tilt_stage=False,)
+
+
+
+
+
+
 #a comment goes here  test and again
 def ocko_1():
     yield from bps.mv(lambda_det.oper_mode,1)
@@ -356,7 +977,7 @@ def sample_height_set_fine_o(value=0,detector=lambda_det):
  #   tmp2=peaks.cen['%s_stats2_total'%detector.name]
     yield from det_exposure_time_new(detector, 1,1)
     local_peaks = PeakStats(sh.user_readback.name, '%s_stats2_total'%detector.name)
-    yield from bpp.subs_wrapper(bp.rel_scan([detector],sh,-0.1,0.1,20,per_step=shutter_flash_scan), local_peaks)
+    yield from bpp.subs_wrapper(bp.rel_scan([detector],sh,-0.15,0.15,21,per_step=shutter_flash_scan), local_peaks)
     print("at #1")
     tmp2 = local_peaks.cen #get the height for roi2 of detector.name with max intens
     print("at #2")
@@ -690,8 +1311,8 @@ def gid_direct(name):
     x2_offset_list          = [0, 0]
     atten_2_list            = [3, 3]
     wait_time_list          = [1, 1]
-    beam_stop_x             = [0, 0]
-    beam_stop_y             = [0, 0]
+    beam_stop_x             = [-63.8,-63.8]
+    beam_stop_y             = [10,10]
 
 
     scan_dict={"det_saxs_y":det_saxs_y_list,
@@ -708,7 +1329,7 @@ def gid_direct(name):
 #mode 3 is for GID with no beam stop, mode 2 is for GID mode with the beam stop
     yield from bps.mv(geo.det_mode,2)
     yield from bps.mv(geo.sh,-1)
-    yield from bps.mv(fp_saxs.y1,11,fp_saxs.y2,22)
+    yield from bps.mv(fp_saxs.y1,20,fp_saxs.y2,40)
     print("calling GID_stitch")
     yield from gid_scan_stitch(scan_dict,
                                 md={'sample_name': name}, 
@@ -758,13 +1379,12 @@ def gisaxs_scan1(name):
     det_saxs_y_list         = [0,0,30]
     det_saxs_y_offset_list  = [0,1,0]
     stth_list               = [0,0,0]
-    exp_time_list           = [10,10,10] # [20,20]
-    x2_offset_list          = [-0.4,0.4,-0.4]
-    atten_2_list            = [1,1,1]
+    exp_time_list           = [5,5,5] # [20,20]
+    x2_offset_list          = [-0.4,0,0.4]
+    atten_2_list            = [0,0,0]
     wait_time_list          = [5,5,5]
-    beam_stop_x             = [0,0,0]
-    # beam_stop_y             = [-20,-20]
-    beam_stop_y             = [0,0,0]
+    beam_stop_x             = [-64,-64,-64]
+    beam_stop_y             = [20,20,20]
 
 
     scan_dict={"det_saxs_y":det_saxs_y_list,
@@ -781,11 +1401,12 @@ def gisaxs_scan1(name):
 #mode 3 is for GID with no beam stop, mode 2 is for GID mode with the beam stop
     yield from bps.mv(geo.det_mode,2)
     # yield from beta_gid(2.3,0)
-    yield from bps.mv(fp_saxs.y1,11,fp_saxs.y2,22)
+    yield from bps.mv(fp_saxs.y1,20,fp_saxs.y2,40)
     print("calling GID_stitch")
     yield from gid_scan_stitch(scan_dict,
                                 md={'sample_name': name}, 
                                 detector = pilatus300k,
-                                alphai = 0.1)
+                                alphai = 0.06)
 
     yield from bps.mv(abs2,5)
+
