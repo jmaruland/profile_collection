@@ -41,7 +41,7 @@ def run1():
     for key in samp_name_dict:
         samp_name = samp_name_dict[key]
         samp_x2 = sam_x2_dict[key]
-        print(f'Now running sample: {samp_name}')
+        print(f'Now start running sample: {samp_name}')
         yield from bps.mv(geo.stblx2,samp_x2)  #move the  Sample Table X2 to xpos
 
         if xrr_run_dict[key]:
