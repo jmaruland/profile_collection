@@ -1,4 +1,4 @@
-def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=False, stth_corr_par=None, usekibron = False):
+def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=False, stth_corr_par=None, usekibron = False, trough = None, compress = False, target_pressure=0):
     """
     Macros to set all the parameters in order to record all the required information for further analysis,
     such as the attenuation factors, detector='lambda_det'
@@ -12,20 +12,7 @@ def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=Fa
             N = len(v)
         if N != len(v):
             raise ValueError(f"the key {k} is length {len(v)}, expected {N}")
-    # geo.th.user_readback.kind = 'normal'
-    # geo.phi.user_readback.kind = 'normal'
-    # geo.phix.user_readback.kind = 'normal'
-    # geo.ih.user_readback.kind = 'normal'
-    # geo.ia.user_readback.kind = 'normal'
-    # geo.sh.user_readback.kind = 'normal'
-    # geo.oh.user_readback.kind = 'normal'
-    # geo.oa.user_readback.kind = 'normal'
-    # geo.astth.user_readback.kind = 'normal'
-    # geo.stblx.user_readback.kind = 'normal'
-    # geo.oa.user_readback.kind = 'normal'
-    # geo.tth.user_readback.kind = 'normal'
-    # geo.chi.user_readback.kind = 'normal'
-    # geo.astth.user_readback.kind = 'normal'
+
     unhinted_ref() ## change all hinted settings to 'normal'
     
  #XF:12ID1-ES{Det:Lambda}ROI1:MinX
@@ -66,7 +53,7 @@ def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=Fa
         print('%sst set starting'%i)
         yield from bps.sleep(3) 
   #      print(scan_param)
-        yield from reflection_scan(scan_param,i, detector=detector, md=md, tilt_stage=tilt_stage, usekibron = usekibron, x2_nominal=x2_nominal,blocky_nominal=blocky_nominal)                      
+        yield from reflection_scan(scan_param,i, detector=detector, md=md, tilt_stage=tilt_stage, usekibron = usekibron, trough = trough, compress = compress, target_pressure=target_pressure, x2_nominal=x2_nominal,blocky_nominal=blocky_nominal)                      
         print('%sst set done'%i)
         # yield from bps.close_run()
 
@@ -77,14 +64,17 @@ def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=Fa
     bec.enable_plots()
     # puts in absorber to protect the detctor      
     yield from bps.mv(abs2, 5)
+    quadem.averaging_time.put(1)
     print('The reflectivity scan is over')
     hinted_ref() ## change hinted settings
+
 print(f'Loading {__file__}')
 all_area_dets = [quadem, lambda_det, AD1, AD2, o2_per]
 
- 
+
+
 @bpp.stage_decorator(all_area_dets)
-def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False,x2_nominal=0,blocky_nominal=0, usekibron = False):
+def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False,x2_nominal=0,blocky_nominal=0, usekibron = False, trough = None, compress = False, target_pressure=0):
         
     alpha_start =   scan_param["start"][i]
     alpha_stop =    scan_param["stop"][i]
@@ -97,6 +87,8 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
     x2_offset_start =     scan_param["x2_offset_start"][i]
     x2_offset_stop =     scan_param["x2_offset_stop"][i]
     block_offset   =     scan_param["beam_block_offset"][i]
+
+
 
 # setting up so that if alpha is moved negative that there is an extra wait
     alpha_old=5
@@ -128,6 +120,8 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
         x2_fraction =fraction*(x2_offset_stop-x2_offset_start) + x2_offset_start ## Need to add x2_offset_start (HZ)
         # Set the exposure time to the define exp_time for the measurement
         yield from det_exposure_time(exp_time, exp_time)
+        # yield from det_exposure_time_quadem(exp_time) ## Set quadem averaging time
+
         yield from bps.mv(exposure_time, exp_time)
         yield from bps.mv(S2.vg,s2_vg)
         if abs(x2_fraction)>0:
@@ -182,21 +176,69 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
     #    yield from bps.sleep(2)
         yield from det_exposure_time(1,1)
         yield from bps.mv(exposure_time, 1)
-    #    yield from bps.trigger_and_read([quadem], name='precount')
+        quadem.averaging_time.put(precount_time)
+        yield from bps.trigger_and_read([quadem], name='precount')
+        quadem.averaging_time.put(exp_time)
         yield from det_exposure_time(exp_time, exp_time)
         yield from bps.mv(exposure_time, exp_time)
 
         if usekibron:
-            kibron.update() # to update the kibron parameters
+            if trough is None:
+                print('Trough is not defined; it should be set to Kibron.')
+                raise ValueError('Trough is not defined!')
+            else:
+                if compress: # to use compression mode
+                    trough.update() # to update the kibron parameters
+                    if target_pressure - trough.pressure.get() > 0.5:
+                        print(f'Target pressure is {target_pressure} mN/m')
+                        print(f'Current pressure is {trough.pressure.get()} mN/m')
+                        print('Need to compress!')
+                        trough.runPressureManual(target_pressure = target_pressure, target_speed = 10)
+
+
+                        #### codes below does not work due to opening a new run
+
+                        # yield from bps.unstage(lambda_det)
+                        # yield from det_exposure_time(1,1)
+                        # yield from sample_height_set_fine_o(detector=lambda_det)
+                        # yield from bps.stage(lambda_det)
+                        # yield from mabt(alpha, alpha, 0)
+                        # yield from bps.sleep(wait_time)
+
+
+            yield from bps.mv(shutter, 1)
+            yield from det_exposure_time(1,1)
+            yield from bps.mv(exposure_time, 1)
+            quadem.averaging_time.put(precount_time)
+            yield from bps.trigger_and_read([quadem], name='precount')
+            quadem.averaging_time.put(exp_time)
+            yield from det_exposure_time(exp_time, exp_time)
+            yield from bps.mv(exposure_time, exp_time)
+            
+            trough.update() # to update the kibron parameters
+            yield from bps.sleep(2) 
+
             yield from bps.trigger_and_read(all_area_dets +
-                                [kibron] + 
+                                [trough] + 
                                 [geo] + 
                                 [S2] +
                                 [attenuation_factor_signal] +
                                 [attenuator_name_signal] +
                                 [exposure_time],
                                 name='primary')
-        else:
+        
+        
+        else: ## Normal mode without kibron trough
+
+            yield from bps.mv(shutter, 1)
+            yield from det_exposure_time(1,1)
+            yield from bps.mv(exposure_time, 1)
+            quadem.averaging_time.put(precount_time)
+            yield from bps.trigger_and_read([quadem], name='precount')
+            quadem.averaging_time.put(exp_time)
+            yield from det_exposure_time(exp_time, exp_time)
+            yield from bps.mv(exposure_time, exp_time)
+
             yield from bps.trigger_and_read(all_area_dets +
                                             [geo] + 
                                             [S2] +
@@ -204,6 +246,7 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
                                             [attenuator_name_signal] +
                                             [exposure_time],
                                             name='primary')
+        
         yield from bps.mv(shutter, 0)
         
     

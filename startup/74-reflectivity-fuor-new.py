@@ -78,6 +78,8 @@ def reflection_fluorescence_scan_full(scan_param, md=None, detector=xs, tilt_sta
     yield from bps.mv(abs2, 5)
     print('The reflectivity_fluorescence scan is over')
     hinted_ref() ## change hinted settings
+
+quadem.averaging_time.put(1)
 print(f'Loading {__file__}')
 all_area_dets_fluo = [saturate, quadem, xs, AD1, AD2, o2_per]
 # all_area_dets_fluo = [quadem, AD1, AD2, o2_per]
@@ -112,7 +114,9 @@ def reflection_fluorescence_scan(scan_param, i, detector='xs', md={}, tilt_stage
         fraction  = (alpha-alpha_start)/(alpha_stop-alpha_start)
         x2_fraction =fraction*(x2_offset_stop-x2_offset_start)
         # Set the exposure time to the define exp_time for the measuarement
-        xs.settings.acquire_time.set(exp_time)
+        xs.settings.acquire_time.put(exp_time)
+        quadem.averaging_time.put(exp_time)
+        #yield from det_exposure_time_quadem(exp_time)
         yield from det_exposure_time(exp_time, exp_time)
         yield from bps.mv(exposure_time, exp_time)
         yield from bps.mv(S2.vg,s2_vg)
@@ -132,8 +136,16 @@ def reflection_fluorescence_scan(scan_param, i, detector='xs', md={}, tilt_stage
         #     yield from bps.sleep(wait_time)
         #     print("finished dummy count")
 
+
+
+
         yield from bps.mv(shutter, 1)
         yield from bps.sleep(1)
+
+        quadem.averaging_time.put(precount_time)
+        yield from bps.trigger_and_read([quadem], name='precount')
+        quadem.averaging_time.put(exp_time)
+
         yield from bps.trigger_and_read(
                                         all_area_dets_fluo +
                                         [geo] + 

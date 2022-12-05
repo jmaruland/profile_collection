@@ -52,14 +52,20 @@ import functools
 def shutter_flash_scan(*args, **kwargs):
     def cleanup_plan():
         yield from bps.mov(shutter, 0)
-        yield from bps.sleep(.2)
+        yield from bps.sleep(0.2)
 
     def collect_plan(detectors, step, pos_cache):
         motors = step.keys()
         yield from move_per_step(step, pos_cache)
         yield from bps.mov(shutter, 1)
-        yield from bps.sleep(.2)
+        yield from bps.sleep(0.2)
+        # quadem.averaging_time.put(0.2)
+        # yield from trigger_and_read(list(detectors) + list(motors))
+        # quadem.averaging_time.put(1.0)
+ #       yield from trigger_and_read([quadem], name='precount')
+ #       quadem.averaging_time.put(lambda_det.cam.acquire_time.get())
         yield from trigger_and_read(list(detectors) + list(motors))
+
 #       test.value=np.random.randint(10)+ lambda_det.stats4.total.get()-0.5(lambda_det.stats1.total.get()+lambda_det.stats3.total.get())
 #       diff_sig=Signal(name="Subracted",value=17,kind='hinted')
       #  diff_sig.value=lambda_det.stats4.total.get()-0.5*(lambda_det.stats1.total.get()+lambda_det.stats3.total.get())
