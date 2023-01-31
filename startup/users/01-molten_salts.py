@@ -1,3 +1,22 @@
+proposal_id("2022_3","309773_ocko")
+
+def nab(alpha_0,beta_0, ssth_corr_par=-0.017):
+
+    """
+    Args:
+        ssth_corr_par (float): parameter for stth (sample two
+                               theta correction)
+    """
+    stth_corr = (ssth_corr_par)*pow(np.abs(alpha_0),1)
+    # print(stth_corr)
+    if alpha_0 > 0:
+        yield from nabt(alpha_0,beta_0,stth_corr)
+    else:
+        yield from nabt(alpha_0,beta_0,-1*stth_corr)
+
+
+
+
 def ms_all():
     yield from ms_1()
     yield from ms_2()
@@ -24,6 +43,7 @@ def one_xrr1(name,xpos,tiltx=0,detector=lambda_det):
     yield from bps.mv(geo.stblx2,xpos)  #move the  Sample Table X2 to xpos
     yield from bps.mv(shutter,1) # open shutter
     yield from sample_height_set_fine_ms(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
+    yield from sample_tilt_set()
     yield from xr_scan1(name)
     yield from bps.mv(shutter,0) # open shutter
     yield from nabt(0.5,0.5,0)
@@ -37,16 +57,17 @@ def one_xrr2(name,xpos,tiltx=0,detector=lambda_det):
     yield from bps.mv(geo.stblx2,xpos)  #move the  Sample Table X2 to xpos
     yield from bps.mv(shutter,1) # open shutter
     yield from sample_height_set_fine_ms(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
+    yield from sample_tilt_set()
     yield from xr_scan2(name)
     yield from bps.mv(shutter,0) # open shutter
-    yield from nabt(0.2,0.2,0)
+    yield from nabt(-0.2,-0.2,0)
 
 
 def sample_height_set_fine_ms(value=0,detector=lambda_det):
     geo.sh.user_readback.kind = 'hinted'
     yield from bps.mv(geo.det_mode,1)
     yield from bps.mv(abs2,3)
-    yield from nab(0.3,0.3)
+    yield from nab(-0.3,-0.3)
     print('Start the height scan before XR')
     Msg('reset_settle_time', sh.settle_time, value)
     yield from det_exposure_time_new(detector, 1,1)
@@ -57,32 +78,33 @@ def sample_height_set_fine_ms(value=0,detector=lambda_det):
     yield from set_sh(0)
     Msg('reset_settle_time', sh.settle_time, 0)
 
-def nab(alpha_0,beta_0, ssth_corr_par=-0.058):
-    print("test")
-    """
-    Args:
-        ssth_corr_par (float): parameter for stth (sample two
-                               theta correction)
-    """
-    stth_corr = (ssth_corr_par)*pow(np.abs(alpha_0),1)
-    # print(stth_corr)
-    if alpha_0 > 0:
-        yield from nabt(alpha_0,beta_0,stth_corr)
-    else:
-        yield from nabt(alpha_0,beta_0,-1*stth_corr)
+def sample_tilt_set(value=0,detector=lambda_det):
+    tilt.y.user_readback.kind = 'hinted'
+    yield from bps.mv(geo.det_mode,1)
+    yield from bps.mv(abs2,3)
+    yield from nab(-0.2,-0.2)
+    print('Start the height scan before XR')
+    Msg('reset_settle_time', tilt.y.settle_time, value)
+    yield from det_exposure_time_new(detector, 1,1)
+    local_peaks = PeakStats(tilt.y.user_readback.name, '%s_stats2_total'%detector.name)
+    yield from bpp.subs_wrapper(bp.rel_scan([detector],tilt.y,-0.07,0.07,29,per_step=shutter_flash_scan), local_peaks)
+    tmp2 = local_peaks.cen #get the height for roi2 of detector.name with max intens
+    yield from bps.mv(tilt.y,tmp2)
+    yield from set_tilty(-0.2)
+    Msg('reset_settle_time', sh.settle_time, 0)
+
 
 
 
 def xr_scan1(name):
-    #9.7kev
     alpha_start_list =   [ 0.05, 0.15, 0.25, 0.50,  1.0,  2.0,  3.0]
-    alpha_stop_list =    [ 0.15, 0.25, 0.50, 1.00,  2.0,  3.0,  4.6]
-    number_points_list = [    6,    6,    6,    6,    6,   13,   17]
+    alpha_stop_list =    [ 0.15, 0.25, 0.50, 1.00,  2.0,  3.0,  5.0]
+    number_points_list = [    6,    6,    6,    6,    7,   13,   15]
     auto_atten_list =    [    4,    3,    2,    1,    0,    0,    0] 
     s2_vg_list =         [ 0.04, 0.04,0.04,  0.04, 0.04, 0.04, 0.04] 
-    exp_time_list =      [   2,   2,     2,    2,     2,   20,   40]
-    precount_time_list=  [  0.1, 0.1,  0.1,   0.1,  0.1,  0.1,  0.1]
-    wait_time_list=      [    2,   2,    2,     2,    2,   2,    2 ]
+    exp_time_list =      [   5,   5,     5,    5,     5,   20,   40]
+    precount_time_list=  [  0.2, 0.2,  0.2,   0.2,  0.2,  0.2,  0.2]
+    wait_time_list=      [    4,   4,    4,     4,    4,   4,    4 ]
     x2_offset_start_list=[    0,   0,    0,     0,    0,   0,    0 ]
     x2_offset_stop_list= [    0,   0,    0,     0,    0,   0,    0 ]
     block_offset_list=   [    0,   0,    0,     0,    0,   0,    0 ]
@@ -111,15 +133,14 @@ def xr_scan1(name):
 
 
 def xr_scan2(name):
-    #9.7kev
     alpha_start_list =   [ -0.05, -0.15, -0.25, -0.50,  -1.0,  -2.0,  -3.0]
-    alpha_stop_list =    [ -0.15, -0.25, -0.50, -1.00,  -2.0,  -3.0,  -4.0]
-    number_points_list = [    6,    6,    6,    6,    6,    6,    6]
+    alpha_stop_list =    [ -0.15, -0.25, -0.50, -1.00,  -2.0,  -3.0,  -5.0]
+    number_points_list = [    6,    6,    6,    6,    7,   13,   15]
     auto_atten_list =    [    4,    3,    2,    1,    0,    0,    0] 
     s2_vg_list =         [ 0.04, 0.04,0.04,  0.04, 0.04, 0.04, 0.04] 
-    exp_time_list =      [   10,   10,  10,    10,   10,   30,    30]
-    precount_time_list=  [  0.1, 0.1,  0.1,   0.1,  0.1,  0.1,  0.1]
-    wait_time_list=      [    0,   0,    0,     0,    0,   0,    0 ]
+    exp_time_list =      [   5,   5,     5,    5,     5,   10,   20]
+    precount_time_list=  [  0.2, 0.2,  0.2,   0.2,  0.2,  0.2,  0.2]
+    wait_time_list=      [    3,   3,    3,     3,    3,   3,    3 ]
     x2_offset_start_list=[    0,   0,    0,     0,    0,   0,    0 ]
     x2_offset_stop_list= [    0,   0,    0,     0,    0,   0,    0 ]
     block_offset_list=   [    0,   0,    0,     0,    0,   0,    0 ]
