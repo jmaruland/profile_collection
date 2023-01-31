@@ -159,10 +159,11 @@ class OPLSXspress3Detector(XspressTriggerFlyable, Xspress3Detector):
     #     write_path_template="/nsls2/xf12id1/data/xpress3/%Y/%m/%d/",
 
 
-        read_path_template="/nsls2/xf12id1g/data/xpress3/%Y/%m/%d/",
-        write_path_template="/nsls2/xf12id1g/data/xpress3/%Y/%m/%d/",
+        read_path_template="/nsls2/data/smi/legacy/xf12id1/data/xpress3/%Y/%m/%d/",
+        write_path_template="/nsls2/data/smi/legacy/xf12id1/data/xpress3/%Y/%m/%d/",
 
-        root="/",
+        # root="/",
+        root='/nsls2/data/smi/legacy/xf12id1/data',
     #    root="/home/xspress3/data",
     )
 

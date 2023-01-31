@@ -132,9 +132,10 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
         if x2_offset_stop != x2_offset_start: 
             yield from bps.sleep(2) # sleep every time after x2 move (HZ)
         yield from bps.sleep(wait_time)    
-        if alpha <= alpha_old:
-            yield from bps.sleep(10) 
-            print("wating an extra 10 sec")  
+        # REMOVED FOR MOLTEN SALTS
+        #if alpha <= alpha_old:
+        #    yield from bps.sleep(10) 
+        #    print("wating an extra 10 sec")  
         alpha_old =alpha
 
 

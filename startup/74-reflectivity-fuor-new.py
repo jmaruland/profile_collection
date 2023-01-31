@@ -79,7 +79,8 @@ def reflection_fluorescence_scan_full(scan_param, md=None, detector=xs, tilt_sta
     print('The reflectivity_fluorescence scan is over')
     hinted_ref() ## change hinted settings
 
-quadem.averaging_time.put(1)
+    quadem.averaging_time.put(1)
+    
 print(f'Loading {__file__}')
 all_area_dets_fluo = [saturate, quadem, xs, AD1, AD2, o2_per]
 # all_area_dets_fluo = [quadem, AD1, AD2, o2_per]

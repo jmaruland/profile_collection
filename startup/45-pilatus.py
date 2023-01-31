@@ -45,9 +45,11 @@ class TIFFPluginWithFileStore(TIFFPlugin, FileStoreTIFFIterativeWrite):
 class Pilatus(SingleTriggerV33, PilatusDetector):
     tiff = Cpt(TIFFPluginWithFileStore,
                suffix="TIFF1:",
-               write_path_template="/nsls2/xf12id1g/data/pilatus100k/%Y/%m/%d/",
-               read_path_template= "/nsls2/xf12id1g/data/pilatus100k/%Y/%m/%d/",
-               root='/nsls2/xf12id1g/data')
+               write_path_template="/nsls2/xf12id1/data/pilatus100k/%Y/%m/%d/",
+               read_path_template= "/nsls2/xf12id1/data/pilatus100k/%Y/%m/%d/",
+            #    root='/nsls2/xf12id1/data'
+               root='/nsls2/data/smi/legacy/xf12id1/data'
+               )
 
     roi1 = Cpt(ROIPlugin, 'ROI1:')
     roi2 = Cpt(ROIPlugin, 'ROI2:')
@@ -99,14 +101,31 @@ def set_detector(det):
 
 
 try:
+    pilatus100k = Pilatus("XF:12ID1-ES{Det:P100k}", name="pilatus100k")
+    set_detector(pilatus100k)
+    # pilatus300k.tiff.write_path_template = "/nsls2/xf12id1/data/pilatus300k/%Y/%m/%d/"
+    # pilatus300k.tiff.read_path_template = "/nsls2/xf12id1/data/pilatus300k/%Y/%m/%d/"
+
+    pilatus100k.tiff.write_path_template = "/nsls2/data/smi/legacy/xf12id1/data/pilatus100k/%Y/%m/%d/"
+    pilatus100k.tiff.read_path_template = "/nsls2/data/smi/legacy/xf12id1/data/pilatus100k/%Y/%m/%d/"
+
+except:
+    pilatus100k=pilatus100k
+    print('Pilatus 100k is not connected')
+
+
+try:
     pilatus300k = Pilatus("XF:12ID1-ES{Det:P300k}", name="pilatus300k")
     set_detector(pilatus300k)
-    pilatus300k.tiff.write_path_template = "/nsls2/xf12id1g/data/pilatus300k/%Y/%m/%d/"
-    pilatus300k.tiff.read_path_template = "/nsls2/xf12id1g/data/pilatus300k/%Y/%m/%d/"
+    # pilatus300k.tiff.write_path_template = "/nsls2/xf12id1/data/pilatus300k/%Y/%m/%d/"
+    # pilatus300k.tiff.read_path_template = "/nsls2/xf12id1/data/pilatus300k/%Y/%m/%d/"
+
+    pilatus300k.tiff.write_path_template = "/nsls2/data/smi/legacy/xf12id1/data/pilatus300k/%Y/%m/%d/"
+    pilatus300k.tiff.read_path_template = "/nsls2/data/smi/legacy/xf12id1/data/pilatus300k/%Y/%m/%d/"
 
 except:
     pilatus300k=pilatus100k
-    print('Pilatus 300KW is not connected')
+    print('Pilatus 300k is not connected')
 
 
 def det_exposure_time_pilatus(exp_t, meas_t=1):

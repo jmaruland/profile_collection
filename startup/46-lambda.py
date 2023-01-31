@@ -32,9 +32,9 @@ class Lambda(SingleTriggerV33, LambdaDetector):
     # from 2020 to 2030 with 777 permissions, owned by xf12id1 user.
     tiff = Cpt(TIFFPluginWithFileStore,
                suffix="TIFF1:",
-               write_path_template="/nsls2/xf12id1g/data/lambda/%Y/%m/%d/",
-               read_path_template="/nsls2/xf12id1g/data/lambda/%Y/%m/%d/",
-               root='/nsls2/xf12id1g/data') 
+               write_path_template="/nsls2/data/smi/legacy/xf12id1/data/lambda/%Y/%m/%d/",
+               read_path_template="/nsls2/data/smi/legacy/xf12id1/data/lambda/%Y/%m/%d/",
+               root='/nsls2/data/smi/legacy/xf12id1/data') 
 
     roi1 = Cpt(ROIPlugin, 'ROI1:')
     roi2 = Cpt(ROIPlugin, 'ROI2:')
@@ -85,4 +85,12 @@ def set_defaut_stat_roi():
 # Define the region of interest if required
 # lambda_det.roi1.size.x.get() = 31
 # lambda_det.roi1.min_xyz.size_x.get() = 100
+
+
+def det_exposure_time(exp_t, meas_t=1):
+    yield from bps.mov(
+        lambda_det.cam.acquire_time, exp_t,
+        lambda_det.cam.acquire_period, exp_t+0.2,
+        lambda_det.cam.num_images, int(meas_t/exp_t))
+
 
