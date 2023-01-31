@@ -85,3 +85,7 @@ bpm.ch4.kind = 'hinted'
 
 bpm.posX.kind = 'normal'
 bpm.posY.kind = 'normal'
+
+def det_exposure_time_quadem(exp_t):
+    yield from bps.mov(
+        quadem.averaging_time, exp_t)
