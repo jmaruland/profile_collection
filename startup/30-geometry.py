@@ -158,6 +158,14 @@ class Geometry(PseudoPositioner):
         EpicsSignal, "XF:12ID1:L_07", add_prefix=(), kind="config", doc="energy (kev)",
     )
 
+    SOLLER_OFF = Cpt(
+        EpicsSignal,
+        "XF:12ID1:L_08",
+        add_prefix=(),
+        kind="config",
+        doc="Soller slit offset, mm",
+    )
+
     track_mode = Cpt(
         EpicsSignal,
         "XF:12ID1:TrackMode",
@@ -235,8 +243,13 @@ class Geometry(PseudoPositioner):
         # get pseudo positions in radians
         _alpha = np.deg2rad(pseudo_pos.alpha)
         _beta = np.deg2rad(pseudo_pos.beta)
-        
+
+        soller_offset=0
+        # THIS IS THE SOLLER SLIT MODE
         if track_mode ==2:
+            soller_offset=self.SOLLER_OFF.get()
+        # THIS IS THE BETA-ALPHA MODE
+        if track_mode ==3:
              _beta=_alpha
         # print(track_mode,_alpha*180/np.pi,_beta*180/np.pi)
         _stth = np.deg2rad(pseudo_pos.stth)
@@ -347,7 +360,8 @@ class Geometry(PseudoPositioner):
             sh=sh if track_mode else real_pos.sh,
             stblx=stblx if track_mode else real_pos.stblx,
             astth=np.rad2deg(_astth) if track_mode else real_pos.astth,
-            oh=oh if track_mode else real_pos.oh,
+            # if mode -5 than add oh offset
+            oh=oh if track_mode == 1 else real_pos.oh+soller_offset,
             phix=_phix,
             stblx2=_stblx2,
         )
@@ -450,8 +464,8 @@ class SynGeometry(Geometry):
     oa = Cpt(SynAxis, doc="β, output arm rotation", value=0.0)
     oh = Cpt(SynAxis, doc="output arm vertical rotation", value=0.0)
 
-# changed to True to test out PYMCA
-IN_SIM_MODE = False # bool(sim_flag.get() > 0)
+# changed to True to test out PYMCA simulation
+IN_SIM_MODE = True # bool(sim_flag.get() > 0)
 # Prefix the PV with "S" for simulations
 if IN_SIM_MODE:
     geo = SynGeometry("SXF:12ID1-ES", name="geo")
@@ -503,6 +517,7 @@ def nabt(alpha_0,beta_0,stth_0):
     yield from bps.mv(geo.beta,2*beta_0,tilt.y,alpha_0, geo.stth,stth_0)
 
 def nab(alpha_0,beta_0, ssth_corr_par=-0.022):
+
     """
     Args:
         ssth_corr_par (float): parameter for stth (sample two
