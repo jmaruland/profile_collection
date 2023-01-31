@@ -204,11 +204,12 @@ def check_linear_slits():
         dif[3, i] = dif[2,i]/dif[1,i]  
     print(dif)
 
+
 def mplot2():
     plt.figure()
-    plt.plot(dif[0, :], 5*dif[3, :],color='r',label="detector/monitor")
-    plt.plot(dif[0, :], dif[2, :]/4,'g',label="detector")
-    plt.plot(dif[0, :], dif[1, :]/0.0003,'b',label="monitor")
+    plt.plot(dif[0, :], dif[3, :]/max(dif[3, :]),color='r',label="detector/monitor")
+    plt.plot(dif[0, :], dif[2, :]/max(dif[2, :]),'g',label="detector")
+    plt.plot(dif[0, :], dif[1, :]/max(dif[1, :]),'b',label="monitor")
     plt.xlabel('s2.vg')
     plt.ylabel('counts/monitor')
     plt.legend()
