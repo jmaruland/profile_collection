@@ -183,8 +183,10 @@ def spec_writer_omit():
     quadem.em_range.kind='omitted'
     quadem.position_offset_calc_x.kind='omitted'
     quadem.position_offset_calc_y.kind='omitted'
-    quadem.position_scale.x.kind='omitted'
-    quadem.position_scale.Y.kind='omitted'
+    quadem.position_offset_x.kind='omitted'
+    quadem.position_offset_y.kind='omitted'
+    quadem.position_scale_x.kind='omitted'
+    quadem.position_scale_Y.kind='omitted'
 
 
 
