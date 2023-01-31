@@ -50,7 +50,7 @@ def test_kibron():
 
 
 
-def test_kibron_pressure(target_pressure=10):
+def run_kibron_compress(target_pressure=10):
 
     HOST, PORT = "10.66.91.26", 9897 ## HZ
     sock = mtx.connect(HOST, PORT)
