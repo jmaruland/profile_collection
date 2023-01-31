@@ -10,30 +10,30 @@ def run1():
 
     samp_name_dict = {
 
-        1: 'PFDA_10ppm_1mMCaCl2_1', 
-        2: '100mMCaCl2_1', 
-        3: 'PFDA_DIW_10ppm_1',
+        1: 'PFDA_10ppm_1mMCaCl2_2', 
+        2: 'PFDA_10ppm_10mMCaCl2_2', 
+        3: 'PFDA_10ppm_0p01mMCaCl2_2',
         
     }
 
     sam_x2_dict ={
 
-       1: -66.5,      #-66, flat from -65 to -60  #-65, #-62, # (-63.5,-6.14), # front
-       2: -15,      #-19, flat from -15 to -10 # -9, # (-9, 3.5), # middle trough
-       3:  36,    # 32 flat from 34.5 to 39.5  #42, # (38, 5.1), # back
+       1: -64,       #-66, flat from -65 to -60  #-65, #-62, # (-63.5,-6.14), # front
+       2: -13.5,     #-19, flat from -15 to -10 # -9, # (-9, 3.5), # middle trough
+       3:  36,       # 32 flat from 34.5 to 39.5  #42, # (38, 5.1), # back
 
     }
 
     xrr_run_dict = {
         1: False,
-        2: False,
-        3: False,
+        2: True,
+        3: True,
     }
 
     xrf_run_dict = {
         1: False,
-        2: True,
-        3: False,
+        2: False,
+        3: True,
     }
 
 
@@ -46,15 +46,20 @@ def run1():
 
         if xrr_run_dict[key]:
             yield from det_exposure_time_new(detector, 1.0, 1.0) # rest exposure time to 1s
-            yield from bps.mv(S2.hg, 0.3)
+            yield from bps.mv(S2.hg, 1)
             yield from one_xrr(samp_name,samp_x2)
 
         if xrf_run_dict[key]:
             print('Starting XRF measurement')
+            yield from bps.mv(S2.hg, 0.2)
+            yield from bps.mv(abs3,1) ## using abs3 to avoid saturation
             yield from bps.mv(geo.stblx2,samp_x2-0.5)  #move the  Sample Table X2 to xpos
             yield from det_exposure_time_new(detector, 1.0, 1.0) # rest exposure time to 1s
+            yield from sample_height_set_coarse(detector=detector)
             yield from sample_height_set_fine_o(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
             yield from xrf_scan1(samp_name)
+            
+            # quadem.averaging_time.put(1)
 
         # print("Starting incubation for 1 hour...")  
         # yield from bps.sleep(1*60*60)
@@ -103,7 +108,7 @@ def sample_height_set_coarse(value=0,detector=lambda_det):
  #   tmp2=peaks.cen['%s_stats2_total'%detector.name]
     yield from det_exposure_time_new(detector, 1,1)
     local_peaks = PeakStats(sh.user_readback.name, '%s_stats2_total'%detector.name)
-    yield from bpp.subs_wrapper(bp.rel_scan([detector],sh,-1,1,13,per_step=shutter_flash_scan), local_peaks)
+    yield from bpp.subs_wrapper(bp.rel_scan([detector],sh,-1.2,1.2,15,per_step=shutter_flash_scan), local_peaks)
     print("at #1")
     tmp2 = local_peaks.cen #get the height for roi2 of detector.name with max intens
     print("at #2")

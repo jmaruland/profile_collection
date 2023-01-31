@@ -5,7 +5,7 @@ print(f'Loading {__file__}')
 
 
 # Count on XBPM2 suspender
-susp_xbpm2_sum = SuspendFloor(xbpm2.sumY, 0.3, resume_thresh=0.8)
+susp_xbpm2_sum = SuspendFloor(xbpm2.sumY, 0.25, resume_thresh=0.4)
 RE.install_suspender(susp_xbpm2_sum)
 
 
