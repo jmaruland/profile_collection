@@ -66,36 +66,40 @@ def gid_scan_stitch(scan_dict={}, md=None, detector = pilatus300k, alphai = 0.1 
        #     print("MISMATCH: length of saxs_y_offset_list is incorrect")
        
 
-        # Creation of a signal to record the attenuation and exposure time and set the value to be 
-        # saved in databroker
-        attenuation_factor_signal = Signal(name='attenuation', value = att_bar1['attenuator_aborp'][atten_2_list[0]])
-        exposure_time = Signal(name='exposure_time', value = exp_time_list[0])
+    # Creation of a signal to record the attenuation and exposure time and set the value to be 
+    # saved in databroker
+    # attenuation_factor_signal = Signal(name='attenuation', value = att_bar1['attenuator_aborp'][atten_2_list[0]])
+    # exposure_time = Signal(name='exposure_time', value = exp_time_list[0])
 
         x2_nominal= geo.stblx2.position
         for i in range(N):
 
-            yield from bps.mv(exposure_time, att_bar1['attenuator_aborp'][atten_2_list[i]])
-            yield from bps.mv(attenuation_factor_signal, exp_time_list[i])
+       #     yield from bps.mv(exposure_time, att_bar1['attenuator_aborp'][atten_2_list[i]])
+       #     yield from bps.mv(attenuation_factor_signal, exp_time_list[i])
+           
 
         # Set attenuators and exposure to the corresponding values
+            yield from bps.mv(attenuation_factor_signal, att_bar1['attenuator_aborp'][atten_2_list[i]])
             yield from bps.mv(abs2, atten_2_list[i])
-            yield from det_exposure_time_new(detector, exp_time_list[i], exp_time_list[i])
+   
         # Move to the good geometry position
             yield from mabt(alphai, 0, stth_list[i]) # gid poistion with beam stop
             y3 = det_saxs_y_list[i]-4.3*det_saxs_y_offset_list[i]
             y1,y2 = GID_fp( det_saxs_y_list[i]+45)
             x2_new = x2_nominal+x2_offset_list[i]
-         #   yield from bps.mv(fp_saxs.y1,y1,fp_saxs.y2,y2,detsaxs.y, y3,geo.stblx2,x2_new)
+        #   yield from bps.mv(fp_saxs.y1,y1,fp_saxs.y2,y2,detsaxs.y, y3,geo.stblx2,x2_new)
             yield from bps.mv(detsaxs.y, y3,geo.stblx2,x2_new)
             yield from bps.mv(bstop.x,beam_stop_x[i], bstop.y,beam_stop_y[i])
             yield from bps.sleep(wait_time_list[i])
 
-        # Open shutter, sleep to initiate quadEM, collect data, close shutter
+        # yield from det_exposure_time_new(detector, exp_time_list[i], exp_time_list[i])
+            yield from det_set_exposure(detectors_all, exposure_time=exp_time_list[i], exposure_number = 1)
 
+        # Open shutter, sleep to initiate quadEM, collect data, close shutter
             yield from bps.mv(shutter,1)
             yield from bps.sleep(0.5)
             yield from bps.trigger_and_read([quadem] + [detector] +  [geo] + [attenuation_factor_signal] + 
-                                            [exposure_time] + [detsaxs.y], 
+                                            [exposure_time_signal] + [detsaxs.y], 
                                             name='primary')
             
             yield from bps.mv(shutter,0)
