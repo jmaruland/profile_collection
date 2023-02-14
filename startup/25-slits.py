@@ -47,10 +47,6 @@ S2.hg.user_readback.kind="normal"
 S2.hc.user_readback.kind="normal"
 
 
-
-
-
-
 class SLTH(Device):
     h = Cpt(EpicsMotor, 'Hpos}Mtr')
     hg = Cpt(EpicsMotor, 'Hgap}Mtr')
@@ -62,3 +58,12 @@ class SLTV(Device):
 # FOE mono beam slits
 hfmslit = SLTH('XF:12IDA-OP:2{Slt:H-Ax:', name='hfmslit')
 vfmslit = SLTV('XF:12IDA-OP:2{Slt:V-Ax:', name='vfmslit')
+
+#SOLLER SLITS
+class SOLLER(Device):
+    tran = Cpt(EpicsMotor, 'lex16}Mtr')
+    rot = Cpt(EpicsMotor, 'lex17}Mtr')
+
+soller =  SOLLER('XF:12ID1-ES{Mdrive-Ax:', name='soller')
+
+
