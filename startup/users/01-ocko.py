@@ -477,3 +477,32 @@ def gid_single(name,stth_0):
                                 alphai = 0.06)
 
 
+def gid_soller1(name):
+    stth_start_list =   [ 0.03, 0.13, 0.35]
+    stth_stop_list =    [ 0.12, 0.33, 0.65]
+    number_points_list = [   9,   11,   7  ]
+    exp_time_list           = [20,20,20,20]
+    x2_offset_list          = [0,0,0,0]
+    atten_2_list            = [0,0,0,0]
+    wait_time_list          = [5,5,5,5]
+    
+
+
+    scan_dict={
+        "start":stth_start_list, 
+        "stop":stth_stop_list,
+        "n":number_points_list,
+        "exp_time":exp_time_list,
+        "x2_offset":x2_offset_list,
+        "atten_2":atten_2_list,
+        "wait_time":wait_time_list,
+      ,}
+
+
+#mode 4 is for GID with soller
+    yield from bps.mv(geo.det_mode,4)
+    print("calling GID_soller")
+    yield from gid_scan_soller(scan_dict,
+                                md={'sample_name': name}, 
+                                detector = pilatus100k,
+                                alphai = 0.06)

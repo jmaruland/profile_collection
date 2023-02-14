@@ -23,7 +23,7 @@ def spec_factory(name, doc):
     #         return [], []
 
 # Add plan names to this list to live export additional types of plans
-    plan_alowed_list = {'scan', 'rel_scan', 'gid', 'count'}
+    plan_alowed_list = {'scan', 'rel_scan', 'gid', 'count'} #, 'reflection_scan'}
     if doc.get('plan_name', '') in plan_alowed_list:
         return [Serializer(directory, file_prefix=file_prefix, flush=False)], []
     else:

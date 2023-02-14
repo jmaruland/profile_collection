@@ -1,3 +1,8 @@
+global attenuation_factor_signal, exposure_time, attenuator_name_signal, default_attenuation
+attenuator_name_signal = Signal(name='attenuator_name', value='abs1')
+attenuation_factor_signal = Signal(name='attenuation', value=1e-7)
+default_attenuation = Signal(name='default-attenuation', value=1e-7)
+
 saturate = EpicsSignal("XF:12ID1-ES{Xsp:1}:C1_ROI1:Value_RBV", name="xs_sum")
 #saturate.value
 def reflection_fluorescence_scan_full_test(scan_param, md=None, detector=xs, tilt_stage=False):
@@ -14,20 +19,9 @@ def reflection_fluorescence_scan_full_test(scan_param, md=None, detector=xs, til
             N = len(v)
         if N != len(v):
             raise ValueError(f"the key {k} is length {len(v)}, expected {N}")
-    geo.th.user_readback.kind = 'normal'
-    geo.phi.user_readback.kind = 'normal'
-    geo.phix.user_readback.kind = 'normal'
-    geo.ih.user_readback.kind = 'normal'
-    geo.ia.user_readback.kind = 'normal'
-    geo.sh.user_readback.kind = 'normal'
-    geo.oh.user_readback.kind = 'normal'
-    geo.oa.user_readback.kind = 'normal'
-    geo.astth.user_readback.kind = 'normal'
-    geo.stblx.user_readback.kind = 'normal'
-    geo.oa.user_readback.kind = 'normal'
-    geo.tth.user_readback.kind = 'normal'
-    geo.chi.user_readback.kind = 'normal'
-    geo.astth.user_readback.kind = 'normal'
+
+    unhinted_ref() ## change all hinted settings to 'normal'
+
 
 
     base_md = {'plan_name': 'reflection_fluorescence_scan',
@@ -43,11 +37,6 @@ def reflection_fluorescence_scan_full_test(scan_param, md=None, detector=xs, til
                }
 
     base_md.update(md or {})
-    global attenuation_factor_signal, exposure_time, attenuator_name_signal, default_attenuation
-    attenuator_name_signal = Signal(name='attenuator_name', value='abs1')
-    attenuation_factor_signal = Signal(name='attenuation', value=1e-7)
-    exposure_time = Signal(name='exposure_time', value=1)
-    default_attenuation = Signal(name='default-attenuation', value=1e-7)
     # Disable the plot during the reflectivity scan
     bec.disable_plots()
     # Bluesky command to start the document

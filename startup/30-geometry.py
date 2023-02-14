@@ -493,6 +493,7 @@ else:
 
 def cabt(*args, **kwargs):
     ret = geo.forward(*args, **kwargs)
+    geo.wlength=1.24
     print("wavelength", geo.wlength)
     print(
         "footprint(mm)=",

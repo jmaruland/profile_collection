@@ -389,7 +389,7 @@ def xr_scan1(name, expo_time = 10, wait_time = 10, reverse_mode = False):
     auto_atten_list =    [    6,    5,    4,    3,    2,    1,     0]
 
     s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04, 0.04]
-    # exp_time_list =      [    5,   5,     5,    5,     5,   5,     5]
+    exp_time_list =      [    1.7,   5,     5,    5,     5,   5,     5]
     exp_time_list =      [expo_time for _ in range(len(alpha_start_list))]
     
     precount_time_list=  [  0.2, 0.2,   0.2,  0.2,   0.2, 0.2,   0.2]
@@ -511,14 +511,25 @@ def xrf_scan1(name):
     #9.7kev
     alpha_start_list =   [ 0.03, 0.11, 0.13, 0.25]
     alpha_stop_list =    [ 0.10, 0.12, 0.23, 0.45]
-    number_points_list = [    8,    2,    6,    5]
+    number_points_list = [    2,    2,    6,    5]
     auto_atten_list =    [    1,    1,    2,    2] 
     s2_vg_list =         [ 0.02, 0.02, 0.02, 0.02] 
-    exp_time_list =      [   20,   10,   10,   10]
+    exp_time_list =      [   50,   10,   10,   10]
     precount_time_list=  [  0.1,  0.1,  0.1,  0.1]
     wait_time_list=      [    0,    0,    0,    0]
     x2_offset_start_list=[  0.0,  0.0,  0.0,  0.0]
     x2_offset_stop_list= [  0.0,  0.0,  0.0,  0.0]
+
+    # alpha_start_list =   [ 0.03, 0.11, 0.13, 0.25]
+    # alpha_stop_list =    [ 0.10, 0.12, 0.23, 0.45]
+    # number_points_list = [    8,    2,    6,    5]
+    # auto_atten_list =    [    1,    1,    2,    2] 
+    # s2_vg_list =         [ 0.02, 0.02, 0.02, 0.02] 
+    # exp_time_list =      [   20,   10,   10,   10]
+    # precount_time_list=  [  0.1,  0.1,  0.1,  0.1]
+    # wait_time_list=      [    0,    0,    0,    0]
+    # x2_offset_start_list=[  0.0,  0.0,  0.0,  0.0]
+    # x2_offset_stop_list= [  0.0,  0.0,  0.0,  0.0]
 
 
 
@@ -788,4 +799,36 @@ def gisaxs_scan1(name):
                                 detector = pilatus300k,
                                 alphai = 0.1)
 
+    yield from bps.mv(abs2,5)
+
+
+
+def gid_soller1(name):
+    stth_start_list =    [1]
+    stth_stop_list =     [2]
+    number_points_list = [3]
+    exp_time_list      = [1]
+    x2_range_list      = [1]
+    atten_2_list       = [0]
+    wait_time_list     = [2]
+
+    scan_dict={
+        "start":stth_start_list, 
+        "stop":stth_stop_list,
+        "n":number_points_list,
+        "exp_time":exp_time_list,
+        "x2_range":x2_range_list,
+        "atten_2":atten_2_list,
+        "wait_time":wait_time_list,
+      }
+
+#mode 4 is for GID with soller
+    yield from bps.mv(geo.det_mode,1)
+    yield from bps.mv(geo.track_mode,2)
+    print("calling GID_soller")
+    yield from gid_scan_soller(scan_dict,
+                                md={'sample_name': name}, 
+                                detector = pilatus100k,
+                                alphai = 0.1)
+    yield from bps.mv(geo.track_mode,1)
     yield from bps.mv(abs2,5)
