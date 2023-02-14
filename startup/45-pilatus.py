@@ -110,7 +110,7 @@ try:
     pilatus100k.tiff.read_path_template = "/nsls2/data/smi/legacy/xf12id1/data/pilatus100k/%Y/%m/%d/"
 
 except:
-    pilatus100k=pilatus100k
+    # pilatus100k=pilatus100k
     print('Pilatus 100k is not connected')
 
 
@@ -124,7 +124,7 @@ try:
     pilatus300k.tiff.read_path_template = "/nsls2/data/smi/legacy/xf12id1/data/pilatus300k/%Y/%m/%d/"
 
 except:
-    pilatus300k=pilatus100k
+    # pilatus300k=pilatus100k
     print('Pilatus 300k is not connected')
 
 

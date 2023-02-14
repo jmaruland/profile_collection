@@ -46,6 +46,8 @@ class Lambda(SingleTriggerV33, LambdaDetector):
     stats3 = Cpt(StatsPluginV33, 'Stats3:', read_attrs=['total'])
     stats4 = Cpt(StatsPluginV33, 'Stats4:', read_attrs=['total'])
 
+    # stats5 = Cpt(StatsPluginV33, 'Stats5:', read_attrs=['total']) # HZ for total counts from the whole AD
+
 
     trans1 = Cpt(TransformPlugin, 'Trans1:')
 
@@ -81,6 +83,8 @@ def set_defaut_stat_roi():
     yield from bps.mv(lambda_det.stats2.nd_array_port, 'ROI2')
     yield from bps.mv(lambda_det.stats3.nd_array_port, 'ROI3')
     yield from bps.mv(lambda_det.stats4.nd_array_port, 'ROI4')
+
+    # yield from bps.mv(lambda_det.stats4.nd_array_port, 'LAMBDA1') # HZ for total counts from the whole AD
 
 # Define the region of interest if required
 # lambda_det.roi1.size.x.get() = 31

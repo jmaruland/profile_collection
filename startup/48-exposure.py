@@ -1,3 +1,7 @@
+from ophyd import Signal
+
+exposure_time_signal = Signal(name='exposure_time', value=1)
+
 def det_set_exposure(detectors, exposure_time, exposure_period = None, exposure_number = 1):
     '''
     To see the exposure time for a list of detectors
@@ -7,6 +11,8 @@ def det_set_exposure(detectors, exposure_time, exposure_period = None, exposure_
     '''
     if exposure_period == None:
         exposure_period = exposure_time+0.1
+
+    yield from bps.mov(exposure_time_signal, exposure_time)
 
     for det in detectors:
         if det in [pilatus100k, pilatus300k, lambda_det]:
@@ -45,3 +51,6 @@ def det_test(detectors=None):
         print(f'Currently running {det.name}...')
         yield from bp.count([det])
         yield from bps.sleep(0.1)  
+
+
+detectors_all = [quadem, lambda_det, pilatus100k, pilatus300k, xs]
