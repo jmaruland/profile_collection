@@ -128,25 +128,25 @@ except:
     print('Pilatus 300k is not connected')
 
 
-def det_exposure_time_pilatus(exp_t, meas_t=1):
-    yield from bps.mov(
-        pilatus100k.cam.acquire_time, exp_t,
-        pilatus100k.cam.acquire_period, exp_t+0.2,
-        pilatus100k.cam.num_images, int(meas_t/exp_t))
-    try:
-        yield from bps.mov(
-            pilatus300k.cam.acquire_time, exp_t,
-            pilatus300k.cam.acquire_period, exp_t+0.2,
-            pilatus300k.cam.num_images, int(meas_t/exp_t))
-    except:
-        print('Pilatus 300KW is not connected')
+# def det_exposure_time_pilatus(exp_t, meas_t=1):
+#     yield from bps.mov(
+#         pilatus100k.cam.acquire_time, exp_t,
+#         pilatus100k.cam.acquire_period, exp_t+0.2,
+#         pilatus100k.cam.num_images, int(meas_t/exp_t))
+#     try:
+#         yield from bps.mov(
+#             pilatus300k.cam.acquire_time, exp_t,
+#             pilatus300k.cam.acquire_period, exp_t+0.2,
+#             pilatus300k.cam.num_images, int(meas_t/exp_t))
+#     except:
+#         print('Pilatus 300KW is not connected')
 
 
-def det_exposure_time_new(detector, exp_t, meas_t=1):
-    yield from bps.mov(
-        detector.cam.acquire_time, exp_t,
-        detector.cam.acquire_period, exp_t+0.2,
-        detector.cam.num_images, int(meas_t/exp_t))
+# def det_exposure_time_new(detector, exp_t, meas_t=1):
+#     yield from bps.mov(
+#         detector.cam.acquire_time, exp_t,
+#         detector.cam.acquire_period, exp_t+0.2,
+#         detector.cam.num_images, int(meas_t/exp_t))
 
 '''
 def sample_id(*, user_name, sample_name, tray_number=None):
