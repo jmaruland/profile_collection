@@ -59,6 +59,13 @@ class DetectorOffsets(Device):
         add_prefix=(),
         kind="config"
         )
+    det_5= Cpt(
+        EpicsSignal,
+        "XF:12ID1:L_15",
+        add_prefix=(),
+        kind="config"
+        )
+
 
 
 
@@ -335,6 +342,7 @@ class Geometry(PseudoPositioner):
             2: 'det_2',
             3: 'det_3',
             4: 'det_4',
+            5: 'det_5'
         }
 
         if det_mode not in det_dict:
@@ -360,8 +368,7 @@ class Geometry(PseudoPositioner):
             sh=sh if track_mode else real_pos.sh,
             stblx=stblx if track_mode else real_pos.stblx,
             astth=np.rad2deg(_astth) if track_mode else real_pos.astth,
-            # if mode -5 than add oh offset
-            oh=oh if track_mode == 1 else real_pos.oh+soller_offset,
+            oh=oh+soller_offset if track_mode else real_pos.oh,
             phix=_phix,
             stblx2=_stblx2,
         )
@@ -465,7 +472,7 @@ class SynGeometry(Geometry):
     oh = Cpt(SynAxis, doc="output arm vertical rotation", value=0.0)
 
 # changed to True to test out PYMCA simulation
-IN_SIM_MODE = True # bool(sim_flag.get() > 0)
+IN_SIM_MODE = False # bool(sim_flag.get() > 0)
 # Prefix the PV with "S" for simulations
 if IN_SIM_MODE:
     geo = SynGeometry("SXF:12ID1-ES", name="geo")
@@ -493,8 +500,7 @@ else:
 
 def cabt(*args, **kwargs):
     ret = geo.forward(*args, **kwargs)
-    geo.wlength=1.24
-    print("wavelength", geo.wlength)
+#    print("wavelength", geo.wlength)
     print(
         "footprint(mm)=",
         S2.vg.user_readback.get() / ((args[0] + 0.001) * 3.14159 / 180),
