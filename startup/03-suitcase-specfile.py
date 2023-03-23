@@ -105,7 +105,9 @@ _SPEC_1D_COMMAND_TEMPLATE = env.from_string(
 
 _SCANS_WITHOUT_MOTORS = {'ct': 'count'}
 _SCANS_WITH_MOTORS = {'ascan': 'scan', 'dscan': 'rel_scan'}
+_SCANS_REFLECTION = {'lscan_pseudo': 'reflection_scan'} ## add the reflection scan, HZ, not working yet
 _SPEC_SCAN_NAMES = _SCANS_WITHOUT_MOTORS.copy()
+_SPEC_SCAN_NAMES.update(_SCANS_REFLECTION) # HZ
 _SPEC_SCAN_NAMES.update(_SCANS_WITH_MOTORS)
 _BLUESKY_PLAN_NAMES = {v: k for k, v in _SPEC_SCAN_NAMES.items()}
 
@@ -213,6 +215,11 @@ def _get_motor_position(start, event):
 
 def _get_motor_names(start):
     plan_name = _get_plan_name(start)
+
+    if plan_name in _SCANS_REFLECTION: ## add the reflection scan, HZ
+        motor_names = ['geo_alpha', 'geo_beta']
+        return motor_names
+
     if (plan_name not in _SPEC_SCAN_NAMES or
             plan_name in _SCANS_WITHOUT_MOTORS):
         return ['seq_num'] # change to list
@@ -286,6 +293,10 @@ def to_spec_scan_header(start, primary_descriptor, baseline_event=None):
     # can only grab start/stop/num if we are a dscan or ascan.
     if (scan_command not in _SPEC_SCAN_NAMES or
             scan_command in _SCANS_WITHOUT_MOTORS):
+        command_args = []
+
+    elif scan_command in _SCANS_REFLECTION: # HZ
+        print('reflection_scan found!')
         command_args = []
 
     else:

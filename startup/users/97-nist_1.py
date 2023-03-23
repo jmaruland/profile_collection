@@ -4,7 +4,7 @@ from pyrsistent import s
 
 def xrr_kibron():
 
-    proposal_id("2022_3","310438_satija")
+    proposal_id("2023_1","310438_satija")
     yield from bps.sleep(5)
     yield from shopen()
     yield from he_on() # open the He flow

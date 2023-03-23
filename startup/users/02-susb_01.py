@@ -3,9 +3,9 @@ def run1():
     # proposal_id("2022_2","310190_arjunkrishna2")
     proposal_id("2022_3","311090_arjunkrishna2")
 
-    yield from bps.sleep(5)
-    yield from shopen()
-    yield from he_on() # starts the He flow
+    # yield from bps.sleep(5)
+    # yield from shopen()
+    # yield from he_on() # starts the He flow
     detector=lambda_det
 
     samp_name_dict = {
@@ -68,8 +68,8 @@ def run1():
     yield from bps.mv(geo.det_mode,1)
     yield from mabt(0,0,0)
 
-    yield from he_off()# stops the He flow
-    yield from shclose()
+    # yield from he_off()# stops the He flow
+    # yield from shclose()
 
 
     

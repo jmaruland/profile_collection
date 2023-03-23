@@ -140,6 +140,60 @@ class KibronTrough(Device):
         except:
             pass
 
+
+    def runConstantPressure(self, target_pressure, max_area = 62464, target_speed = None):
+        '''Use the constant pressure mode'''
+
+        if target_speed == None:
+            max_speed = self.device.call("GetMaxBarrierSpeed")
+            target_speed = max_speed/7 # 10mm/min
+
+
+        try:
+            print("Compressing barriers, gathering measurement data ...")
+
+            # Tell the trough to produce measurement samples at 1 second intervals
+            self.device.call("SetStoreInterval", 1.0)
+            self.device.call("SetBarrierSpeed", target_speed)
+            self.device.call("NewMeasureMode", mtx.MeConstantPressure)
+
+            self.device.call("SetTargetPressure", target_pressure)
+
+            # Set time_offset in the measurement file when starting measurement
+
+            self.device.call("StartMeasure")
+
+            # self.device.call("StepCompress")
+
+            # Wait until area is three-quarters maximum
+            print(f'Target pressure is {target_pressure}')
+            _pressure = self.getPressure()
+            print(f'Current pressure is {_pressure}')
+
+            # while _pressure-target_pressure < 0:
+            #     time.sleep(1)
+            #     _data = list(self.getData())
+            #     _area = _data[mtx.uTArea]
+            #     if _area < max_area * 0.12:
+            #         print('Area is less than 12%.')
+            #         self.device.call("StopMeasure")
+            #         print("The compression has to stop!")
+            #         return 0
+            #         # break
+            #     _pressure = _data[mtx.uTPressure]
+            #     print('Pressure is: %.2f mN/m' %_pressure)
+
+            # # self.device.call("StepStop")
+
+            # # self.device.call("StopMeasure")
+
+            # print("Reach the target pressure!")
+            # return 1
+
+
+        except:
+            pass
+
 import importlib
 mtx = importlib.import_module('85-mtx_client')
 
