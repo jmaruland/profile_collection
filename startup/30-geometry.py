@@ -173,6 +173,22 @@ class Geometry(PseudoPositioner):
         doc="Soller slit offset, mm",
     )
 
+    sh_phase= Cpt(
+        EpicsSignal,
+        "XF:12ID1:L_09",
+        add_prefix=(),
+        kind="config",
+        doc="phase of sample height (0-1)",
+    )
+
+    sh_amp= Cpt(
+        EpicsSignal,
+        "XF:12ID1:L_10",
+        add_prefix=(),
+        kind="config",
+        doc="amp of sample height(mm))",
+    )
+
     track_mode = Cpt(
         EpicsSignal,
         "XF:12ID1:TrackMode",
@@ -206,6 +222,9 @@ class Geometry(PseudoPositioner):
         kind="config",
         doc="offsets from tth of each detector center",
     )
+
+
+  
 
     def __init__(self, prefix, **kwargs):
         # self.wlength = 0.77086  # x-ray wavelength, A
@@ -325,11 +344,12 @@ class Geometry(PseudoPositioner):
 
 
         #SH_OFFSET IS TURNED OFF FOR NOW SINCE IT IS MULTIUPLIED BY ZERO.
-        sh = (
-            -(self.L2.get() + self.L4.get()) * np.tan(_alpha) / np.cos(_tth)
-        ) + 0*self.SH_OFF.get()
-        # + correction
+        tmp=  -(self.L2.get() + self.L4.get()) * np.tan(_alpha) / np.cos(_tth)
 
+        sh_user= tmp-geo.sh.user_offset.get() 
+        
+        sh= tmp + 0.003*np.sin(np.pi*2*(sh_user/0.254)+self.sh_phase.get())
+        
         stblx = self.L2.get() * np.tan(_tth)
         # todo check degree vs radian
         oh = sh + (self.L3.get() - self.L4.get()) * np.tan(_beta)
@@ -342,7 +362,7 @@ class Geometry(PseudoPositioner):
             2: 'det_2',
             3: 'det_3',
             4: 'det_4',
-            5: 'det_5'
+            5: 'det_5',
         }
 
         if det_mode not in det_dict:
@@ -414,6 +434,7 @@ class Geometry(PseudoPositioner):
             2: 'det_2',
             3: 'det_3',
             4: 'det_4',
+            5: 'det_5',
         }
 
         if det_mode not in det_dict:
@@ -500,14 +521,16 @@ else:
 
 def cabt(*args, **kwargs):
     ret = geo.forward(*args, **kwargs)
-#    print("wavelength", geo.wlength)
+    print("\n")
+    print(f"Energy     = {0.001 * energy.energy.position: .2f} keV")
+    print(f"Wavelength =  {geo.wlength:.3f} \u212B") 
     print(
-        "footprint(mm)=",
-        S2.vg.user_readback.get() / ((args[0] + 0.001) * 3.14159 / 180),
+        f"Footprint  = {S2.vg.user_readback.get() / ((args[0] + 0.001) * 3.14159 / 180): .1f} mm"
     )
-    print("fqz=", (4 * np.pi / geo.wlength.real) * np.sin(args[0] * 3.14159 / 180))
+    print(f"qz         = {(4 * np.pi / geo.wlength.real) * np.sin(args[0] * 3.14159 / 180): .3f} \u212B\u207B\u00B9")
 
     cur = geo.real_position
+    print("|" + "-" * 30 + "|")
     print("| {:<6s} |{:>9s} |{:>9s} |".format("MOTOR", "TARGET", "CURRENT"))
     print("|" + "-" * 30 + "|")
     for k in ret._fields:

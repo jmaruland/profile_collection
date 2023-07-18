@@ -25,7 +25,7 @@ def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=Fa
     base_md = {'plan_name': 'reflection_scan',
                'cycle': RE.md['cycle'],
                'proposal_number': RE.md['proposal_number'] + '_' + RE.md['main_proposer'],
-               'detector': detector.name, 
+               'detectors': [detector.name, quadem.name],
                'energy': energy.energy.position,
                'rois': [detector.roi1.min_xyz.min_x.get(),
                         detector.roi1.min_xyz.min_y.get(),
@@ -161,9 +161,24 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
             yield from bps.mv(attenuator_name_signal, att_bar1['name'][att])
 
     
+       ##### to use the new attenbank #### 
+        yield from bps.mv(abs2, atten_2)  
+        yield from bps.mv(attenuator_name_signal, f'att{atten_2}')
+        if att_fact_selected != None:
+            yield from bps.mv(attenuation_factor_signal, att_fact_selected[f'att{atten_2}'])
+
+
+
         yield from bps.mv(shutter, 1)
         yield from det_set_exposure(detectors_all, exposure_time=precount_time, exposure_number = 1)
-        yield from bps.trigger_and_read([quadem], name='precount')
+        # yield from bps.trigger_and_read([quadem]+
+        #                                     [geo] + 
+        #                                     [S2] +
+        #                                     [attenuation_factor_signal] +
+        #                                     [attenuator_name_signal] +
+        #                                     [exposure_time_signal],name='precount')
+        yield from bps.trigger_and_read([quadem],name='precount')
+
         yield from det_set_exposure(detectors_all, exposure_time=exp_time, exposure_number = 1)
     
         yield from bps.trigger_and_read(all_area_dets +
@@ -488,7 +503,8 @@ def reflection_scan_old(scan_param, i, detector='lamda_det', md={}, tilt_stage=F
                                             [attenuator_name_signal] +
                                             [exposure_time],
                                             name='primary')
-        
+        #THIS IS WHERE WE COULD PUT IN A WARNING IF THE INTENSITY IS TOO HIGH OR LOW
+
         yield from bps.mv(shutter, 0)
         
     

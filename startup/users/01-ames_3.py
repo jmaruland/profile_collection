@@ -38,14 +38,14 @@ def dry_he_off(value):
 '''
 
 
-proposal_id("2023_1","311068_vaknin")
+proposal_id("2023_2","311024_wang")
 
 from pyrsistent import s
 
 
 ##############################################################
 def run_ames():
-    proposal_id("2023_1","311068_vaknin")
+    proposal_id("2023_2","311024_wang")
     yield from bps.mv(lambda_det.oper_mode,1)
     yield from bps.mv(lambda_det.low_thr,4.0)
 
@@ -55,41 +55,10 @@ def run_ames():
     detector=lambda_det
 
     samp_name_dict = {
-        # 1: 'water_2', 
-        # 1: '50mM_CsI', 
-
-        # 1: 'Water',
-        # 2: 'PEG2k',
-        # 3: 'PEG5k',
-        # 4: 'PEG100k',
-
-        # 1: 'Water_10mMCsCl',
-        # 2: 'PEG2k_10mMCsCl',
-        # 3: 'PEG5k_10mMCsCl',
-        # 4: 'PEG100k_10mMCsCSl',
-
-        # 1: 'Water_100mMCsCl',
-        # 2: 'PEG2k_100mMCsCl',
-        # 3: 'PEG5k_100mMCsCl',
-        # 4: 'PEG100k_100mMCsCl',
-
-        # 1: 'PEG2k_100mgpml_100mMCsCl',
-        # 2: 'PEG5k_100mgpml_100mMCsCl',
-        # 3: 'PEG100k__100mgpml_100mMCsCl',
-        # 4: 'Blank',
-
-        # 1: 'COOH-5K-Au5',
-        # 2: 'NH2-5K-Au5',
-        # 3: 'COOH-5K-Au10',
-        # 4: 'NH2-5K-Au10',
+        
 
 
-        # 1: 'NH2-PEG5k-Au10_1to1_COOH-5K-Au5_100mMK',
-        # 2: 'NH2-PEG5k-Au10_1to2_COOH-5K-Au5_100mMK',
-        # 3: 'NH2-PEG5k-Au10_1to4_COOH-5K-Au5_100mMK',
-        # 4: 'NH2-PEG5k-Au10_2to1_COOH-5K-Au5_100mMK',
-
-
+        
         # 1: 'NH2-PEG5k-Au10_1to4_COOH-5K-Au5_p1mM_HCl',
         # 2: 'NH2-PEG5k-Au10_2to1_COOH-5K-Au5_p1mM_HCl',
         # 3: 'COOH-PEG5k-Au10_1to4_NH2-5K-Au5_p1mM_HCl',
@@ -110,54 +79,135 @@ def run_ames():
         # 3: 'COOH-PEG5k-Au10_1to1_NH2-5K-Au5_1mM_HCl',
         # 4: 'COOH-PEG5k-Au10_1to2_NH2-5K-Au5_1mM_HCl',
 
-        # 1: 'NH2-PEG5k-Au10_1to1_COOH-5K-Au5_10mM_HCl',
-        # 2: 'NH2-PEG5k-Au10_1to2_COOH-5K-Au5_10mM_HCl',
-        # 3: 'COOH-PEG5k-Au10_1to1_NH2-5K-Au5_10mM_HCl',
-        # 4: 'COOH-PEG5k-Au10_1to2_NH2-5K-Au5_10mM_HCl',
+       
+      # Run Cycle 3
+        #  1: 'NH2-PEG5K-Au5_1mM_HCl',  
+        #  2: 'COOH-PEG5K-Au15_1mM_HCl',
+        #  3: 'NH2-PEG5K-Au15_1mM_HCl',
+        #  4: 'COOH-PEG5K-Au5_1mM_HCl',
 
-        # 1: 'COOH-PEG5K-Au5_p1mM_HCl',
-        # 2: 'NH2-PEG5K-Au5_p1mM_HCl',
-        # 3: 'COOH-PEG5K-Au10_p1mM_HCl',
-        # 4: 'NH2-PEG5K-Au10_p1mM_HCl',
+    #   # Run Cycle 4
+    #     1: 'NH2-PEG5K-Au5_10mM_HCl',  
+    #     2: 'COOH-PEG5K-Au15_10mM_HCl',
+    #     3: 'NH2-PEG5K-Au15_10mM_HCl',
+    #     4: 'COOH-PEG5K-Au5_10mM_HCl',
 
-        # 1: 'COOH-PEG5K-Au5_1mM_HCl',
-        # 2: 'NH2-PEG5K-Au5_1mM_HCl',
-        # 3: 'COOH-PEG5K-Au10_1mM_HCl',
-        # 4: 'NH2-PEG5K-Au10_1mM_HCl',
+      # Run Cycle 5
+     #   2: 'COOH-Au5_2to1_NH2-Au15_0mM_HCl', sample was bad during the first run
+        # 3: 'NH2-Au5_1to1_COOH-Au15_0mM_HCl',
+        # 4: 'NH2-Au5_2to1_COOH-Au15_0mM_HCl',
 
-        # 1: 'COOH-PEG5K-Au5_10mM_HCl',
-        # 2: 'NH2-PEG5K-Au5_10mM_HCl',
-        # 3: 'COOH-PEG5K-Au10_10mM_HCl',
-        # 4: 'NH2-PEG5K-Au10_10mM_HCl',
+        # 1: 'COOH-Au5_1to1_NH2-Au15_0mM_HCl',
+        # 2: 'COOH-Au5_2to1_NH2-Au15_0mM_HCl',
 
-        # 1: 'NH2-PEG2k-Au10_1to1_COOH-5K-Au5_0mM_HCl',
-        # 2: 'NH2-PEG2k-Au10_1to2_COOH-5K-Au5_0mM_HCl',
-        # 3: 'COOH-PEG2k-Au10_1to1_NH2-5K-Au5_0mM_HCl',
-        # 4: 'COOH-PEG2k-Au10_1to2_NH2-5K-Au5_0mM_HCl',
 
-        # 1: 'NH2-PEG2k-Au10_1to1_COOH-5K-Au5_1mM_HCl',
-        # 2: 'NH2-PEG2k-Au10_1to2_COOH-5K-Au5_1mM_HCl',
-        # 3: 'COOH-PEG2k-Au10_1to1_NH2-5K-Au5_1mM_HCl',
-        # 4: 'COOH-PEG2k-Au10_1to2_NH2-5K-Au5_1mM_HCl',
+        # 1: 'COOH-Au5_1to1_NH2-Au15_1mM_HCl',
+        # 2: 'COOH-Au5_2to1_NH2-Au15_1mM_HCl',
+        # 3: 'NH2-Au5_1to1_COOH-Au15_1mM_HCl',
+        # 4: 'NH2-Au5_2to1_COOH-Au15_1mM_HCl',
 
-        1: 'DHDP_3mgml_55uL_42mLwater_1mM_HAuCl4_10mM_NaOH_run2',
+        # 1: 'COOH-Au5_1to1_NH2-Au15_10mM_HCl',
+        # 2: 'COOH-Au5_2to1_NH2-Au15_10mM_HCl',
+        # 3: 'NH2-Au5_1to1_COOH-Au15_10mM_HCl',
+        # 4: 'NH2-Au5_2to1_COOH-Au15_10mM_HCl', 
+
+        # 1: 'COOH-Au5_1to1_NH2-Au15_10mM_HCl_KOH_9.9mM',
+        # 2: 'COOH-Au5_2to1_NH2-Au15_10mM_HCl_KOH_9.9mM',
+        # 3: 'NH2-Au5_1to1_COOH-Au15_10mM_HCl_KOH_9.9mM',
+        # 4: 'NH2-Au5_2to1_COOH-Au15_10mM_HCl_KOH_9.9mM',
+        # 
+
+        # 1: 'NH2-Au5_4to1_COOH-Au15_0mM_HCl',
+        # 2: 'COOH-Au5_4to1_NH2-Au15_0mM_HCl',
+        # 3: 'NH2-Au5_1to1_COOH-Au20_0mM_HCl',
+        # 4: 'NH2-Au5_2to1_COOH-Au20_0mM_HCl', 
+
+        # 1: 'NH2-Au5_4to1_COOH-Au15_1mM_HCl', # Binay, i believe this is p1mM HCl
+        # 2: 'COOH-Au5_4to1_NH2-Au15_1mM_HCl',
+        # 3: 'NH2-Au5_1to1_COOH-Au20_1mM_HCl',
+        # 4: 'NH2-Au5_2to1_COOH-Au20_1mM_HCl', 
+
+        # 1: 'NH2-Au5_4to1_COOH-Au15_true_1mM_HCl', # This is 100mM HCl 17uL added
+        # 2: 'COOH-Au5_4to1_NH2-Au15_true_1mM_HCl',
+        # 3: 'NH2-Au5_1to1_COOH-Au20_true_1mM_HCl',
+        # 4: 'NH2-Au5_2to1_COOH-Au20_true_1mM_HCl', 
+
+        # 1: 'NH2-Au5_4to1_COOH-Au15_10mM_HCl', # This is 1M HCl 17uL added
+        # 2: 'COOH-Au5_4to1_NH2-Au15_10mM_HCl',
+        # 3: 'NH2-Au5_1to1_COOH-Au20_10mM_HCl',
+        # 4: 'NH2-Au5_2to1_COOH-Au20_10mM_HCl', 
+
+        # 1: 'NH2-Au5_1to1_COOH-Ag10_0mM_HCl', 
+        # 2: 'NH2-Au5_2to1_COOH-Ag10_0mM_HCl',
+        # 3: 'COOH-Au5_1to1_NH2-Ag10_0mM_HCl',
+        # 4: 'COOH-Au5_2to1_NH2-Ag10_0mM_HCl', 
+
+        # 1: 'NH2-Au5_1to1_COOH-Ag10_p1mM_HCl', 
+        # 2: 'NH2-Au5_2to1_COOH-Ag10_p1mM_HCl',
+        # 3: 'COOH-Au5_1to1_NH2-Ag10_p1mM_HCl',
+        # 4: 'COOH-Au5_2to1_NH2-Ag10_p1mM_HCl', 
+
+        # 1: 'NH2-Au5_1to1_COOH-Ag10_1mM_HCl', 
+        # 2: 'NH2-Au5_2to1_COOH-Ag10_1mM_HCl',
+        # 3: 'COOH-Au5_1to1_NH2-Ag10_1mM_HCl',
+        # 4: 'COOH-Au5_2to1_NH2-Ag10_1mM_HCl', 
+
+        # 1: 'NH2-Au5_1to1_COOH-Ag10_10mM_HCl', 
+        # 2: 'NH2-Au5_2to1_COOH-Ag10_10mM_HCl',
+        # 3: 'COOH-Au5_1to1_NH2-Ag10_10mM_HCl',
+        # 4: 'COOH-Au5_2to1_NH2-Ag10_10mM_HCl', 
+
+        # 1: 'NH2-Au10_1to1_COOH-Au15_0mM_HCl', 
+        # 2: 'NH2-Au10_2to1_COOH-Au15_0mM_HCl',
+        # 3: 'COOH-Au10_1to1_NH2-Au15_0mM_HCl',
+        # 4: 'NH2-Au20_1to1_COOH-Au15_0mM_HCl', 
+
+        # 1: 'NH2-Au10_1to1_COOH-Au15_p1mM_HCl', 
+        # 2: 'NH2-Au10_2to1_COOH-Au15_p1mM_HCl',
+        # 3: 'COOH-Au10_1to1_NH2-Au15_p1mM_HCl',
+        # 4: 'NH2-Au20_1to1_COOH-Au15_p1mM_HCl',
+
+        # 1: 'NH2-Au10_1to1_COOH-Au15_1mM_HCl', 
+        # 2: 'NH2-Au10_2to1_COOH-Au15_1mM_HCl',
+        # 3: 'COOH-Au10_1to1_NH2-Au15_1mM_HCl',
+        # 4: 'NH2-Au20_1to1_COOH-Au15_1mM_HCl', 
+
+        # 1: 'NH2-Au10_1to1_COOH-Au15_10mM_HCl', 
+        # 2: 'NH2-Au10_2to1_COOH-Au15_10mM_HCl',
+        # 3: 'COOH-Au10_1to1_NH2-Au15_10mM_HCl',
+        # 4: 'NH2-Au20_1to1_COOH-Au15_10mM_HCl', 
+
+    #    2: 'Water_Au50mM_KOH_1mM', 
+    #    1: 'DHDP_30mNm_Au50mM_KOH_1mM', 
+    #    3: 'DPTAP_42mNm_Au50mM_KOH_1mM',
+
+        4: 'Water_GISAXS', 
+        1: 'NH2-PEG-Au10_1to6_COOH-PEG-Au5_1mM_HCl',
+        2: 'COOH-PEG-Au10_1to6_NH2-PEG-Au5_1mM_HCl',
+        3: 'COOH-PEG-Au10_1to8_NH2-PEG-Au5_1mM_HCl',
+        
+
     }
  
     sam_x2_pos ={
-        # 1: -67.4,  # +/- 1.5
-        # 2: -29.4,  # +/- 1.5
-        # 3:   8.6,    # +/- 1.5
-        # 4:  46.6,   # +/- 1.5
-        1: -5,
+       1: -84,  # +/- 1.5
+       2: -46,  # +/- 1.5
+       3:  -8,    # +/- 1.5
+       4:  30,   # +/- 1.5
+
+        # 1:   -77.5, # flat from -72 to -83 , # front
+        # 2:   -26.5,  # flat from -23 to -30  # middle trough
+        # 3:    23.5,    # flat from 16 to 31, , # back
+
     }
     xr_run_dict = {
-        1: True,
+        1: False,
         2: False,
         3: False,
         4: False,
     }
     xrf_run_dict = {
-        1: True,
+        1: False,
         2: False,
         3: False,
         4: False,
@@ -170,9 +220,9 @@ def run_ames():
     }
     gisaxs_run_dict = {
         1: True,
-        2: False,
-        3: False,
-        4: False,
+        2: True,
+        3: True,
+        4: True,
     }
     sh_offset_dict = {
         1: False,
@@ -188,17 +238,19 @@ def run_ames():
     }
     slit_hg_gisaxs = [0.2]
     run_cycle = 1
+    yield from shopen()
+
     for ii in range(run_cycle):
         runNum = ii+1
         for key in samp_name_dict:
             samp_name = samp_name_dict[key] # +f'_run{runNum}'
             samp_x2 = sam_x2_pos[key]
-            yield from bps.mv(S2.hg, 0.3)
+            yield from bps.mv(S2.hg, 0.5)
             yield from bps.mv(geo.stblx2,samp_x2)  #move the  Sample Table X2 to xpos
-            try:
-                yield from bps.mv(block.y,samp_x2-5)
-            except:
-                print('beam block is not connected.')
+            # try:
+            #     yield from bps.mv(block.y,samp_x2-5)
+            # except:
+            #     print('beam block is not connected.')
             
             yield from det_set_exposure([detector,quadem], exposure_time=1, exposure_number = 1)
             yield from mabt(0,0,0)
@@ -224,6 +276,7 @@ def run_ames():
             if xrf_run_dict[key]:
                 print('Starting XRF measurement')
                 yield from bps.mv(geo.stblx2,samp_x2-2)  #move the  Sample Table X2 to xpos
+                #yield from bps.mv(geo.stblx2,samp_x2+2)  #move the  Sample Table X2 to xpos
                 yield from sample_height_set_fine_o_xrf(detector=detector)
                 yield from xrf_scan1(samp_name)
                 yield from det_set_exposure([detector,quadem], exposure_time=1, exposure_number = 1)
@@ -235,20 +288,22 @@ def run_ames():
                     print('Slit horizontal gap is set to %.2f'%slit_hg)
                     yield from bps.mv(S2.hg, slit_hg)
                     yield from bps.mv(S2.vg, 0.02) # added the vertical gap for gisaxs
-                    yield from bps.mv(geo.stblx2,samp_x2-4)  #move the  Sample Table X2 to xpos
+                    yield from bps.mv(geo.stblx2,samp_x2+1.0)  #move the  Sample Table X2 to xpos
                     yield from det_set_exposure([detector], exposure_time=1, exposure_number = 1)
                     yield from bps.mv(shutter,1) # open shutter
                     # yield from sample_height_set_coarse(detector=detector)
                     yield from sample_height_set_fine_o(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
-                    yield from gisaxs_scan1(samp_name+f'slit_hg_{slit_hg}')
+                    yield from gisaxs_scan1(samp_name)
                 yield from det_set_exposure([detector,quadem], exposure_time=1, exposure_number = 1)
+                yield from bps.mv(S2.vg, 0.04) # added the vertical gap for gisaxs
 
             if gid_run_dict[key]:
                 print('Start gid_soller measurements')
-                yield from bps.mv(geo.stblx2,samp_x2+3)
+                # yield from bps.mv(geo.stblx2,samp_x2+3)
+                yield from bps.mv(geo.stblx2,samp_x2-3)
                 # yield from bps.mv(block.y,samp_x2-2)
                 yield from sample_height_set_fine_o(detector=detector) 
-                yield from bps.mv(block.y,samp_x2+3)
+                # yield from bps.mv(block.y,samp_x2+3)
                 yield from gid_soller1(samp_name)
                 yield from det_set_exposure([detector,quadem], exposure_time=1, exposure_number = 1)
 
@@ -286,8 +341,8 @@ def one_xrr_new(name,tiltx=0,detector=lambda_det):
  #   yield from bps.mv(geo.stblx2,xpos)  #move the  Sample Table X2 to xpos
  #   yield from bps.mv(block.y,xpos)  #move the  block to xpos
     yield from bps.mv(shutter,1) # open shutter
-    # yield from xr_scan1(name)
-    yield from xr_scan2(name)
+    yield from xr_scan1(name)
+    #yield from xr_scan2(name)
     yield from bps.mv(shutter,0) # open shutter
     yield from mabt(0.2,0.2,0)
 
@@ -326,7 +381,7 @@ def sample_height_set_coarse(value=0,detector=lambda_det):
     # yield from det_exposure_time_new(detector, 1,1)
     yield from det_set_exposure([detector], exposure_time=1, exposure_number = 1)
     local_peaks = PeakStats(sh.user_readback.name, '%s_stats2_total'%detector.name)
-    yield from bpp.subs_wrapper(bp.rel_scan([detector],sh,-1,1,13,per_step=shutter_flash_scan), local_peaks)
+    yield from bpp.subs_wrapper(bp.rel_scan([detector],sh,-1.5,1.5,37,per_step=shutter_flash_scan), local_peaks)
     print("at #1")
     tmp2 = local_peaks.cen #get the height for roi2 of detector.name with max intens
     print("at #2")
@@ -377,7 +432,7 @@ def sample_height_set_fine_o_xrf(value=3,detector=lambda_det):
     #yield from bps.mv(sh,tmp2-0.00)
     #yield from set_sh(tmp1)
     yield from bps.mv(sh,tmp2-0.00)
-    yield from set_sh(tmp1-0.008)
+    yield from set_sh(tmp1-0.000)
     Msg('reset_settle_time', sh.settle_time, 0)
 
 
@@ -386,11 +441,11 @@ def xr_scan1(name):
     alpha_start_list =   [ 0.04, 0.16, 0.24, 0.40,  0.7,  1.5]
     alpha_stop_list =    [ 0.16, 0.24, 0.40, 0.70,  1.5,  2.0]
     number_points_list = [    7,   6,     9,   11,   17,   11]
-    auto_atten_list =    [    7,   6,     5,    4,    3,    2]
+    auto_atten_list =    [   6,     5,    4,    3,    2,     1]
     s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04]
     exp_time_list =      [    3,   3,     3,    5,     5,    5]
     precount_time_list=  [  0.1, 0.1,   0.1,   0.1,  0.1,  0.1]
-    wait_time_list=      [    3,   3,     3,     3,    3,   3 ]
+    wait_time_list=      [    5,   5,     5,     5,    5,   5 ]
     x2_offset_start_list=[    0,   0,     0,     0,    0,   0 ]
     x2_offset_stop_list= [    0,   0,     0,     0,    0,   0 ]
     block_offset_list=   [    0,   0,     0,     0,    0,   0 ]
@@ -410,17 +465,17 @@ def xr_scan1(name):
     # block_offset_list=   [    0,   0,     0,     0,    0,   0 ]
  
 # #      9.7kev Qz to 0.65, more overlap
-#     alpha_start_list =   [ 0.04, 0.14, 0.24, 0.40,  0.65,  0.9,  1.9,  2.9]
-#     alpha_stop_list =    [ 0.18, 0.28, 0.44, 0.72,  1.05,  2.1,  3.1,  3.9]
-#     number_points_list = [    8,   8,     8,    9,    9,   13,   13,   11]
-#     auto_atten_list =    [    7,   6,     5,    4,    3,    2,    1,    0]
-#     s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04,0.04, 0.04]
-#     exp_time_list =      [    5,   5,     5,    5,     5,    5,   5,    5]
-#     precount_time_list=  [  0.1, 0.1,   0.1,   0.1,  0.1,  0.1, 0.1,  0.1]
-#     wait_time_list=      [    5,   5,     5,     5,    5,   5,    5,    5]
-#     x2_offset_start_list=[    0,   0,     0,     0,    0,   0,   0.0,-0.5]
-#     x2_offset_stop_list= [    0,   0,     0,     0,    0,   0,   0.0, 0.5]
-#     block_offset_list=   [    0,   0,     0,     0,    0,   0,    0,    0]
+    # alpha_start_list =   [ 0.04, 0.14, 0.24, 0.40,  0.65,  0.9,  1.9,  2.9]
+    # alpha_stop_list =    [ 0.18, 0.28, 0.44, 0.72,  1.05,  2.1,  3.1,  3.9]
+    # number_points_list = [    8,   8,     8,    9,    9,   13,   13,   11]
+    # auto_atten_list =    [    6,   5,     4,    3,    2,    1,    0,    0]
+    # s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04,0.04, 0.04]
+    # exp_time_list =      [    5,   5,     5,    5,     5,    5,   5,    5]
+    # precount_time_list=  [  0.1, 0.1,   0.1,   0.1,  0.1,  0.1, 0.1,  0.1]
+    # wait_time_list=      [    5,   5,     5,     5,    5,   5,    5,    5]
+    # x2_offset_start_list=[    0,   0,     0,     0,    0,   0,   0.0,-0.5]
+    # x2_offset_stop_list= [    0,   0,     0,     0,    0,   0,   0.0, 0.5]
+    # block_offset_list=   [    0,   0,     0,     0,    0,   0,    0,    0]
 
 
     # #9.7kev for Aug022_ccny
@@ -552,15 +607,17 @@ def xr_scan2(name):
 #      9.7kev Qz to 0.65, more overlap
     alpha_start_list =   [ 0.04, 0.14, 0.24, 0.40,  0.65,  0.9,  1.9,  2.9]
     alpha_stop_list =    [ 0.18, 0.28, 0.44, 0.72,  1.05,  2.1,  3.1,  3.9]
-    number_points_list = [    8,   8,     8,    9,    9,   13,   13,   11]
-    auto_atten_list =    [    7,   6,     5,    4,    3,    2,    1,    0]
-    s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04,0.04, 0.04]
-    exp_time_list =      [    5,   5,     5,    5,     5,    5,   5,    5]
-    precount_time_list=  [  0.1, 0.1,   0.1,   0.1,  0.1,  0.1, 0.1,  0.1]
-    wait_time_list=      [    5,   5,     5,     5,    5,   5,    5,    5]
-    x2_offset_start_list=[    0,   0,     0,     0,    0,   0,   0.0, -0.2]
-    x2_offset_stop_list= [    0,   0,     0,     0,    0,   0,   0.0, -1.2]
-    block_offset_list=   [    0,   0,     0,     0,    0,   0,    0,    0]
+    number_points_list = [    8,   8,     8,    9,    9,    13,   13,   11]
+    auto_atten_list =    [    6,   5,     4,    3,    2,     1,    0,    0]
+    s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04, 0.04, 0.04]
+    exp_time_list =      [    5,   5,     5,    5,     5,    5,    5,   30]
+    precount_time_list=  [  0.1, 0.1,   0.1,   0.1,  0.1,  0.1,  0.1,  0.1]
+    wait_time_list=      [   10,  10,    10,    10,   10,   10,   10,   10]
+    x2_offset_start_list=[    0,   0,     0,     0,    0,    0,  0.0,  1.5]
+    x2_offset_stop_list= [    0,   0,     0,     0,    0,    0,  1.4,  4.8]
+    block_offset_list=   [    0,   0,     0,     0,    0,    0,    0,    0]
+
+
 
     scan_p={"start":alpha_start_list,
         "stop":alpha_stop_list,
@@ -861,11 +918,11 @@ def gisaxs_scan1(name):
     det_saxs_y_list         = [0, 0]
     det_saxs_y_offset_list  = [0, 1]
     stth_list               = [0, 0]
-    exp_time_list           = [2, 2] # [20,20]
+    exp_time_list           = [5, 5] # [20,20]
     x2_offset_list          = [0, 0]
-    atten_2_list            = [1, 1]
+    atten_2_list            = [0, 0]
     wait_time_list          = [5, 5]
-    beam_stop_x             = [-15.4, -15.4] # [-54.3,-54.3, -54.3]
+    beam_stop_x             = [-43.1, -43.1] # [-54.3,-54.3, -54.3]
     beam_stop_y             = [24, 24]
 
 
@@ -885,7 +942,8 @@ def gisaxs_scan1(name):
     yield from bps.mv(geo.det_mode,2)
     # yield from beta_gid(2.3,0)
     # yield from bps.mv(abs2,0)
-    yield from bps.mv(fp_saxs.y1,20,fp_saxs.y2,40)
+   # yield from bps.mv(fp_saxs.y1,20,fp_saxs.y2,40)# with vertical mirrors
+    yield from bps.mv(fp_saxs.y1,20-5,fp_saxs.y2,40-5)# with CRLS
     print("calling GID_stitch")
     yield from gid_scan_stitch(scan_dict,
                                 md={'sample_name': name}, 
@@ -907,7 +965,7 @@ def gisaxs_incident(name):
     x2_offset_list          = [0.2]
     atten_2_list            = [6]
     wait_time_list          = [5]
-    beam_stop_x             = [-15.4+2]
+    beam_stop_x             = [-43.1+2]
     beam_stop_y             = [24]
 
 
@@ -936,7 +994,8 @@ def gisaxs_incident(name):
 #mode 3 is for GID with no beam stop, mode 2 is for GID mode with the beam stop
     yield from bps.mv(geo.det_mode,2)
     # yield from beta_gid(2.3,0)
-    yield from bps.mv(fp_saxs.y1,20,fp_saxs.y2,40)
+    # yield from bps.mv(fp_saxs.y1,20,fp_saxs.y2,40)
+    yield from bps.mv(fp_saxs.y1,20-5,fp_saxs.y2,40-5)# with CRLS
     print("calling GID_stitch")
     yield from gid_scan_stitch(scan_dict,
                                 md={'sample_name': name}, 
@@ -951,12 +1010,12 @@ def gisaxs_direct(name):
     '''For MEA19'''
     det_saxs_y_list         = [0, 0, 0, 0]
     det_saxs_y_offset_list  = [0, 0, 0, 0]
-    stth_list               = [-2, -1.5, -1.0, 0]
+    stth_list               = [-1.5, -1.0, 0, 1.0]
     exp_time_list           = [1, 1, 1, 1] # [20,20]
     x2_offset_list          = [-0.1, 0, 0.1,0.2]
     atten_2_list            = [6, 6, 6, 6]
     wait_time_list          = [1, 1, 1, 1]
-    beam_stop_x             = [-15.4+2, -15.4+2, -15.4+2,-15.4+2]
+    beam_stop_x             = [-43.1+2, -43.1+2, -43.1+2, -43.1+2]
     beam_stop_y             = [24, 24, 24, 24]
 
 
@@ -985,7 +1044,8 @@ def gisaxs_direct(name):
 #mode 3 is for GID with no beam stop, mode 2 is for GID mode with the beam stop
     yield from bps.mv(geo.det_mode,2)
     # yield from beta_gid(2.3,0)
-    yield from bps.mv(fp_saxs.y1,20,fp_saxs.y2,40)
+    # yield from bps.mv(fp_saxs.y1,20,fp_saxs.y2,40)
+    yield from bps.mv(fp_saxs.y1,20-5,fp_saxs.y2,40-5)# with CRLS
     print("calling GID_stitch")
     yield from gid_scan_stitch(scan_dict,
                                 md={'sample_name': name}, 
@@ -1035,11 +1095,11 @@ def gid_single(name,stth_0, alpha=0.1):
 
 
 def gid_soller1(name):
-    stth_start_list =    [10]
-    stth_stop_list =     [13]
-    number_points_list = [31]
+    stth_start_list =    [19]
+    stth_stop_list =     [14]
+    number_points_list = [26]
     exp_time_list      = [10]
-    x2_range_list      = [6]
+    x2_range_list      = [5.2]
     atten_2_list       = [0]
     wait_time_list     = [5]
 
@@ -1060,8 +1120,8 @@ def gid_soller1(name):
     yield from gid_scan_soller(scan_dict,
                                 md={'sample_name': name}, 
                                 detector = pilatus100k,
-                                alphai = 0.07,
-                                beamstop = True,
+                                alphai = 0.1,
+                                beamstop = False,
                                 )
     
     yield from bps.mv(abs2,5)
@@ -1070,12 +1130,12 @@ def gid_soller1(name):
 
 
 def gid_soller_cali(name):
-    stth_start_list =    [0.7]
-    stth_stop_list =     [3.7]
-    number_points_list = [61]
+    stth_start_list =    [1] ## 9.7 keV
+    stth_stop_list =     [5.5] ## 9.7 keV
+    number_points_list = [46]
     exp_time_list      = [2]
     x2_range_list      = [0]
-    atten_2_list       = [1]
+    atten_2_list       = [0] ## 9.7 keV
     wait_time_list     = [1]
 
     scan_dict={
@@ -1096,13 +1156,13 @@ def gid_soller_cali(name):
                                 md={'sample_name': name}, 
                                 detector = pilatus100k,
                                 alphai = 0,
-                                beamstop = True,
+                                beamstop = False,
                                 )
     # yield from bps.mv(geo.track_mode,1)
     yield from bps.mv(abs2,5)
 
 
-def gid_soller_incident(name='gid_soller_incident007'):
+def gid_soller_incident(name='gid_soller_incident01'):
     stth_start_list =    [0]
     stth_stop_list =     [0.1]
     number_points_list = [1]
@@ -1128,8 +1188,8 @@ def gid_soller_incident(name='gid_soller_incident007'):
     yield from gid_scan_soller(scan_dict,
                                 md={'sample_name': name}, 
                                 detector = pilatus100k,
-                                alphai = 0.07,
-                                beamstop = True,
+                                alphai = 0.1,
+                                beamstop = False,
                                 )
     # yield from bps.mv(geo.track_mode,1)
     yield from bps.mv(abs2,5)
@@ -1162,7 +1222,7 @@ def gid_soller_direct(name='gid_soller_direct0'):
                                 md={'sample_name': name}, 
                                 detector = pilatus100k,
                                 alphai = 0,
-                                beamstop = True,
+                                beamstop = False,
                                 )
     # yield from bps.mv(geo.track_mode,1)
     yield from bps.mv(abs2,5)

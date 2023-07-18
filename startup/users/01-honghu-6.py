@@ -37,127 +37,84 @@ def dry_he_off(value):
     yield from mov(flow2,0.0)
 '''
 
-
-proposal_id("2023_1","311068_vaknin")
-
+proposal_id("2023_1","310472_zhang")
 from pyrsistent import s
 
-
 ##############################################################
-def run_ames():
-    proposal_id("2023_1","311068_vaknin")
+def honghu_mar23():
+    proposal_id("2023_1","310472_zhang")
     yield from bps.mv(lambda_det.oper_mode,1)
     yield from bps.mv(lambda_det.low_thr,4.0)
 
-    # yield from bps.sleep(5)
-    # yield from shopen()
-    # yield from he_on() # starts the He flow
+
     detector=lambda_det
 
     samp_name_dict = {
-        # 1: 'water_2', 
-        # 1: '50mM_CsI', 
 
-        # 1: 'Water',
-        # 2: 'PEG2k',
-        # 3: 'PEG5k',
-        # 4: 'PEG100k',
+        # 1: 'Water_1',
+        # 2: 'NaCl_1',
+        # 3: 'Water_2',
 
-        # 1: 'Water_10mMCsCl',
-        # 2: 'PEG2k_10mMCsCl',
-        # 3: 'PEG5k_10mMCsCl',
-        # 4: 'PEG100k_10mMCsCSl',
+###### spread monolayer at 12:20-12:34pm; run xrr and gid at 1:10pm ######
+        # 1: 'DSPE-DNA-A_water', # 20 uL, pressure drop from 31 to 28
+        # 2: 'DSPE-DNA-A_NaCl',  # 20 uL
+        # 3: 'DSPE_water', # 25uL, pressure up to 26, could not go up more
 
-        # 1: 'Water_100mMCsCl',
-        # 2: 'PEG2k_100mMCsCl',
-        # 3: 'PEG5k_100mMCsCl',
-        # 4: 'PEG100k_100mMCsCl',
+###### spread more monolayer at 3:30-12:45pm; run xrr and gid ######
+        # 1: 'DSPE-DNA-A_water_run2', # 20+12 uL, pressure up to 29
+        # 2: 'DSPE-DNA-A_NaCl_run2',  # 20+8 uL
+        # 3: 'DSPE_water_run2', # 25+10uL, pressure up to 33, could not go up more
 
-        # 1: 'PEG2k_100mgpml_100mMCsCl',
-        # 2: 'PEG5k_100mgpml_100mMCsCl',
-        # 3: 'PEG100k__100mgpml_100mMCsCl',
-        # 4: 'Blank',
+###### spread more monolayer at 8:20pm-10:20pm and run xrr and gid one by one ######
+        # 1: 'DSPE-DNA-A_NP-A_NaCl', # 22 uL, pressure up to 32 back to 30; 8:25pm; gisaxs at t=20min; xrr at t=25min
+        # 2: 'DSPE-DNA-A_NP-A_water',  # 26 uL, still spread; 9:14pm; gisaxs at t=23min; xrr at t=25min
+        # 3: 'DSPE_DNA-A_NP-B_NaCl', # 22uL, pressure up to 33 then back to 31, could not spread; 10:10pm; gisaxs at t=15min
 
-        # 1: 'COOH-5K-Au5',
-        # 2: 'NH2-5K-Au5',
-        # 3: 'COOH-5K-Au10',
-        # 4: 'NH2-5K-Au10',
+###### control DNA-NPs only
+        # 2: 'NP-A_lowNaCl',  # 13mL, 3nM, 150mM NaCl
+        # 2: 'DSPE_DNA-B_NP-A_lowNaCl',  # 13mL, 3nM, 150mM NaCl; spread lipid-B 18uL at 1:25pm
+        # 2: 'DSPE_DNA-B_NP-A_lowNaCl_solvent',  # added chloroform 5uL, methanol 2uL at 2:15pm
 
+###### load NPs with NaCl 3:40pm ######
+        # 2: 'NP-B_lowNaCl',  # 13mL, 3nM, 150mM NaCl, 3:45pm
 
-        # 1: 'NH2-PEG5k-Au10_1to1_COOH-5K-Au5_100mMK',
-        # 2: 'NH2-PEG5k-Au10_1to2_COOH-5K-Au5_100mMK',
-        # 3: 'NH2-PEG5k-Au10_1to4_COOH-5K-Au5_100mMK',
-        # 4: 'NH2-PEG5k-Au10_2to1_COOH-5K-Au5_100mMK',
+###### spread monolayer at 4pm-6pm and run xrr and gid one by one ######
+        1: 'DSPE-DNA-AB82_NP-B_lowNaCl',  # 27 uL, pressure up to 32 back to 30; 4:05pm; gisaxs at t=15min; xrr at t=18min
+        2: 'DSPE-DNA-AB55_NP-B_lowNaCl',   # 19 uL, 5:03pm; gisaxs at t=13min; xrr at t=18min; add 5:20pm, up to 27uL
+        3: 'DSPE-DNA-AB01_NP-B_lowNaCl',  # 21uL, pressure 32, could not spread; 6:02pm; gisaxs at t=15min
 
-
-        # 1: 'NH2-PEG5k-Au10_1to4_COOH-5K-Au5_p1mM_HCl',
-        # 2: 'NH2-PEG5k-Au10_2to1_COOH-5K-Au5_p1mM_HCl',
-        # 3: 'COOH-PEG5k-Au10_1to4_NH2-5K-Au5_p1mM_HCl',
-        # 4: 'COOH-PEG5k-Au10_2to1_NH2-5K-Au5_p1mM_HCl',
-
-        # 1: 'NH2-PEG5k-Au10_1to4_COOH-5K-Au5_p10+mM_HCl',
-        # 2: 'NH2-PEG5k-Au10_2to1_COOH-5K-Au5_p10mM_HCl',
-        # 3: 'COOH-PEG5k-Au10_1to4_NH2-5K-Au5_p10mM_HCl',
-        # 4: 'COOH-PEG5k-Au10_2to1_NH2-5K-Au5_p10mM_HCl',
-
-        # 1: 'NH2-PEG5k-Au10_1to1_COOH-5K-Au5_0mM_HCl',
-        # 2: 'NH2-PEG5k-Au10_1to2_COOH-5K-Au5_0mM_HCl',
-        # 3: 'COOH-PEG5k-Au10_1to1_NH2-5K-Au5_0mM_HCl',
-        # 4: 'COOH-PEG5k-Au10_1to2_NH2-5K-Au5_0mM_HCl',
-
-        # 1: 'NH2-PEG5k-Au10_1to1_COOH-5K-Au5_1mM_HCl',
-        # 2: 'NH2-PEG5k-Au10_1to2_COOH-5K-Au5_1mM_HCl',
-        # 3: 'COOH-PEG5k-Au10_1to1_NH2-5K-Au5_1mM_HCl',
-        # 4: 'COOH-PEG5k-Au10_1to2_NH2-5K-Au5_1mM_HCl',
-
-        # 1: 'NH2-PEG5k-Au10_1to1_COOH-5K-Au5_10mM_HCl',
-        # 2: 'NH2-PEG5k-Au10_1to2_COOH-5K-Au5_10mM_HCl',
-        # 3: 'COOH-PEG5k-Au10_1to1_NH2-5K-Au5_10mM_HCl',
-        # 4: 'COOH-PEG5k-Au10_1to2_NH2-5K-Au5_10mM_HCl',
-
-        # 1: 'COOH-PEG5K-Au5_p1mM_HCl',
-        # 2: 'NH2-PEG5K-Au5_p1mM_HCl',
-        # 3: 'COOH-PEG5K-Au10_p1mM_HCl',
-        # 4: 'NH2-PEG5K-Au10_p1mM_HCl',
-
-        # 1: 'COOH-PEG5K-Au5_1mM_HCl',
-        # 2: 'NH2-PEG5K-Au5_1mM_HCl',
-        # 3: 'COOH-PEG5K-Au10_1mM_HCl',
-        # 4: 'NH2-PEG5K-Au10_1mM_HCl',
-
-        # 1: 'COOH-PEG5K-Au5_10mM_HCl',
-        # 2: 'NH2-PEG5K-Au5_10mM_HCl',
-        # 3: 'COOH-PEG5K-Au10_10mM_HCl',
-        # 4: 'NH2-PEG5K-Au10_10mM_HCl',
-
-        # 1: 'NH2-PEG2k-Au10_1to1_COOH-5K-Au5_0mM_HCl',
-        # 2: 'NH2-PEG2k-Au10_1to2_COOH-5K-Au5_0mM_HCl',
-        # 3: 'COOH-PEG2k-Au10_1to1_NH2-5K-Au5_0mM_HCl',
-        # 4: 'COOH-PEG2k-Au10_1to2_NH2-5K-Au5_0mM_HCl',
-
-        # 1: 'NH2-PEG2k-Au10_1to1_COOH-5K-Au5_1mM_HCl',
-        # 2: 'NH2-PEG2k-Au10_1to2_COOH-5K-Au5_1mM_HCl',
-        # 3: 'COOH-PEG2k-Au10_1to1_NH2-5K-Au5_1mM_HCl',
-        # 4: 'COOH-PEG2k-Au10_1to2_NH2-5K-Au5_1mM_HCl',
-
-        1: 'DHDP_3mgml_55uL_42mLwater_1mM_HAuCl4_10mM_NaOH_run2',
     }
  
     sam_x2_pos ={
-        # 1: -67.4,  # +/- 1.5
-        # 2: -29.4,  # +/- 1.5
-        # 3:   8.6,    # +/- 1.5
-        # 4:  46.6,   # +/- 1.5
-        1: -5,
+        # 1: -62.5, # flat from -59 to -64.5 , # front
+        # 2: -8.5,  # flat from -6 to -14 # middle trough
+        # 3: 40,    # flat from 37 to 43.5, # back
+
+        # 1: -62.5, # flat from -67.5 to -56.5 , # front
+        # 2:   -11,  # flat from -16 to -5  # middle trough
+        # 3:    40,    # flat from 35-45, # back
+
+        # 1:   -65+0.5, # flat from -67.5 to -55.5 , # front
+        # 2:   -14.5,  # flat from -16 to -5  # middle trough
+        # 3:    37,    # flat from 35.5-46.5, # back
+
+        # 2:   -17,  # flat from -16 to -5  # middle trough
+        # 2:   -12,  # flat from -15 to -8  # middle trough
+
+        1:   -67.5, # flat from -68.5 to -55.5 , # front
+        2:   -17.5,  # flat from -18 to -5  # middle trough
+        3:    36.5,    # flat from 32-45, # back
+
+
     }
     xr_run_dict = {
         1: True,
-        2: False,
-        3: False,
+        2: True,
+        3: True,
         4: False,
     }
     xrf_run_dict = {
-        1: True,
+        1: False,
         2: False,
         3: False,
         4: False,
@@ -170,8 +127,8 @@ def run_ames():
     }
     gisaxs_run_dict = {
         1: True,
-        2: False,
-        3: False,
+        2: True,
+        3: True,
         4: False,
     }
     sh_offset_dict = {
@@ -187,12 +144,21 @@ def run_ames():
         4: -26.3,
     }
     slit_hg_gisaxs = [0.2]
-    run_cycle = 1
+    run_cycle = 4 # 3
     for ii in range(run_cycle):
-        runNum = ii+1
+        runNum = ii+2 # +1
+        print(f'Run Num: {runNum}')
+        # print("Starting incubation for ...")  
+        # yield from bps.sleep(0.5*60*60)
+
         for key in samp_name_dict:
-            samp_name = samp_name_dict[key] # +f'_run{runNum}'
-            samp_x2 = sam_x2_pos[key]
+            print(f'Run Sample Num: {key}')
+
+            print("Starting incubation for ...")  
+            yield from bps.sleep(0.2*60*60)
+
+            samp_name = samp_name_dict[key] +f'_run{runNum}'
+            samp_x2 = sam_x2_pos[key] + (runNum-1)*2
             yield from bps.mv(S2.hg, 0.3)
             yield from bps.mv(geo.stblx2,samp_x2)  #move the  Sample Table X2 to xpos
             try:
@@ -202,8 +168,8 @@ def run_ames():
             
             yield from det_set_exposure([detector,quadem], exposure_time=1, exposure_number = 1)
             yield from mabt(0,0,0)
-            yield from check_ih()
-            yield from check_phi() #resets phi, the crystal deflector at mab(0,0,0)
+            # yield from check_ih()
+            # yield from check_phi() #resets phi, the crystal deflector at mab(0,0,0)
 
             if sh_offset_dict[key]:
                 print('Starting fast sample height set using offset position')
@@ -216,17 +182,17 @@ def run_ames():
                 sam_sh_offset[key]=sh.user_offset.value
                 print('Setting sh_offset to',sh.user_offset.value)
 
-            if xr_run_dict[key]:
-                print('Starting XRR measurement')
-                yield from one_xrr_new(samp_name)
-                yield from det_set_exposure([detector,quadem], exposure_time=1, exposure_number = 1)
+            # if xr_run_dict[key]:
+            #     print('Starting XRR measurement')
+            #     yield from one_xrr_new(samp_name)
+            #     yield from det_set_exposure([detector,quadem], exposure_time=1, exposure_number = 1)
 
-            if xrf_run_dict[key]:
-                print('Starting XRF measurement')
-                yield from bps.mv(geo.stblx2,samp_x2-2)  #move the  Sample Table X2 to xpos
-                yield from sample_height_set_fine_o_xrf(detector=detector)
-                yield from xrf_scan1(samp_name)
-                yield from det_set_exposure([detector,quadem], exposure_time=1, exposure_number = 1)
+            # if xrf_run_dict[key]:
+            #     print('Starting XRF measurement')
+            #     yield from bps.mv(geo.stblx2,samp_x2-2)  #move the  Sample Table X2 to xpos
+            #     yield from sample_height_set_fine_o_xrf(detector=detector)
+            #     yield from xrf_scan1(samp_name)
+            #     yield from det_set_exposure([detector,quadem], exposure_time=1, exposure_number = 1)
 
             if gisaxs_run_dict[key]:
                 print('Starting GISAXS measurement')
@@ -235,22 +201,38 @@ def run_ames():
                     print('Slit horizontal gap is set to %.2f'%slit_hg)
                     yield from bps.mv(S2.hg, slit_hg)
                     yield from bps.mv(S2.vg, 0.02) # added the vertical gap for gisaxs
-                    yield from bps.mv(geo.stblx2,samp_x2-4)  #move the  Sample Table X2 to xpos
+                    yield from bps.mv(geo.stblx2,samp_x2-0.3)  #move the  Sample Table X2 to xpos
                     yield from det_set_exposure([detector], exposure_time=1, exposure_number = 1)
-                    yield from bps.mv(shutter,1) # open shutter
+                    # yield from bps.mv(shutter,1) # open shutter
                     # yield from sample_height_set_coarse(detector=detector)
-                    yield from sample_height_set_fine_o(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
-                    yield from gisaxs_scan1(samp_name+f'slit_hg_{slit_hg}')
+                    # yield from sample_height_set_fine_o(detector=detector)   #scan the detector arm height from -0.2 to 0.2 with 21 points
+                    yield from gisaxs_scan1(samp_name+f'_slit_hg_{slit_hg}')
                 yield from det_set_exposure([detector,quadem], exposure_time=1, exposure_number = 1)
 
-            if gid_run_dict[key]:
-                print('Start gid_soller measurements')
-                yield from bps.mv(geo.stblx2,samp_x2+3)
-                # yield from bps.mv(block.y,samp_x2-2)
-                yield from sample_height_set_fine_o(detector=detector) 
-                yield from bps.mv(block.y,samp_x2+3)
-                yield from gid_soller1(samp_name)
+
+            if xr_run_dict[key]:
+                print('Starting XRR measurement')
+                yield from det_set_exposure([detector], exposure_time=1, exposure_number = 1)
+                yield from bps.mv(geo.stblx2,samp_x2)  #move the  Sample Table X2 to xpos
+                # yield from bps.mv(shutter,1) # open shutter
+                yield from sample_height_set_fine_o(detector=detector)   #sc
+                yield from one_xrr_new(samp_name)
                 yield from det_set_exposure([detector,quadem], exposure_time=1, exposure_number = 1)
+
+            # if gid_run_dict[key]:
+            #     print('Start gid_soller measurements')
+            #     yield from bps.mv(geo.stblx2,samp_x2)
+            #     # yield from bps.mv(block.y,samp_x2-2)
+            #     yield from sample_height_set_fine_o(detector=detector) 
+            #     yield from bps.mv(block.y,samp_x2-0.2)
+            #     yield from gid_soller1(samp_name)
+            #     yield from det_set_exposure([detector,quadem], exposure_time=1, exposure_number = 1)
+
+            print("Starting incubation for ...")  
+            yield from bps.sleep(0.2*60*60)
+
+        # print("Starting incubation for ...")  
+        # yield from bps.sleep(0.5*60*60)
 
     yield from det_set_exposure([detector,quadem], exposure_time=1, exposure_number = 1)
     yield from bps.mv(geo.det_mode,1)
@@ -286,8 +268,8 @@ def one_xrr_new(name,tiltx=0,detector=lambda_det):
  #   yield from bps.mv(geo.stblx2,xpos)  #move the  Sample Table X2 to xpos
  #   yield from bps.mv(block.y,xpos)  #move the  block to xpos
     yield from bps.mv(shutter,1) # open shutter
-    # yield from xr_scan1(name)
-    yield from xr_scan2(name)
+    yield from xr_scan1(name)
+    # yield from xr_scan2(name)
     yield from bps.mv(shutter,0) # open shutter
     yield from mabt(0.2,0.2,0)
 
@@ -339,7 +321,7 @@ def sample_height_set_coarse(value=0,detector=lambda_det):
 def sample_height_set_fine_o(value=3,detector=lambda_det):
     geo.sh.user_readback.kind = 'hinted'
     yield from bps.mv(geo.det_mode,1)
-    yield from bps.mv(abs2,5)
+    yield from bps.mv(abs2,6)
     yield from mabt(0.08,0.08,0)
     tmp1=geo.sh.position
     print('Start the height scan')
@@ -382,18 +364,62 @@ def sample_height_set_fine_o_xrf(value=3,detector=lambda_det):
 
 
 def xr_scan1(name):
-# old scans from last run    
-    alpha_start_list =   [ 0.04, 0.16, 0.24, 0.40,  0.7,  1.5]
-    alpha_stop_list =    [ 0.16, 0.24, 0.40, 0.70,  1.5,  2.0]
-    number_points_list = [    7,   6,     9,   11,   17,   11]
-    auto_atten_list =    [    7,   6,     5,    4,    3,    2]
-    s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04]
-    exp_time_list =      [    3,   3,     3,    5,     5,    5]
-    precount_time_list=  [  0.1, 0.1,   0.1,   0.1,  0.1,  0.1]
-    wait_time_list=      [    3,   3,     3,     3,    3,   3 ]
-    x2_offset_start_list=[    0,   0,     0,     0,    0,   0 ]
-    x2_offset_stop_list= [    0,   0,     0,     0,    0,   0 ]
-    block_offset_list=   [    0,   0,     0,     0,    0,   0 ]
+
+
+    #     #9.7kev Qz to 0.65, more overlap
+    # alpha_start_list =   [ 0.04, 0.14, 0.24, 0.40,  0.65, 0.95,  1.9]
+    # alpha_stop_list =    [ 0.18, 0.28, 0.44, 0.72,  1.05,  2.1,  3.3]
+    # number_points_list = [    8,   8,     8,    9,     9,   24,   15]
+    # auto_atten_list =    [    7,   6,     5,    4,     3,    2,    1]
+    # s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04, 0.04]
+    # exp_time_list =      [    5,   5,     5,    5,     5,    5,    5]
+    # precount_time_list=  [  0.1, 0.1,   0.1,   0.1,  0.1,  0.1,  0.1]
+    # wait_time_list=      [    5,   5,     5,     5,    5,    5,    5]
+    # x2_offset_start_list=[    0,   0,     0,     0,    0,    0, 0.45]
+    # x2_offset_stop_list= [    0,   0,     0,     0,    0,  0.4, 1.95]
+    # block_offset_list=   [    0,   0,     0,     0,    0,    0,    0]
+
+    #         # 9.7kev Qz to 0.65, more overlap
+    # alpha_start_list =   [ 0.04, 0.14, 0.24, 0.40,  0.65, 0.95,  1.9, 3.2]
+    # alpha_stop_list =    [ 0.18, 0.28, 0.44, 0.72,  1.05,  2.1,  3.3, 3.9]
+    # number_points_list = [    8,   8,     8,    9,     9,   24,   15,   8]
+    # auto_atten_list =    [    7,   6,     5,    4,     3,    2,    1,   1]
+    # s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04, 0.04,0.04]
+    # exp_time_list =      [    5,   5,     5,    5,     5,    5,    5,  30]
+    # precount_time_list=  [  0.1, 0.1,   0.1,   0.1,  0.1,  0.1,  0.1, 0.1]
+    # wait_time_list=      [    5,   5,     5,     5,    5,   5,     5,   5]
+    # x2_offset_start_list=[    0,   0,     0,     0,    0,   0,  0.45, 1.6]
+    # x2_offset_stop_list= [    0,   0,     0,     0,    0,   0.4, 1.5, 4.0]
+    # block_offset_list=   [    0,   0,     0,     0,    0,   0,     0,   0]
+
+
+    # 9.7kev Qz to 0.65, more overlap
+    alpha_start_list =   [ 0.04, 0.14, 0.24, 0.40,  0.65, 0.95,  1.9]
+    alpha_stop_list =    [ 0.18, 0.28, 0.44, 0.72,  1.05,  2.1,  3.3]
+    number_points_list = [    8,  12,    12,    9,     9,   15,   15]
+    auto_atten_list =    [    7,   6,     5,    4,     3,    2,    1]
+    s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04, 0.04]
+    exp_time_list =      [    5,   5,     5,    5,     5,    5,    5]
+    precount_time_list=  [  0.1, 0.1,   0.1,   0.1,  0.1,  0.1,  0.1]
+    wait_time_list=      [    5,   5,     5,     5,    5,   5,     5]
+    x2_offset_start_list=[    0,   0,     0,     0,    0,   0,  0.45]
+    x2_offset_stop_list= [    0,   0,     0,     0,    0,   0.4,1.35]
+    block_offset_list=   [    0,   0,     0,     0,    0,   0,     0]
+
+ 
+    # #9.7kev Add more points in low q
+    # alpha_start_list =   [ 0.04, 0.14, 0.24, 0.40,  0.65, 0.95,  1.9]
+    # alpha_stop_list =    [ 0.18, 0.28, 0.44, 0.72,  1.05,  2.1,  3.3]
+    # number_points_list = [    8,  12,    12,    9,    9,   15,   15]
+    # auto_atten_list =    [    7,   6,     5,    4,    3,    2,    1]
+    # s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04,0.04]
+    # exp_time_list =      [    5,   5,     5,    5,     5,    5,   5]
+    # precount_time_list=  [  0.1, 0.1,   0.1,   0.1,  0.1,  0.1, 0.1]
+    # wait_time_list=      [    5,   5,     5,     5,    5,   5,    5]
+    # x2_offset_start_list=[    0,   0,     0,     0,    0,   0,   0.45]
+    # x2_offset_stop_list= [    0,   0,     0,     0,    0,   0.4,  1]
+    # block_offset_list=   [    0,   0,     0,     0,    0,   0,    0]
+
 
 # ben started to make a new set
     # #      9.7kev Qz to 0.65, more overlap
@@ -861,11 +887,11 @@ def gisaxs_scan1(name):
     det_saxs_y_list         = [0, 0]
     det_saxs_y_offset_list  = [0, 1]
     stth_list               = [0, 0]
-    exp_time_list           = [2, 2] # [20,20]
-    x2_offset_list          = [0, 0]
-    atten_2_list            = [1, 1]
+    exp_time_list           = [3, 3] # [20,20]
+    x2_offset_list          = [-0.2,0.2]
+    atten_2_list            = [0, 0]
     wait_time_list          = [5, 5]
-    beam_stop_x             = [-15.4, -15.4] # [-54.3,-54.3, -54.3]
+    beam_stop_x             = [-42.65, -42.65]# [-15.4, -15.4] # [-54.3,-54.3, -54.3]
     beam_stop_y             = [24, 24]
 
 
@@ -907,7 +933,7 @@ def gisaxs_incident(name):
     x2_offset_list          = [0.2]
     atten_2_list            = [6]
     wait_time_list          = [5]
-    beam_stop_x             = [-15.4+2]
+    beam_stop_x             = [-42.65+2]
     beam_stop_y             = [24]
 
 
@@ -951,12 +977,12 @@ def gisaxs_direct(name):
     '''For MEA19'''
     det_saxs_y_list         = [0, 0, 0, 0]
     det_saxs_y_offset_list  = [0, 0, 0, 0]
-    stth_list               = [-2, -1.5, -1.0, 0]
+    stth_list               = [-1.5, -1.0, 0, 1.0]
     exp_time_list           = [1, 1, 1, 1] # [20,20]
     x2_offset_list          = [-0.1, 0, 0.1,0.2]
     atten_2_list            = [6, 6, 6, 6]
     wait_time_list          = [1, 1, 1, 1]
-    beam_stop_x             = [-15.4+2, -15.4+2, -15.4+2,-15.4+2]
+    beam_stop_x             = [-42.65+2, -42.65+2, -42.65+2,-42.65+2]
     beam_stop_y             = [24, 24, 24, 24]
 
 
@@ -1035,11 +1061,11 @@ def gid_single(name,stth_0, alpha=0.1):
 
 
 def gid_soller1(name):
-    stth_start_list =    [10]
-    stth_stop_list =     [13]
-    number_points_list = [31]
+    stth_start_list =    [16]
+    stth_stop_list =     [20]
+    number_points_list = [41]
     exp_time_list      = [10]
-    x2_range_list      = [6]
+    x2_range_list      = [-4]
     atten_2_list       = [0]
     wait_time_list     = [5]
 
@@ -1060,8 +1086,8 @@ def gid_soller1(name):
     yield from gid_scan_soller(scan_dict,
                                 md={'sample_name': name}, 
                                 detector = pilatus100k,
-                                alphai = 0.07,
-                                beamstop = True,
+                                alphai = 0.1,
+                                beamstop = False,
                                 )
     
     yield from bps.mv(abs2,5)
@@ -1096,13 +1122,13 @@ def gid_soller_cali(name):
                                 md={'sample_name': name}, 
                                 detector = pilatus100k,
                                 alphai = 0,
-                                beamstop = True,
+                                beamstop = False,
                                 )
     # yield from bps.mv(geo.track_mode,1)
     yield from bps.mv(abs2,5)
 
 
-def gid_soller_incident(name='gid_soller_incident007'):
+def gid_soller_incident(name='gid_soller_incident01'):
     stth_start_list =    [0]
     stth_stop_list =     [0.1]
     number_points_list = [1]
@@ -1128,8 +1154,8 @@ def gid_soller_incident(name='gid_soller_incident007'):
     yield from gid_scan_soller(scan_dict,
                                 md={'sample_name': name}, 
                                 detector = pilatus100k,
-                                alphai = 0.07,
-                                beamstop = True,
+                                alphai = 0.1,
+                                beamstop = False,
                                 )
     # yield from bps.mv(geo.track_mode,1)
     yield from bps.mv(abs2,5)
@@ -1162,7 +1188,7 @@ def gid_soller_direct(name='gid_soller_direct0'):
                                 md={'sample_name': name}, 
                                 detector = pilatus100k,
                                 alphai = 0,
-                                beamstop = True,
+                                beamstop = False,
                                 )
     # yield from bps.mv(geo.track_mode,1)
     yield from bps.mv(abs2,5)

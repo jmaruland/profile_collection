@@ -26,7 +26,7 @@ def reflection_fluorescence_scan_full(scan_param, md=None, detector=xs, tilt_sta
     base_md = {'plan_name': 'reflection_fluorescence_scan',
                'cycle': RE.md['cycle'],
                'proposal_number': RE.md['proposal_number'] + '_' + RE.md['main_proposer'],
-               'detector': detector.name, 
+               'detectors': [detector.name, quadem.name],
                'energy': energy.energy.position,
                'geo_param': [geo.L1.get(), geo.L2.get(), geo.L3.get(), geo.L4.get()],
                'slit_s1': [S1.top.position - S1.bottom.position, S1.outb.position - S1.inb.position],

@@ -19,7 +19,6 @@
 
 
 
-
 def proposal_id(cycle_id, proposal_id):
     RE.md['cycle'] = cycle_id
     RE.md['proposal_number'] = proposal_id.split('_')[0]

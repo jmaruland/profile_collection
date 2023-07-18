@@ -243,13 +243,54 @@ def _get_one_motor_position(start, event, motor_name):
     return event['data'][motor_name]
 
 
+def _get_detector_names(start): # get detectors which will be used to define fields to be saved, HZ
+    detector_names = start.get('detectors', [])
+    if len(detector_names) == 0:
+        detector_names.append(start.get('detector'))
+    return detector_names
+
+# clean up fields from quadem and lambda_det
+quadem_fields_selected = ['quadem_current2_mean_value', 'quadem_current3_mean_value']
+lambda_fields_selected = ['lambda_det_stats1_total',
+                          'lambda_det_stats2_total',
+                          'lambda_det_stats3_total',
+                          'lambda_det_stats4_max_value',
+                          'lambda_det_stats4_total']
+
 def _get_scan_data_column_names(start, primary_descriptor):
     motor_names = _get_motor_names(start)
-    # List all scalar fields, excluding the motor (x variable).
-    read_fields = sorted(
-        [k for k, v in primary_descriptor['data_keys'].items()
-         if (v['object_name'] not in motor_names and not v['shape'])])
-    return read_fields
+    # # List all scalar fields, excluding the motor (x variable).
+    # read_fields = sorted(
+    #     [k for k, v in primary_descriptor['data_keys'].items()
+    #      if (v['object_name'] not in motor_names and not v['shape'])])
+
+    read_fields = []
+    detector_names = _get_detector_names(start)
+    detector_included = []
+    if 'quadem' in detector_names:
+        read_fields += quadem_fields_selected
+        detector_included.append('quadem')
+    elif 'lambda_det' in detector_names:
+        read_fields += lambda_fields_selected
+        detector_included.append('lambda_det')
+
+    read_fields += [k for k, v in primary_descriptor['data_keys'].items()
+         if (v['object_name'] not in motor_names
+             and v['object_name'] not in detector_included 
+             and not v['shape'] 
+             and '_setpoint' not in k)]
+
+    # # List all scalar fields, excluding the motor (x variable).
+    # read_fields = sorted(
+    #     [k for k, v in primary_descriptor['data_keys'].items()
+    #     #  if (v['object_name'] not in motor_names and not v['shape'])])
+    #      if (v['object_name'] not in motor_names and not v['shape'] and '_setpoint' not in k)]
+    #      ) # HZ remove 'setpoint'
+    
+    return sorted(read_fields)
+
+
+
 
 
 ##################################
@@ -296,7 +337,7 @@ def to_spec_scan_header(start, primary_descriptor, baseline_event=None):
         command_args = []
 
     elif scan_command in _SCANS_REFLECTION: # HZ
-        print('reflection_scan found!')
+        # print('reflection_scan found!')
         command_args = []
 
     else:
@@ -330,9 +371,18 @@ def to_spec_scan_header(start, primary_descriptor, baseline_event=None):
         v for k, v in sorted(baseline_event['data'].items())]
     md['data_keys'] = _get_scan_data_column_names(start, primary_descriptor)
     # md['num_columns'] = 3 + len(md['data_keys'])
-    md['num_columns'] = 2 + len(motor_names) + len(md['data_keys']) # HZ
+
+    if _get_plan_name(start) in ['lscan_pseudo']: ## addtional col for normalization
+        print('found the lscan_pseudo!')
+        md['data_keys'].append('quadem3_expo_integrated') # monitor x exposure_time
+        md['data_keys'].append('quadem3_expo_integrated_attenuated') # monitor x exposure_time x attenuator_factor
+        md['num_columns'] = 2 + len(motor_names) + len(md['data_keys']) + 2# HZ
+    else:
+        md['num_columns'] = 2 + len(motor_names) + len(md['data_keys']) # HZ
+
     # md['motor_name'] = _get_motor_name(start)
     md['motor_names'] = _get_motor_names(start) # HZ
+
     return _SPEC_SCAN_HEADER_TEMPLATE.render(md)
 
 
@@ -351,7 +401,18 @@ def to_spec_scan_data(start, primary_descriptor, event):
     motor_names = _get_motor_names(start) # HZ
     md['motor_positions'] = [_get_one_motor_position(start, event, motor_name) for motor_name in motor_names]
     data_keys = _get_scan_data_column_names(start, primary_descriptor)
-    md['values'] = [event['data'][k] for k in data_keys]
+    # md['values'] = [event['data'][k] for k in data_keys] # HZ
+
+    # for additional columns, HZ testing
+    md['values'] = [event['data'].get(k, None) for k in data_keys]
+
+    if _get_plan_name(start) in ['lscan_pseudo']: ## addtional col for normalization
+
+        quadem3_expo_integrated = event['data']['quadem_current3_mean_value']*event['data']['exposure_time']
+        quadem3_expo_integrated_attenuated = quadem3_expo_integrated / event['data']['attenuation']
+        md['values'].append(quadem3_expo_integrated) # monitor x exposure_time
+        md['values'].append(quadem3_expo_integrated_attenuated) # monitor x exposure_time x attenuator_factor
+
     return _SPEC_EVENT_TEMPLATE.render(md)
 
 
@@ -367,7 +428,7 @@ spec_line_parser = {
     '#F': ('filename', str),
     # The exposure time
     '#N': ('num_intervals', int),
-    # The h, k, l coordinates
+    # The h, k, l coordinatesatt
     '#Q': ('hkl', lambda x: [float(s) for s in x.split(' ')]),
     '#T': ('exposure_time', lambda x: float(x.split('  ')[0])),
 }
@@ -572,11 +633,19 @@ class Serializer(event_model.DocumentRouter):
         self._file.write(header)
 
     def descriptor(self, doc):
-        if doc.get('name') == 'baseline':
+        # if doc.get('name') == 'baseline':
+        #     # if this is the baseline descriptor, we might need to write a
+        #     # new file header
+        #     self._baseline_descriptor = doc
+
+        if doc.get('name') == 'precount': # HZ, set the precout as the baseline stream
             # if this is the baseline descriptor, we might need to write a
             # new file header
+            # print("Find precount descriptor!")
             self._baseline_descriptor = doc
         elif self._primary_descriptor:
+        
+            print(f"HERE is the {self._primary_descriptor.get('name')}") ## for testing, HZ ##
             # we already have a primary descriptor, why are we getting
             # another one?
             err_msg = (
@@ -588,7 +657,9 @@ class Serializer(event_model.DocumentRouter):
                 "streams.")
             raise NotImplementedError(err_msg)
         else:
-            self._primary_descriptor = doc
+            self._primary_descriptor = doc 
+            # if doc.get('name') == 'primary': ## HZ to test
+            #     self._primary_descriptor = doc
 
     def event(self, doc):
         if (self._baseline_descriptor and

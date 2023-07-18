@@ -22,6 +22,7 @@ def unpark():
     yield from bps.mov(geo.th,40,geo.tth,50)
     yield from bps.mov(geo.th,20,geo.tth,30)
     yield from bps.mov(geo.th,0, geo.tth,30)
+    yield from bps.mov(geo.th,0, geo.tth,20) # HZ, June2023
     #this restores the two tables.
     yield from bps.mov(ih,0)
     yield from bps.mov(tab1.y,0,tab1.x,0,geo.stblx,450)

@@ -21,7 +21,6 @@ def gid_scan_soller(scan_dict={}, md=None, detector = pilatus100k, alphai = 0.1,
     pilatus100k.stats3.kind='normal'
     pilatus100k.stats4.kind='normal'
 
-
     
     @bpp.stage_decorator([quadem, detector])
     def gid_method_soller(md, detector, alphai, scan_dict, beamstop = False):
@@ -35,6 +34,7 @@ def gid_scan_soller(scan_dict={}, md=None, detector = pilatus100k, alphai = 0.1,
                 # ...
             }
         # sets up the metadata
+
         print(detector.name)
         base_md.update(md or {})
         # Disable plots and start a new the databroker document 
@@ -74,6 +74,7 @@ def gid_scan_soller(scan_dict={}, md=None, detector = pilatus100k, alphai = 0.1,
                 fraction=(stthp-stth_start_list[i])/(stth_stop_list[i]-stth_start_list[i])
                 x2_new=x2_nominal+ x2_range_list[i]*fraction
                 yield from bps.mv(geo.stblx2,x2_new)
+
                 if beamstop:
                     yield from bps.mv(block.y,x2_new)
 
@@ -81,12 +82,12 @@ def gid_scan_soller(scan_dict={}, md=None, detector = pilatus100k, alphai = 0.1,
             #    print("stth=",stthp, "  fractio=",fraction,"  x2=",x2_new)
                 yield from bps.mv(attenuation_factor_signal, att_bar1['attenuator_aborp'][atten_2_list[i]])
                 yield from bps.mv(attenuator_name_signal, att_bar1['name'][atten_2_list[i]])
-
                 yield from bps.sleep(wait_time_list[i])
 
                 yield from bps.mv(shutter, 1)
                 precount_time=0.2
                 yield from det_set_exposure(detectors_all, exposure_time=precount_time, exposure_number = 1)
+
                 yield from bps.trigger_and_read([quadem], name='precount')
 
                 

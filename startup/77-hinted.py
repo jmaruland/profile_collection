@@ -162,32 +162,69 @@ def print_attrs_kind_motors():
         print(one_motor.name, one_motor.user_readback.kind)
 
 def spec_writer_omit():
-    quadem.current1.mean_value.kind='omitted'
-    quadem.current4.mean_value.kind='omitted'
-    quadem.current_names.ch1.kind='omitted'
-    quadem.current_names.ch2.kind='omitted'
-    quadem.current_names.ch3.kind='omitted'
-    quadem.current_names.ch4.kind='omitted'
-    quadem.current_offset_calcs.ch1.kind='omitted'
-    quadem.current_offset_calcs.ch2.kind='omitted'
-    quadem.current_offset_calcs.ch3.kind='omitted'
-    quadem.current_offset_calcs.ch4.kind='omitted'
-    quadem.current_offsets.ch1.kind='omitted'
-    quadem.current_offsets.ch2.kind='omitted'
-    quadem.current_offsets.ch3.kind='omitted'
-    quadem.current_offsets.ch4.kind='omitted'
-    quadem.current_scales.ch1.kind='omitted'
-    quadem.current_scales.ch2.kind='omitted'
-    quadem.current_scales.ch3.kind='omitted'
-    quadem.current_scales.ch4.kind='omitted'
-    quadem.em_range.kind='omitted'
-    quadem.position_offset_calc_x.kind='omitted'
-    quadem.position_offset_calc_y.kind='omitted'
-    quadem.position_offset_x.kind='omitted'
-    quadem.position_offset_y.kind='omitted'
-    quadem.position_scale_x.kind='omitted'
-    quadem.position_scale_Y.kind='omitted'
 
+    fields = [
+        quadem.current1.mean_value, 
+        quadem.current4.mean_value, 
+        quadem.current_names.ch1, 
+        quadem.current_names.ch2, 
+        quadem.current_names.ch3, 
+        quadem.current_names.ch4, 
+        quadem.current_offset_calcs.ch1, 
+        quadem.current_offset_calcs.ch2, 
+        quadem.current_offset_calcs.ch3, 
+        quadem.current_offset_calcs.ch4, 
+        quadem.current_offsets.ch1, 
+        quadem.current_offsets.ch2, 
+        quadem.current_offsets.ch3, 
+        quadem.current_offsets.ch4,
+        quadem.current_scales.ch1,
+        quadem.current_scales.ch2,
+        quadem.current_scales.ch3,
+        quadem.current_scales.ch4,
+        quadem.em_range, 
+        quadem.position_offset_calc_x, 
+        quadem.position_offset_calc_y, 
+        quadem.position_offset_x, 
+        quadem.position_offset_y, 
+        quadem.position_scale_x, 
+        quadem.position_scale_Y, 
+    ]
+    for f in fields:
+        f.kind = 'omitted'
+
+
+def spec_writer_normal():
+
+    fields = [
+        quadem.current1.mean_value, 
+        quadem.current4.mean_value, 
+        quadem.current_names.ch1, 
+        quadem.current_names.ch2, 
+        quadem.current_names.ch3, 
+        quadem.current_names.ch4, 
+        quadem.current_offset_calcs.ch1, 
+        quadem.current_offset_calcs.ch2, 
+        quadem.current_offset_calcs.ch3, 
+        quadem.current_offset_calcs.ch4, 
+        quadem.current_offsets.ch1, 
+        quadem.current_offsets.ch2, 
+        quadem.current_offsets.ch3, 
+        quadem.current_offsets.ch4,
+        quadem.current_scales.ch1,
+        quadem.current_scales.ch2,
+        quadem.current_scales.ch3,
+        quadem.current_scales.ch4,
+        quadem.em_range, 
+        quadem.position_offset_calc_x, 
+        quadem.position_offset_calc_y, 
+        quadem.position_offset_x, 
+        quadem.position_offset_y, 
+        quadem.position_scale_x, 
+        quadem.position_scale_Y, 
+    ]
+    for f in fields:
+        f.kind = 'normal'
 
 
 

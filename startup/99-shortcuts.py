@@ -239,4 +239,25 @@ def plot_scans(a):
 
 
 
+def safe_scan():
+    def inner():
+        yield from bps.mv(x2, 30)
+        print(0)
+        yield from bps.mv(x2.velocity, 0.1)
+        #wait is for the vibration to damp
+        yield from bps.sleep(5)
+        print(1)
+        yield from bps.abs_set(x2, 40, group='get_new_target')
+        
+        yield from bp.scan([quadem],oh,-1,1,20)
+        
+        yield from bps.wait(group='get_new_target')
+
+    yield from bpp.reset_positions_wrapper(inner(), devices=[x2.velocity])
+
+
+
+
+
+
 

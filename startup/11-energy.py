@@ -80,18 +80,18 @@ def move_dcm(target_energy, delta_bragg=0):
 
 
 class DCMInternals(Device):
-    height = Cpt(EpicsMotor, 'XF12ID:m66')
-    pitch = Cpt(EpicsMotor, 'XF12ID:m67')
-    roll = Cpt(EpicsMotor, 'XF12ID:m68')
-    theta = Cpt(EpicsMotor, 'XF12ID:m65')
+    height = Cpt(EpicsMotor, 'XF:12ID:m66')
+    pitch = Cpt(EpicsMotor, 'XF:12ID:m67')
+    roll = Cpt(EpicsMotor, 'XF:12ID:m68')
+    theta = Cpt(EpicsMotor, 'XF:12ID:m65')
 
 
 class Energy(PseudoPositioner):
     # Synthetic axis
     energy = Cpt(PseudoSingle, kind='hinted', labels=['mono'])
     # Real motors
-    dcmgap = Cpt(EpicsMotor, 'XF12ID:m66', read_attrs=['user_readback'])
-    bragg = Cpt(EpicsMotor, 'XF12ID:m65', read_attrs=['user_readback'], labels=['mono'])
+    dcmgap = Cpt(EpicsMotor, 'XF:12ID:m66', read_attrs=['user_readback'])
+    bragg = Cpt(EpicsMotor, 'XF:12ID:m65', read_attrs=['user_readback'], labels=['mono'])
 
     ivugap = Cpt(InsertionDevice,
                  'SR:C12-ID:G1{IVU:1-Ax:Gap}-Mtr',
@@ -186,9 +186,9 @@ energy = Energy(prefix='', name='energy',
 dcm = energy
 ivugap = energy.ivugap
 # DCM motor shortcuts. Early scans used the names at right (p2h, etc).
-dcm_gap = dcm.dcmgap  # Height in CSS # EpicsMotor('XF12ID:m66', name='p2h')
-dcm_pitch = EpicsMotor('XF12ID:m67', name='dcm_pitch')
-bragg = dcm.bragg  # Theta in CSS  # EpicsMotor('XF12ID:m65', name='bragg')
+dcm_gap = dcm.dcmgap  # Height in CSS # EpicsMotor('XF:12ID:m66', name='p2h')
+dcm_pitch = EpicsMotor('XF:12ID:m67', name='dcm_pitch')
+bragg = dcm.bragg  # Theta in CSS  # EpicsMotor('XF:12ID:m65', name='bragg')
 
 dcm_config = DCMInternals('', name='dcm_config')
 bragg.read_attrs = ['user_readback']

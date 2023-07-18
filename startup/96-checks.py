@@ -96,7 +96,7 @@ def check_phi():
     yield from bps.mv(shutter,1) # open shutter
     print('resetting phi') 
     local_peaks = PeakStats(phi.user_readback.name, quadem.current2.mean_value.name)
-    yield from bpp.subs_wrapper(bp.rel_scan([quadem],phi,-0.010,0.010,21), local_peaks)
+    yield from bpp.subs_wrapper(bp.rel_scan([quadem],phi,-0.01,0.01,21), local_peaks)
     tmp = local_peaks.cen  #get the height for roi2 of quadem with a max intens
     yield from bps.mv(phi,tmp)  #move the XtalDfl to this height
     yield from set_phi(tmp1)  #set this height as 0

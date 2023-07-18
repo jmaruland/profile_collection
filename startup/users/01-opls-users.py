@@ -17,10 +17,13 @@ Step 1. Sample height alignment
 If you need to cancle an operation hit "Ctrl + c" wait for the program to stop then type "RE.abort()"
 If you need to search for a command hit "Ctrl + r" and type any part of the command
 '''
+# proposal_id("2023_2","310747_ocko")
+proposal_id("2023_2","310747_tu")
+#proposal_id("2023_2","311659_arjun")
 
 
 from pyrsistent import s
-
+start_time = time.time()
 def opls_measure_timeseries(clock_to_measure = [2.5, 6, 8], start_time=start_time):
     ''' 
     run xrr measurements with different incubation time
@@ -301,12 +304,36 @@ def sample_height_set_fine_o(value=0,detector=lambda_det):
  #   tmp2=peaks.cen['%s_stats2_total'%detector.name]
     yield from det_set_exposure([detector], exposure_time=1, exposure_number = 1)
     local_peaks = PeakStats(sh.user_readback.name, '%s_stats2_total'%detector.name)
-    yield from bpp.subs_wrapper(bp.rel_scan([detector],sh,-0.1,0.1,20,per_step=shutter_flash_scan), local_peaks)
+    yield from bpp.subs_wrapper(bp.rel_scan([detector],sh,-0.1,0.1,21,per_step=shutter_flash_scan), local_peaks)
+    # yield from bpp.subs_wrapper(bp.rel_scan([detector],sh,-0.1,0.1,20), local_peaks)
     print("at #1")
     tmp2 = local_peaks.cen #get the height for roi2 of detector.name with max intens
     print("at #2")
     yield from bps.mv(sh,tmp2-0.00)
     yield from set_sh(tmp1)
+    Msg('reset_settle_time', sh.settle_time, 0)
+
+def sample_height_set_fine_o_xrf(sh_offset = 0.008, value=3,detector=lambda_det):
+    geo.sh.user_readback.kind = 'hinted'
+    yield from bps.mv(geo.det_mode,1)
+    yield from bps.mv(abs2,5)
+    yield from mabt(0.05,0.05,0)
+    tmp1=geo.sh.position
+    print('Start the height scan')
+    Msg('reset_settle_time', sh.settle_time, value)
+ #   yield from bp.rel_scan([detector],sh,-0.1,0.1,21,per_step=shutter_flash_scan)
+ #   tmp2=peaks.cen['%s_stats2_total'%detector.name]
+    yield from det_set_exposure([detector], exposure_time=1, exposure_number = 1)
+    local_peaks = PeakStats(sh.user_readback.name, '%s_stats2_total'%detector.name)
+    yield from bpp.subs_wrapper(bp.rel_scan([detector],sh,-0.1,0.1,21,per_step=shutter_flash_scan), local_peaks)
+    print("at #1")
+    tmp2 = local_peaks.cen #get the height for roi2 of detector.name with max intens
+    print("at #2")
+    #yield from bps.mv(sh,tmp2-0.00)
+    #yield from set_sh(tmp1)
+    yield from bps.mv(sh,tmp2-0.00)
+    # yield from set_sh(tmp1-0.008)
+    yield from set_sh(tmp1-sh_offset)
     Msg('reset_settle_time', sh.settle_time, 0)
 
 
@@ -347,29 +374,29 @@ def xr_scan1(name, expo_time = 10, wait_time = 10, reverse_mode = False):
 
 
 
-    #14.4kev for testing exposure time and reverse mode
-    alpha_start_list =   [  0.12, 0.18, 0.40,  0.72,  1.7,  2.6]
-    alpha_stop_list =    [  0.22, 0.46, 0.80,   1.7,  2.5,  3.0]
-    #number_points_list = [  21,   21,   15,   11,    9,    7,    11]
-    number_points_list = [   11,   15,   11,   23,   13,    5]
-    # number_points_list = [   3,   3,   3,   3,      3,     3,    3] # for code testing, HZ, Feb2023
-    auto_atten_list =    [    5,    4,    3,    2,    1,     1]
-    s2_vg_list =         [ 0.04, 0.06,  0.06, 0.08, 0.08, 0.08]
-    exp_time_list =      [    5,     5,    5,     5,    5,    40]
-    #exp_time_list =      [expo_time for _ in range(len(alpha_start_list))]
-    precount_time_list=  [  0.2,   0.2,  0.2,   0.2,  0.2,  0.2]
-    wait_time_list=      [ 10,    10,   10,    10,   15,   20]
-    # wait_time_list=      [wait_time for _ in range(len(alpha_start_list))]
-    # wait_time_list=      [1 for _ in range(len(alpha_start_list))] # for code testing, HZ
-    x2_offset_start_list=[  0,     0,    0,     0,   0,  -0.5]
-    x2_offset_stop_list= [  0,     0,    0,     0, -0.5,   -2]
-    block_offset_list=   [  0,     0,    0,     0,   0,     0]
+    # #14.4kev for testing exposure time and reverse mode
+    # alpha_start_list =   [  0.12, 0.18, 0.40,  0.72,  1.7,  2.6]
+    # alpha_stop_list =    [  0.22, 0.46, 0.80,   1.7,  2.5,  3.0]
+    # #number_points_list = [  21,   21,   15,   11,    9,    7,    11]
+    # number_points_list = [   11,   15,   11,   23,   13,    5]
+    # # number_points_list = [   3,   3,   3,   3,      3,     3,    3] # for code testing, HZ, Feb2023
+    # auto_atten_list =    [    5,    4,    3,    2,    1,     1]
+    # s2_vg_list =         [ 0.04, 0.06,  0.06, 0.08, 0.08, 0.08]
+    # exp_time_list =      [    5,     5,    5,     5,    5,    40]
+    # #exp_time_list =      [expo_time for _ in range(len(alpha_start_list))]
+    # precount_time_list=  [  0.2,   0.2,  0.2,   0.2,  0.2,  0.2]
+    # wait_time_list=      [ 10,    10,   10,    10,   15,   20]
+    # # wait_time_list=      [wait_time for _ in range(len(alpha_start_list))]
+    # # wait_time_list=      [1 for _ in range(len(alpha_start_list))] # for code testing, HZ
+    # x2_offset_start_list=[  0,     0,    0,     0,   0,  -0.5]
+    # x2_offset_stop_list= [  0,     0,    0,     0, -0.5,   -2]
+    # block_offset_list=   [  0,     0,    0,     0,   0,     0]
 
 
 
 
-    if reverse_mode:
-        alpha_start_list, alpha_stop_list = alpha_stop_list, alpha_start_list
+    # if reverse_mode:
+    #     alpha_start_list, alpha_stop_list = alpha_stop_list, alpha_start_list
 
 
 
@@ -438,15 +465,30 @@ def xr_scan1(name, expo_time = 10, wait_time = 10, reverse_mode = False):
     # block_offset_list=   [    0,   0,     0,     0,    0,   0,    0,    0]
 
 
-  #  alpha_start_list =   [ 1.8, 3.0]
-  #  alpha_stop_list =    [ 3.0, 3.8]
-  #  number_points_list = [  5,  5]
-  #  auto_atten_list =    [  1,   1]
-  #  s2_vg_list =         [ 0.04,0.04]
-  #  exp_time_list =      [   5,   20]
-  #  precount_time_list=  [    0.1, 0.1]
-  #  wait_time_list=      [      5,   5]
-  #  x2_offset_start_list=[      0,   0]
+    # alpha_start_list =   [ 0.1]
+    # alpha_stop_list =    [ 0.5]
+    # number_points_list = [  3 ]
+    # auto_atten_list =    [  5 ]
+    # s2_vg_list =         [0.04]
+    # exp_time_list =      [ 1  ]
+    # precount_time_list=  [ 0.1]
+    # wait_time_list=      [ 1 ]
+    # x2_offset_start_list=[ 0 ]
+    # x2_offset_stop_list= [ 0 ]
+    # block_offset_list=   [ 0 ]
+
+
+    alpha_start_list =   [ 0.1, 0.3]
+    alpha_stop_list =    [ 0.3, 0.6]
+    number_points_list = [  3,   3 ]
+    auto_atten_list =    [  5,   4 ]
+    s2_vg_list =         [0.04,0.04]
+    exp_time_list =      [ 1, 1  ]
+    precount_time_list=  [ 0.2, 0.2]
+    wait_time_list=      [ 1, 1 ]
+    x2_offset_start_list=[ 0, 0 ]
+    x2_offset_stop_list= [ 0, 0 ]
+    block_offset_list=   [ 0, 0 ]
 
 
 
@@ -611,17 +653,17 @@ def xr_scan_fine(name, expo_time = 10, wait_time = 10, reverse_mode = False):
         tilt_stage=False,)
 
 def xrf_scan1(name):
-    #9.7kev
-    alpha_start_list =   [ 0.03, 0.11, 0.13, 0.25]
-    alpha_stop_list =    [ 0.10, 0.12, 0.23, 0.45]
-    number_points_list = [    2,    2,    6,    5]
-    auto_atten_list =    [    1,    1,    2,    2] 
-    s2_vg_list =         [ 0.02, 0.02, 0.02, 0.02] 
-    exp_time_list =      [   50,   10,   10,   10]
-    precount_time_list=  [  0.1,  0.1,  0.1,  0.1]
-    wait_time_list=      [    0,    0,    0,    0]
-    x2_offset_start_list=[  0.0,  0.0,  0.0,  0.0]
-    x2_offset_stop_list= [  0.0,  0.0,  0.0,  0.0]
+    # #9.7kev
+    # alpha_start_list =   [ 0.03, 0.11, 0.13, 0.25]
+    # alpha_stop_list =    [ 0.10, 0.12, 0.23, 0.45]
+    # number_points_list = [    2,    2,    6,    5]
+    # auto_atten_list =    [    1,    1,    2,    2] 
+    # s2_vg_list =         [ 0.02, 0.02, 0.02, 0.02] 
+    # exp_time_list =      [   50,   10,   10,   10]
+    # precount_time_list=  [  0.1,  0.1,  0.1,  0.1]
+    # wait_time_list=      [    0,    0,    0,    0]
+    # x2_offset_start_list=[  0.0,  0.0,  0.0,  0.0]
+    # x2_offset_stop_list= [  0.0,  0.0,  0.0,  0.0]
 
     # alpha_start_list =   [ 0.03, 0.11, 0.13, 0.25]
     # alpha_stop_list =    [ 0.10, 0.12, 0.23, 0.45]
@@ -633,6 +675,30 @@ def xrf_scan1(name):
     # wait_time_list=      [    0,    0,    0,    0]
     # x2_offset_start_list=[  0.0,  0.0,  0.0,  0.0]
     # x2_offset_stop_list= [  0.0,  0.0,  0.0,  0.0]
+
+
+    alpha_start_list =   [ 0.036, 0.09, 0.15]
+    alpha_stop_list =    [ 0.08,  0.15, 0.19]
+    number_points_list = [   12,    7,    3]
+    auto_atten_list =    [    0,    2,    2] 
+    s2_vg_list =         [ 0.02, 0.02, 0.02] 
+    exp_time_list =      [   10,   10,   10]
+    precount_time_list=  [  0.2,  0.2,  0.2]
+    wait_time_list=      [   10,   10,   10]
+    x2_offset_start_list=[  0.0,  0.0,  0.0]
+    x2_offset_stop_list= [  0.0,  0.0,  0.0]
+
+
+    # alpha_start_list =   [ 0.04]
+    # alpha_stop_list =    [ 0.08]
+    # number_points_list = [   11]
+    # auto_atten_list =    [    0] 
+    # s2_vg_list =         [ 0.04] 
+    # exp_time_list =      [   2]
+    # precount_time_list=  [  0.2]
+    # wait_time_list=      [   10]
+    # x2_offset_start_list=[  0.0]
+    # x2_offset_stop_list= [  0.0]
 
 
 
@@ -935,3 +1001,215 @@ def gid_soller1(name):
                                 alphai = 0.07)
     yield from bps.mv(geo.track_mode,1)
     yield from bps.mv(abs2,5)
+
+# proposal_id("2023_2","313126_opls")
+
+    # #14.4kev for running kibron, keep 1 abs, for PFAS
+    # alpha_start_list =   [ 0.03, 0.12, 0.18, 0.40,  0.72, 1.52, 2.00]
+    # alpha_stop_list =    [ 0.13, 0.22, 0.46, 0.80,  1.60, 2.08, 2.72]
+    # number_points_list = [   11,   11,   15,   11,   12,     8,   10]
+    # auto_atten_list =    [    6,    5,    4,    3,    2,     1,    1]
+    # s2_vg_list =         [ 0.04, 0.04, 0.04,  0.04, 0.04, 0.04, 0.04]
+    # exp_time_list =      [    5,   5,     5,    5,     5,    5,   30]
+    # precount_time_list=  [  0.2, 0.2,   0.2,  0.2,   0.2,  0.2,  0.2]
+    # wait_time_list=      [   20,  20,    20,   20,    20,   20,   20]
+    # x2_offset_start_list=[    0,   0,     0,    0,     0,    0, -0.6]
+    # x2_offset_stop_list= [    0,   0,     0,    0,     0,  -0.5,-2.6]
+    # block_offset_list=   [    0,   0,     0,    0,     0,   0,     0]
+
+
+
+
+def ref_scan_test(name):
+    '''test the new ref scans, 2023-06-01
+    scan_param with the order of:
+    alpha_start, alpha_stop, number_points, atten_2, exp_time, wait_time, precount_time, s2_vg, x2_offset_start, x2_offset_stop
+    '''
+    scan_params = {
+#    scan:   a_0,  a_1, num, att, exp, wait, pre, s2vg, x2_0, x2_1
+        0: [0.03, 0.13,  11,   6,  5,   10, 0.2, 0.04,    0,   0],
+        1: [0.12, 0.22,  11,   5,  5,   10, 0.2, 0.04,    0,   0],
+    #    2: [0.18, 0.46,  15,   4,  10,   20, 0.2, 0.04,    0,   0],
+    #    3: [0.40, 0.80,  11,   3,  10,   20, 0.2, 0.04,    0,   0],
+    #    4: [0.72, 1.60,  12,   2,  10,   20, 0.2, 0.04,    0,   0],
+    #    5: [1.52, 2.08,  12,   1,  20,   20, 0.2, 0.04,    0,   0],
+    #    6: [2.00, 2.72,  10,   0,  30,   20, 0.2, 0.04,    0,   0],
+    }
+    yield from bps.mv(geo.det_mode,1)
+    print(scan_params)
+    yield from ref_scan_multi(scan_params=scan_params, md={'sample_name': name})
+
+
+
+    detector=lambda_det
+    yield from det_set_exposure([detector], exposure_time=1, exposure_number = 1)
+    yield from bps.mv(geo.det_mode,1)
+    yield from mabt(0,0,0)
+
+    yield from he_off()# stops the He flow
+    yield from shclose()
+    yield from shclose()
+    
+
+
+    # scan_param = [0.03, 0.13,   3,   6,   5,    2, 0.2, 0.04,    0,   0]
+    # yield from bps.mv(geo.det_mode,1)
+    # print(scan_param)
+    # yield from ref_scan_single(scan_param=scan_param, md={'sample_name': name})
+
+
+from uuid import uuid4
+
+def short_uid():
+    return str(uuid4())[:8]
+
+def ref_scan_multi(scan_params, md=None, detector=lambda_det, batch_uid = None, tilt_stage=False, stth_corr_par=None):
+    """
+    Multiple ref scans
+    """
+    # Tom's way of checking to see if all lists are the same length
+    N = None
+    for k, v in scan_params.items():
+        if N is None:
+            N = len(v)
+        if N != len(v):
+            raise ValueError(f"the key {k} is length {len(v)}, expected {N}")
+
+    if batch_uid is None:
+        batch_uid = short_uid()  # or something
+
+    x2_nominal= geo.stblx2.position
+    for i, (j,scan_param) in enumerate(scan_params.items()):
+
+        base_md = {
+            'batch_uid': batch_uid, 
+            'total_sub_scans': len(scan_params),
+            'sub_scan_number': j, 
+            'range_index': i,
+        }
+        base_md.update(md or {})
+
+        print(f'Sub-scan {i} is starting.')
+        print(scan_param)
+        yield from ref_scan_single(scan_param,detector=detector, md=base_md, tilt_stage=tilt_stage, x2_nominal=x2_nominal)                      
+        print(f'Sub-scan {i} is done.')
+
+    print('The reflectivity scan is over')
+
+
+
+def ref_scan_single(scan_param, detector=lambda_det, md=None, x2_nominal=None, batch_uid = None, tilt_stage=False):
+    """
+    single scan
+    """
+    global attenuation_factor_signal, exposure_time, attenuator_name_signal, default_attenuation
+    attenuator_name_signal = Signal(name='attenuator_name', value='abs1',kind='normal')
+    attenuation_factor_signal = Signal(name='attenuation', value=1e-7,kind='normal')
+    exposure_time = Signal(name='exposure_time', value=1)
+    default_attenuation = Signal(name='default-attenuation', value=1e-7)
+
+    # Bluesky command to record metadata
+    base_md = {'plan_name': 'reflection_scan',
+               'cycle': RE.md['cycle'],
+               'proposal_number': RE.md['proposal_number'] + '_' + RE.md['main_proposer'],
+               'detectors': [detector.name, quadem.name],
+               'energy': energy.energy.position,
+               'rois': [detector.roi1.min_xyz.min_x.get(),
+                        detector.roi1.min_xyz.min_y.get(),
+                        detector.roi2.min_xyz.min_y.get(),
+                        detector.roi3.min_xyz.min_y.get(),
+                        detector.roi2.size.x.get(),
+                        detector.roi2.size.y.get()],
+               'geo_param': [geo.L1.get(), geo.L2.get(), geo.L3.get(), geo.L4.get()],
+               'slit_s1': [S1.top.position - S1.bottom.position, S1.outb.position - S1.inb.position],
+               'slit_s2': [S2.vg.position, S2.hg.position],
+               'x2': [geo.stblx2.position],
+               'tilt stage': tilt_stage,
+               'atten_material': att_mater_selected,
+               }
+    base_md.update(md or {})
+
+    unhinted_ref() ## change all hinted settings to 'normal'
+    bec.disable_plots()
+    if x2_nominal is None:
+        x2_nominal= geo.stblx2.position
+
+    yield from bps.open_run(md=base_md)
+    yield from bps.sleep(3) 
+    print(scan_param)
+    yield from ref_scan_base(scan_param, tilt_stage=tilt_stage, x2_nominal=x2_nominal)                      
+    yield from bps.close_run()
+
+    bec.enable_plots()
+    yield from bps.mv(abs2, 5)
+    quadem.averaging_time.put(1)
+    # print('The reflectivity scan is over')
+    hinted_ref() ## change hinted settings
+
+
+all_area_dets = [quadem, lambda_det, AD1, AD2, o2_per]
+@bpp.stage_decorator(all_area_dets)
+def ref_scan_base(scan_param, tilt_stage=False,x2_nominal=None):
+    '''
+    Scan params consist of a total of 10 param with the order of below:
+    alpha_start, alpha_stop, number_points, atten_2, exp_time, wait_time, precount_time, s2_vg, x2_offset_start, x2_offset_stop
+    '''
+    N = 10
+    if len(scan_param) != N:
+        raise ValueError(f"The scan params has a length of {len(scan_param)}, expected {N}!")
+    else:
+        alpha_start, alpha_stop, number_points, atten_2, exp_time, wait_time, precount_time, s2_vg, x2_offset_start, x2_offset_stop = scan_param
+
+    print(f'Running {alpha_start}----{alpha_stop} at atten = {atten_2}')
+    # setting up so that if alpha is moved negative that there is an extra wait
+    alpha_old=5
+    for alpha in np.linspace(alpha_start, alpha_stop, number_points):
+        # Move to the good geometry position
+        if tilt_stage:
+             yield from nab(alpha, alpha)
+        else:
+            if alpha >= alpha_old:
+                yield from mabt(alpha, alpha, 0)
+                # if alpha-alpha_old < 0.05: ## added by HZ 2022-10-17 due to low geometry resolution
+                #     yield from mabt(alpha-0.1, alpha-0.1, 0)
+                #     yield from bps.sleep(1)
+                #     yield from mabt(alpha, alpha, 0)
+                # else:
+                #     yield from mabt(alpha, alpha, 0)
+            else:
+                yield from mabt(alpha-0.1, alpha-0.1, 0)
+                yield from bps.sleep(1)
+                yield from mabt(alpha, alpha, 0)
+        alpha_old =alpha
+
+        fraction  = (alpha-alpha_start)/(alpha_stop-alpha_start)
+        x2_fraction =fraction*(x2_offset_stop-x2_offset_start) + x2_offset_start
+
+        yield from bps.mv(S2.vg,s2_vg)
+
+        if x2_nominal is None:
+            x2_nominal= geo.stblx2.position
+        if abs(x2_fraction)>0:
+            yield from bps.mv(geo.stblx2,x2_nominal+x2_fraction)
+            yield from bps.sleep(5) 
+
+        yield from bps.sleep(wait_time)    
+        yield from bps.mv(abs2, atten_2)  
+        yield from bps.mv(attenuator_name_signal, f'att{atten_2}')
+        if att_fact_selected != None:
+            yield from bps.mv(attenuation_factor_signal, att_fact_selected[f'att{atten_2}'])
+            
+
+        yield from det_set_exposure(detectors_all, exposure_time=precount_time, exposure_number = 1)
+        yield from bps.mv(shutter, 1)
+        yield from bps.trigger_and_read([quadem],name='precount')
+
+        yield from det_set_exposure(detectors_all, exposure_time=exp_time, exposure_number = 1)
+        yield from bps.trigger_and_read(all_area_dets +
+                                            [geo] + 
+                                            [S2] +
+                                            [attenuation_factor_signal] +
+                                            [attenuator_name_signal] +
+                                            [exposure_time_signal],
+                                            name='primary')
+        yield from bps.mv(shutter, 0)
