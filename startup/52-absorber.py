@@ -57,8 +57,11 @@ def shutter_flash_scan(*args, **kwargs):
     def collect_plan(detectors, step, pos_cache):
         motors = step.keys()
         yield from move_per_step(step, pos_cache)
+        # yield from bps.sleep(3)
         yield from bps.mov(shutter, 1)
         yield from bps.sleep(0.2)
+        # quadem.averaging_time.put(0.2)
+        # yield from bps.trigger_and_read([quadem], name='precount')
         # quadem.averaging_time.put(0.2)
         # yield from trigger_and_read(list(detectors) + list(motors))
         # quadem.averaging_time.put(1.0)
