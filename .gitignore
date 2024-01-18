@@ -5,3 +5,5 @@ __pycache__/
 db/
 static/
 startup/.vscode/settings.json
+startup/users/*
+startup/saved_oct5_2023
