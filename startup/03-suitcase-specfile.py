@@ -374,9 +374,11 @@ def to_spec_scan_header(start, primary_descriptor, baseline_event=None):
 
     if _get_plan_name(start) in ['lscan_pseudo']: ## addtional col for normalization
         print('found the lscan_pseudo!')
-        md['data_keys'].append('quadem3_expo_integrated') # monitor x exposure_time
-        md['data_keys'].append('quadem3_expo_integrated_attenuated') # monitor x exposure_time x attenuator_factor
-        md['num_columns'] = 2 + len(motor_names) + len(md['data_keys']) + 2# HZ
+        md['data_keys'].append('qz') # monitor x exposure_time
+        md['data_keys'].append('ref_bkgsub') # lambda_det_stats2_sub_stats13 background subtraction
+        md['data_keys'].append('ref_bkgsub_qz4') # background subtraction * alpha^4
+        md['data_keys'].append('monitor_attenuated') # quadem3_expo_integrated_attenuated, monitor x exposure_time x attenuator_factor
+        md['num_columns'] = 2 + len(motor_names) + len(md['data_keys']) + 4# HZ
     else:
         md['num_columns'] = 2 + len(motor_names) + len(md['data_keys']) # HZ
 
@@ -410,8 +412,21 @@ def to_spec_scan_data(start, primary_descriptor, event):
 
         quadem3_expo_integrated = event['data']['quadem_current3_mean_value']*event['data']['exposure_time']
         quadem3_expo_integrated_attenuated = quadem3_expo_integrated / event['data']['attenuation']
-        md['values'].append(quadem3_expo_integrated) # monitor x exposure_time
-        md['values'].append(quadem3_expo_integrated_attenuated) # monitor x exposure_time x attenuator_factor
+        # md['values'].append(quadem3_expo_integrated) # monitor x exposure_time
+        
+        energy = start.get('energy')
+        wvlength = 12.39842 / (0.001 * energy)  #in A
+        qz = abs(2*np.pi/wvlength*(np.sin(np.deg2rad(event['data']['geo_alpha'])) + np.sin(np.deg2rad(event['data']['geo_beta']))))
+
+        lambda_det_stats2_sub_stats13 = event['data']['lambda_det_stats2_total'] - 0.5*(event['data']['lambda_det_stats1_total'] + event['data']['lambda_det_stats3_total'])
+        
+        # lambda_det_stats2_sub_stats13_alpha4 = lambda_det_stats2_sub_stats13 * event['data']['geo_alpha']**4
+
+        lambda_det_stats2_sub_stats13_qz4 = lambda_det_stats2_sub_stats13 * qz**4
+        md['values'].append(qz) 
+        md['values'].append(lambda_det_stats2_sub_stats13) 
+        md['values'].append(lambda_det_stats2_sub_stats13_qz4)
+        md['values'].append(quadem3_expo_integrated_attenuated) # monitor x exposure_time
 
     return _SPEC_EVENT_TEMPLATE.render(md)
 
