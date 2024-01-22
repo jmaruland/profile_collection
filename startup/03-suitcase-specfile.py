@@ -250,13 +250,21 @@ def _get_detector_names(start): # get detectors which will be used to define fie
     return detector_names
 
 # clean up fields from quadem and lambda_det
-quadem_fields_selected = ['quadem_current2_mean_value', 'quadem_current3_mean_value']
-lambda_fields_selected = ['lambda_det_stats1_total',
-                          'lambda_det_stats2_total',
-                          'lambda_det_stats3_total',
-                          'lambda_det_stats4_total',
-                          'lambda_det_stats5_total',
-                          'lambda_det_stats5_max_value'
+# quadem_fields_selected = ['quadem_current2_mean_value', 'quadem_current3_mean_value']
+quadem_fields_selected = ['monitor_2', 'monitor_3']
+# lambda_fields_selected = ['lambda_det_stats1_total',
+#                           'lambda_det_stats2_total',
+#                           'lambda_det_stats3_total',
+#                           'lambda_det_stats4_total',
+#                           'lambda_det_stats5_total',
+#                           'lambda_det_stats5_max_value'
+#                           ]
+lambda_fields_selected = ['lambda_1',
+                          'lambda_2',
+                          'lambda_3',
+                          'lambda_4',
+                          'lambda_sum',
+                          'lambda_max'
                           ]
 
 def _get_det_fields_reflection(start):
@@ -264,11 +272,16 @@ def _get_det_fields_reflection(start):
     plan_name = _get_plan_name(start)
     
     if plan_name in _SCANS_REFLECTION:
-        quadem_fields_xrr = ['quadem_current2_mean_value', 'quadem_current3_mean_value']
-        lambda_fields_xrr = ['lambda_det_stats1_total',
-                             'lambda_det_stats2_total',
-                             'lambda_det_stats3_total',
-                             ]
+        # quadem_fields_xrr = ['quadem_current2_mean_value', 'quadem_current3_mean_value']
+        quadem_fields_xrr = ['monitor_2', 'monitor_3']
+        # lambda_fields_xrr = ['lambda_det_stats1_total',
+        #                      'lambda_det_stats2_total',
+        #                      'lambda_det_stats3_total',
+        #                      ]
+        lambda_fields_xrr =['lambda_1',
+                            'lambda_2',
+                            'lambda_3',
+                            ]
         additional_fields = ['attenuation'
                              ]
     return additional_fields+quadem_fields_xrr+lambda_fields_xrr
@@ -398,7 +411,7 @@ def to_spec_scan_header(start, primary_descriptor, baseline_event=None):
         md['data_keys'].append('qz') # monitor x exposure_time
         md['data_keys'].append('ref_bkgsub') # lambda_det_stats2_sub_stats13 background subtraction
         md['data_keys'].append('ref_bkgsub_qz4') # background subtraction * alpha^4
-        md['data_keys'].append('monitor_attenuated') # quadem3_expo_integrated_attenuated, monitor x exposure_time x attenuator_factor
+        md['data_keys'].append('mon_3_atten') # quadem3_expo_integrated_attenuated, monitor x exposure_time x attenuator_factor
         md['num_columns'] = 2 + len(motor_names) + len(md['data_keys']) + 4# HZ
     else:
         md['num_columns'] = 2 + len(motor_names) + len(md['data_keys']) # HZ
@@ -431,7 +444,9 @@ def to_spec_scan_data(start, primary_descriptor, event):
 
     if _get_plan_name(start) in ['lscan_pseudo']: ## addtional col for normalization
 
-        quadem3_expo_integrated = event['data']['quadem_current3_mean_value']*event['data']['exposure_time']
+        # quadem3_expo_integrated = event['data']['quadem_current3_mean_value']*event['data']['exposure_time']
+        # quadem3_expo_integrated = event['data']['mon_3']*event['data']['exposure_time']
+        quadem3_expo_integrated = event['data']['monitor_3']*event['data']['expo_time']
         quadem3_expo_integrated_attenuated = quadem3_expo_integrated / event['data']['attenuation']
         # md['values'].append(quadem3_expo_integrated) # monitor x exposure_time
         
@@ -439,8 +454,8 @@ def to_spec_scan_data(start, primary_descriptor, event):
         wvlength = 12.39842 / (0.001 * energy)  #in A
         qz = abs(2*np.pi/wvlength*(np.sin(np.deg2rad(event['data']['geo_alpha'])) + np.sin(np.deg2rad(event['data']['geo_beta']))))
 
-        lambda_det_stats2_sub_stats13 = event['data']['lambda_det_stats2_total'] - 0.5*(event['data']['lambda_det_stats1_total'] + event['data']['lambda_det_stats3_total'])
-        
+        # lambda_det_stats2_sub_stats13 = event['data']['lambda_det_stats2_total'] - 0.5*(event['data']['lambda_det_stats1_total'] + event['data']['lambda_det_stats3_total'])
+        lambda_det_stats2_sub_stats13 = event['data']['lambda_2'] - 0.5*(event['data']['lambda_1'] + event['data']['lambda_3'])
         # lambda_det_stats2_sub_stats13_alpha4 = lambda_det_stats2_sub_stats13 * event['data']['geo_alpha']**4
 
         lambda_det_stats2_sub_stats13_qz4 = lambda_det_stats2_sub_stats13 * qz**4
