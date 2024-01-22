@@ -254,31 +254,56 @@ quadem_fields_selected = ['quadem_current2_mean_value', 'quadem_current3_mean_va
 lambda_fields_selected = ['lambda_det_stats1_total',
                           'lambda_det_stats2_total',
                           'lambda_det_stats3_total',
-                          'lambda_det_stats4_max_value',
-                          'lambda_det_stats4_total']
+                          'lambda_det_stats4_total',
+                          'lambda_det_stats5_total',
+                          'lambda_det_stats5_max_value'
+                          ]
+
+def _get_det_fields_reflection(start):
+    '''clean up the fields from reflectivity. HZ, 01/22/2024'''
+    plan_name = _get_plan_name(start)
+    
+    if plan_name in _SCANS_REFLECTION:
+        quadem_fields_xrr = ['quadem_current2_mean_value', 'quadem_current3_mean_value']
+        lambda_fields_xrr = ['lambda_det_stats1_total',
+                             'lambda_det_stats2_total',
+                             'lambda_det_stats3_total',
+                             ]
+        additional_fields = ['attenuation'
+                             ]
+    return additional_fields+quadem_fields_xrr+lambda_fields_xrr
 
 def _get_scan_data_column_names(start, primary_descriptor):
+    '''Modified to include customized fields for reflectivity. HZ, 01/22/2024
+    '''
     motor_names = _get_motor_names(start)
+    
     # # List all scalar fields, excluding the motor (x variable).
     # read_fields = sorted(
     #     [k for k, v in primary_descriptor['data_keys'].items()
     #      if (v['object_name'] not in motor_names and not v['shape'])])
 
-    read_fields = []
-    detector_names = _get_detector_names(start)
-    detector_included = []
-    if 'quadem' in detector_names:
-        read_fields += quadem_fields_selected
-        detector_included.append('quadem')
-    elif 'lambda_det' in detector_names:
-        read_fields += lambda_fields_selected
-        detector_included.append('lambda_det')
+    plan_name = _get_plan_name(start)
 
-    read_fields += [k for k, v in primary_descriptor['data_keys'].items()
-         if (v['object_name'] not in motor_names
-             and v['object_name'] not in detector_included 
-             and not v['shape'] 
-             and '_setpoint' not in k)]
+    if plan_name in _SCANS_REFLECTION:
+        read_fields = _get_det_fields_reflection(start)
+
+    else:
+        read_fields = []
+        detector_names = _get_detector_names(start)
+        detector_included = []
+        if 'quadem' in detector_names:
+            read_fields += quadem_fields_selected
+            detector_included.append('quadem')
+        elif 'lambda_det' in detector_names:
+            read_fields += lambda_fields_selected
+            detector_included.append('lambda_det')
+
+        read_fields += [k for k, v in primary_descriptor['data_keys'].items()
+            if (v['object_name'] not in motor_names
+                and v['object_name'] not in detector_included 
+                and not v['shape'] 
+                and '_setpoint' not in k)]
 
     # # List all scalar fields, excluding the motor (x variable).
     # read_fields = sorted(
@@ -288,10 +313,6 @@ def _get_scan_data_column_names(start, primary_descriptor):
     #      ) # HZ remove 'setpoint'
     
     return sorted(read_fields)
-
-
-
-
 
 ##################################
 
@@ -373,7 +394,7 @@ def to_spec_scan_header(start, primary_descriptor, baseline_event=None):
     # md['num_columns'] = 3 + len(md['data_keys'])
 
     if _get_plan_name(start) in ['lscan_pseudo']: ## addtional col for normalization
-        print('found the lscan_pseudo!')
+        # print('found the lscan_pseudo!')
         md['data_keys'].append('qz') # monitor x exposure_time
         md['data_keys'].append('ref_bkgsub') # lambda_det_stats2_sub_stats13 background subtraction
         md['data_keys'].append('ref_bkgsub_qz4') # background subtraction * alpha^4
