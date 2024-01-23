@@ -316,7 +316,10 @@ def _get_scan_data_column_names(start, primary_descriptor):
             if (v['object_name'] not in motor_names
                 and v['object_name'] not in detector_included 
                 and not v['shape'] 
-                and '_setpoint' not in k)]
+                and '_setpoint' not in k
+                and 'pilatus' not in k
+                
+                )]
 
     # # List all scalar fields, excluding the motor (x variable).
     # read_fields = sorted(
