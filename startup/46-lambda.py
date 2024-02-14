@@ -46,7 +46,7 @@ class Lambda(SingleTriggerV33, LambdaDetector):
     stats3 = Cpt(StatsPluginV33, 'Stats3:', read_attrs=['total'])
     stats4 = Cpt(StatsPluginV33, 'Stats4:', read_attrs=['total'])
 
-    # stats5 = Cpt(StatsPluginV33, 'Stats5:', read_attrs=['total']) # HZ for total counts from the whole AD
+    stats5 = Cpt(StatsPluginV33, 'Stats5:', read_attrs=['total']) # HZ for total counts from the whole AD
 
 
     trans1 = Cpt(TransformPlugin, 'Trans1:')
@@ -74,7 +74,11 @@ lambda_det.stats3.total.kind = 'hinted'
 
 lambda_det.stats4.total.kind = 'hinted'
 lambda_det.stats4.kind = 'hinted'
-lambda_det.stats4.max_value.kind = 'hinted'
+# lambda_det.stats4.max_value.kind = 'hinted'
+
+lambda_det.stats5.kind = 'hinted'
+lambda_det.stats5.total.kind = 'hinted'
+lambda_det.stats5.max_value.kind = 'hinted' ## HZ
 
 
 # Impose Stats4 to be ROI4 if in the future we need to exclude bad pixels
