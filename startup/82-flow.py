@@ -5,6 +5,8 @@ flow3 = EpicsSignal("XF:12ID1-ECAT:EL4104-00-AO3", name="wet_he")
 o2_per = EpicsSignal("XF:12ID1:O2", name = "o2_per")
 he_pid = EpicsSignal("XF:12ID1-ES{He-Flow}PID1.FBON", name = "he_pid")
 
+chiller = EpicsSignal("XF:12ID1-ES{Chiller}T-SP", name="chiller")
+
 
 
 def he_on():
