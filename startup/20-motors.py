@@ -34,4 +34,5 @@ fp_saxs =  FLIGHT_PATH_SAXS("XF:12ID1-ES{SAXS-Ax:", name ="flight_path_saxs")
 AD1 = EpicsSignal("XF:12ID1:TrufA1", name="AD1")
 AD2 = EpicsSignal("XF:12ID1:TrufA2", name="AD2")
 o2_per = EpicsSignal("XF:12ID1:O2", name = "o2_per")
+chiller_T = EpicsSignal("XF:12ID1-ES{Chiller}BathT_RBV", name = "chiller_T")
 
