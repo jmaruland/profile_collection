@@ -16,6 +16,10 @@
 #proposal_id("2022_3","309773_ocko")
 #proposal_id("2022_3","310438_satija")
 
+# proposal_id("2023_2","311915_opls")
+# proposal_id("2023_2","311053_dutta")
+# proposal_id("2023_3","312622_satija")
+
 
 
 
@@ -89,6 +93,14 @@ def proposal_id(cycle_id, proposal_id):
     except FileNotFoundError:
         os.makedirs(newDir)
         os.chmod(newDir, stat.S_IRWXU + stat.S_IRWXG + stat.S_IRWXO)
+
+    newDir = "/nsls2/xf12id1/users/" + str(cycle_id) + "/" + str(proposal_id) + "/XRR_analysis/data3"
+    try:
+        os.stat(newDir)
+    except FileNotFoundError:
+        os.makedirs(newDir)
+        os.chmod(newDir, stat.S_IRWXU + stat.S_IRWXG + stat.S_IRWXO)
+       
 
 
     newDir = "/nsls2/xf12id1/users/" + str(cycle_id) + "/" + str(proposal_id) + "/XRR_analysis/q_plots"
