@@ -42,6 +42,7 @@ class KibronTrough(Device):
 
     def getData(self):
         try:
+            self.device.call('ClearBuffers')
             vals = self.device.call("GetData")
             # Expecting the result to be of the form
             #   '<status-code> <value-1> <value-2> ... <value-n>
@@ -102,6 +103,9 @@ class KibronTrough(Device):
         try:
             print("Compressing barriers, gathering measurement data ...")
 
+            self.device.call("StopMeasure")
+            self.device.call('ClearBuffers')
+
             # Tell the trough to produce measurement samples at 1 second intervals
             self.device.call("SetStoreInterval", 1.0)
 
@@ -155,6 +159,7 @@ class KibronTrough(Device):
             # Tell the trough to produce measurement samples at 1 second intervals
             self.device.call("SetStoreInterval", 1.0)
             self.device.call("SetBarrierSpeed", target_speed)
+            self.device.call("StopMeasure")
             self.device.call("NewMeasureMode", mtx.MeConstantPressure)
 
             self.device.call("SetTargetPressure", target_pressure)
@@ -170,25 +175,25 @@ class KibronTrough(Device):
             _pressure = self.getPressure()
             print(f'Current pressure is {_pressure}')
 
-            # while _pressure-target_pressure < 0:
-            #     time.sleep(1)
-            #     _data = list(self.getData())
-            #     _area = _data[mtx.uTArea]
-            #     if _area < max_area * 0.12:
-            #         print('Area is less than 12%.')
-            #         self.device.call("StopMeasure")
-            #         print("The compression has to stop!")
-            #         return 0
-            #         # break
-            #     _pressure = _data[mtx.uTPressure]
-            #     print('Pressure is: %.2f mN/m' %_pressure)
+            while _pressure-target_pressure < 0:
+                time.sleep(1)
+                _data = list(self.getData())
+                _area = _data[mtx.uTArea]
+                if _area < max_area * 0.1:
+                    print('Area is less than 10%.')
+                    self.device.call("StopMeasure")
+                    print("The compression has to stop!")
+                    return 0
+                    # break
+                _pressure = _data[mtx.uTPressure]
+                print('Pressure is: %.2f mN/m' %_pressure)
 
-            # # self.device.call("StepStop")
+            # self.device.call("StepStop")
 
-            # # self.device.call("StopMeasure")
+            # self.device.call("StopMeasure")
 
-            # print("Reach the target pressure!")
-            # return 1
+            print("Reach the target pressure!")
+            return 1
 
 
         except:
