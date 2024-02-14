@@ -4,6 +4,7 @@ from ophyd import PseudoPositioner
 from ophyd import PseudoSingle
 from ophyd import EpicsSignal
 from ophyd import Signal
+from ophyd.sim import SynAxis as _SynAxis
 
 import warnings
 
@@ -65,19 +66,49 @@ class DetectorOffsets(Device):
         add_prefix=(),
         kind="config"
         )
+    
+class PhiOffsets(Device):
+    phi_mode= Cpt(
+        EpicsSignal,
+        "XF:12ID1:PhiMode",
+        add_prefix=(),
+        kind="config",
+        )
+    phix_1= Cpt(
+        EpicsSignal,
+        "XF:12ID1:L_16",
+        add_prefix=(),
+        kind="config"
+        )
+    phix_2= Cpt(
+        EpicsSignal,
+        "XF:12ID1:L_17",
+        add_prefix=(),
+        kind="config"
+        )
+    phi_1= Cpt(
+        EpicsSignal,
+        "XF:12ID1:L_18",
+        add_prefix=(),
+        kind="config"
+        )
+    chi_1= Cpt(
+        EpicsSignal,
+        "XF:12ID1:L_19",
+        add_prefix=(),
+        kind="config"
+        )
+    
+
+    phix_0 = 0
+    phi_2 = 0
+    phi_0 = 0
+    chi_2 = 0
+    chi_0 = 0
 
 
 
 
-    #mode = Cpt(EpicsSignal, "L_14", kind="config")
-    #det1 = Cpt(EpicsSignal, "L_11", kind="config")
-    #det2 = Cpt(EpicsSignal, "L_12", kind="config")
-    #det3 = Cpt(EpicsSignal, "L_13", kind="config")
-from ophyd.sim import SynAxis as _SynAxis
-
-#class Geometry_recip(PseudoPositioner):
-#    L = Cpt(PseudoSingle, "", kind="hinted")
-#   _lambda= geo.wlength
 #    geo.alpha= np.deg2rad(pseudo_pos.stth) np.asin(L*_lambda/(4*np.pi))
 #    geo.beta = geo.alpha
 #    yield from mabt(alpha,beta,0)
@@ -87,8 +118,9 @@ from ophyd.sim import SynAxis as _SynAxis
 class Geometry(PseudoPositioner):
     # angles
     alpha = Cpt(PseudoSingle, "", kind="hinted")
-    beta = Cpt(PseudoSingle, "", kind="hinted")
+    beta = Cpt(PseudoSingle, "",  kind="hinted")
     stth = Cpt(PseudoSingle, "", kind="hinted")
+    # wlength = Cpt(PseudoSingle, "", kind="hinted")
     # sth = Cpt(PseudoSingle, "", kind='hinted')
 
     # input motors
@@ -103,6 +135,8 @@ class Geometry(PseudoPositioner):
     phix = Cpt(EpicsMotor, "{XtalDfl-Ax:PhiX}Mtr")
     # Sample-detector motors
     sh = Cpt(EpicsMotor, "{Smpl-Ax:TblY}Mtr", doc="Sample vertical translation")
+    #sh 2 1.8199 mm/rev
+    # sh2 = Cpt(EpicsMotor, "{Smpl-Ax:TblY2}Mtr", doc="Sample vertical translation")
     astth = Cpt(EpicsMotor, "{Smpl-Ax:Tth}Mtr", doc="Sample-detector rotation")
     # asth = Cpt(EpicsMotor, "{Smpl-Ax:Th}Mtr", doc="Sample rotation")
     stblx = Cpt(EpicsMotor, "{Smpl-Ax:TblX}Mtr", doc="Sample Table X")
@@ -214,7 +248,6 @@ class Geometry(PseudoPositioner):
         doc="detector mode,",
     )
 
-
     detector_offsets = Cpt(
         DetectorOffsets,
         "XF:12ID1:",
@@ -223,8 +256,22 @@ class Geometry(PseudoPositioner):
         doc="offsets from tth of each detector center",
     )
 
+    phi_mode = Cpt(
+        EpicsSignal,
+        "XF:12ID1:PhiMode",
+        add_prefix=(),
+        kind="config",
+        doc="phi mode",
+    )
 
-  
+    phi_offsets = Cpt(
+        PhiOffsets,
+        "XF:12ID1:",
+        add_prefix=(),
+        kind="config",
+        doc="offsets of phi and phix",
+    )
+   
 
     def __init__(self, prefix, **kwargs):
         # self.wlength = 0.77086  # x-ray wavelength, A
@@ -334,7 +381,6 @@ class Geometry(PseudoPositioner):
         if np.fabs(tmp) < too_small:
             msg = f"Unobtainable position: cannot find tth"
             raise ValueError(msg)
-
         # maybe use atan2(y, x), instead of atan(y/x) ?
         _tth = np.arctan(2 * bragg * np.cos(_phi) * np.cos(_chi) / tmp)
         # change this line (BEN)
@@ -344,11 +390,15 @@ class Geometry(PseudoPositioner):
 
 
         #SH_OFFSET IS TURNED OFF FOR NOW SINCE IT IS MULTIUPLIED BY ZERO.
-        tmp=  -(self.L2.get() + self.L4.get()) * np.tan(_alpha) / np.cos(_tth)
+        sh = ( 
+            -(self.L2.get() + self.L4.get()) * np.tan(_alpha) / np.cos(_tth)
+        ) + 0*self.SH_OFF.get()
 
-        sh_user= tmp-geo.sh.user_offset.get() 
-        
-        sh= tmp + 0.003*np.sin(np.pi*2*(sh_user/0.254)+self.sh_phase.get())
+        # tmp=  -(self.L2.get() + self.L4.get()) * np.tan(_alpha) / np.cos(_tth)
+        # sh_user= tmp-geo.sh.user_offset.get() 
+        # sh= tmp + 0.003*np.sin(np.pi*2*(sh_user/0.254)+self.sh_phase.get())
+
+        # sh = self.sh.position
         
         stblx = self.L2.get() * np.tan(_tth)
         # todo check degree vs radian
@@ -364,23 +414,57 @@ class Geometry(PseudoPositioner):
             4: 'det_4',
             5: 'det_5',
         }
+    
 
         if det_mode not in det_dict:
             raise UserError(f'The "det_mode={det_mode}" you are trying to use '
                             f'is not supported. Use one of {list(det_dict.keys())} '
                             f'for the det_mode.')
-
         _tth_offset = np.deg2rad(getattr(self.detector_offsets, det_dict[det_mode]).get())
-
+    
         _astth = _tth + _stth + _tth_offset
+        
 
+        ### define the phi mode, 2023-07-24
+        phi_mode = int(self.phi_offsets.phi_mode.get())
+
+        # phi_dict = {
+        #     1: ('phi_1', 'phix_1','chi_1'),
+        #     2: ('phi_2', 'phix_2','chi_2'),
+        #     3: ('phi_3', 'phix_2','chi_3'),
+        # }
+
+        # if phi_mode not in phi_dict:
+        #     raise UserError(f'The "phi_mode={phi_mode}" you are trying to use '
+        #                     f'is not supported. Use one of {list(phi_dict.keys())} '
+        #                     f'for the phi_mode.')
+        # #phi_offset = getattr(self.phi_offsets, phi_dict[phi_mode][0]).get()
+        # #_phix_offset = getattr(self.phi_offsets, phi_dict[phi_mode][1]).get()
+        
+        if phi_mode == 1:
+            _phi_offset  =  self.phi_offsets.phi_1.get()
+            _chi_offset  =  self.phi_offsets.chi_1.get()
+            _phix_offset =  self.phi_offsets.phix_1.get()
+                
+      
+        if phi_mode == 2:
+            _phi_offset  =  self.phi_offsets.phi_2
+            _chi_offset  =  self.phi_offsets.chi_2
+            _phix_offset =  self.phi_offsets.phix_2.get()
+                
+
+        if phi_mode == 0:
+            _phi_offset  =  self.phi_offsets.phi_0
+            _chi_offset  =  self.phi_offsets.chi_0
+            _phix_offset =  self.phi_offsets.phix_0
+                
         #print("calcualted _astth=",np.rad2deg(_astth))
         #print("_tth=",np.rad2deg(_tth), "   _stth=",np.rad2deg(_stth), "tth_offset=",np.rad2deg(_tth_offset))
         real_pos = self.real_position
         return self.RealPosition(
             th=np.rad2deg(_th),
-            phi=np.rad2deg(_phi),
-            chi=np.rad2deg(_chi),
+            phi=np.rad2deg(_phi)+_phi_offset,
+            chi=np.rad2deg(_chi)+_chi_offset,
             tth=np.rad2deg(_tth),
             ih=ih,
             ia=np.rad2deg(_alpha),
@@ -389,7 +473,7 @@ class Geometry(PseudoPositioner):
             stblx=stblx if track_mode else real_pos.stblx,
             astth=np.rad2deg(_astth) if track_mode else real_pos.astth,
             oh=oh+soller_offset if track_mode else real_pos.oh,
-            phix=_phix,
+            phix=_phix_offset,
             stblx2=_stblx2,
         )
 
@@ -447,9 +531,29 @@ class Geometry(PseudoPositioner):
         stth = real_pos.astth - real_pos.tth - _tth_offset
 
 
-        # TODO compute beta from the other motors
+        # ### define the phi mode, 2023-07-24
+        # phi_mode = int(self.phi_offsets.phi_mode.get())
 
-        return self.PseudoPosition(alpha=_alpha, beta=real_pos.oa, stth=stth)
+        # phi_dict = {
+        #     1: ('phi_1', 'phix_1'),
+        #     2: ('phi_2', 'phix_2'),
+        # }
+
+        # if phi_mode not in phi_dict:
+        #     raise UserError(f'The "phi_mode={phi_mode}" you are trying to use '
+        #                     f'is not supported. Use one of {list(phi_dict.keys())} '
+        #                     f'for the phi_mode.')
+        
+        # _phi_offset = getattr(self.phi_offsets, phi_dict[phi_mode][0]).get()
+        # _phix_offset = getattr(self.phi_offsets, phi_dict[phi_mode][1]).get()
+    
+
+
+        # TODO compute beta from the other motors
+        #this failed on oct 5 2023
+        #return self.PseudoPosition(alpha=_alpha, beta=real_pos.oa, stth=stth)
+
+        return self.PseudoPosition(alpha=real_pos.ia, beta=real_pos.oa, stth=stth)
 
     def move_ab(self, val):
         warnings.warn("use `yield from bps.mv(goe, val)` instead")
@@ -493,7 +597,7 @@ class SynGeometry(Geometry):
     oh = Cpt(SynAxis, doc="output arm vertical rotation", value=0.0)
 
 # changed to True to test out PYMCA simulation
-IN_SIM_MODE = False # bool(sim_flag.get() > 0)
+IN_SIM_MODE = True # bool(sim_flag.get() > 0)
 # Prefix the PV with "S" for simulations
 if IN_SIM_MODE:
     geo = SynGeometry("SXF:12ID1-ES", name="geo")
@@ -527,7 +631,7 @@ def cabt(*args, **kwargs):
     print(
         f"Footprint  = {S2.vg.user_readback.get() / ((args[0] + 0.001) * 3.14159 / 180): .1f} mm"
     )
-    print(f"qz         = {(4 * np.pi / geo.wlength.real) * np.sin(args[0] * 3.14159 / 180): .3f} \u212B\u207B\u00B9")
+    print(f"qz         = {(4 * np.pi / geo.wlength.real) * np.sin(args[0] * 3.14159 / 180): .4f} \u212B\u207B\u00B9")
 
     cur = geo.real_position
     print("|" + "-" * 30 + "|")
