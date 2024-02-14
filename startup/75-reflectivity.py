@@ -10,65 +10,67 @@ def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=Fa
     :param detector: A string which is the detector name
     :type detector: string, can be either 'lambda_det' or 'pilatus100k'
     """
-    # Tom's way of checking to see if all lists are the same length
-    N = None
-    for k, v in scan_param.items():
-        if N is None:
-            N = len(v)
-        if N != len(v):
-            raise ValueError(f"the key {k} is length {len(v)}, expected {N}")
+    try:
+        # Tom's way of checking to see if all lists are the same length
+        N = None
+        for k, v in scan_param.items():
+            if N is None:
+                N = len(v)
+            if N != len(v):
+                raise ValueError(f"the key {k} is length {len(v)}, expected {N}")
 
-    unhinted_ref() ## change all hinted settings to 'normal'
-    
-    #XF:12ID1-ES{Det:Lambda}ROI1:MinX
-    # Bluesky command to record metadata
-    base_md = {'plan_name': 'reflection_scan',
-               'cycle': RE.md['cycle'],
-               'proposal_number': RE.md['proposal_number'] + '_' + RE.md['main_proposer'],
-               'detectors': [detector.name, quadem.name],
-               'energy': energy.energy.position,
-               'rois': [detector.roi1.min_xyz.min_x.get(),
-                        detector.roi1.min_xyz.min_y.get(),
-                        detector.roi2.min_xyz.min_y.get(),
-                        detector.roi3.min_xyz.min_y.get(),
-                        detector.roi2.size.x.get(),
-                        detector.roi2.size.y.get()],
-               'geo_param': [geo.L1.get(), geo.L2.get(), geo.L3.get(), geo.L4.get()],
-               'slit_s1': [S1.top.position - S1.bottom.position, S1.outb.position - S1.inb.position],
-               'slit_s2': [S2.vg.position, S2.hg.position],
-               'x2': [geo.stblx2.position],
-               'tilt stage': tilt_stage,
-               }
-    base_md.update(md or {})
-    bec.disable_plots()
-    # Bluesky command to start the document
-    # moved this line so we get a single UID per sub-scan
-    yield from bps.open_run(md=base_md)
-    x2_nominal= geo.stblx2.position
-    blocky_nominal= block.y.position ## add blocky pos (HZ, 06102022)
+        unhinted_ref() ## change all hinted settings to 'normal'
+        
+        #XF:12ID1-ES{Det:Lambda}ROI1:MinX
+        # Bluesky command to record metadata
+        base_md = {'plan_name': 'reflection_scan',
+                'cycle': RE.md['cycle'],
+                'proposal_number': RE.md['proposal_number'] + '_' + RE.md['main_proposer'],
+                'detectors': [detector.name, quadem.name],
+                'energy': energy.energy.position,
+                'rois': [detector.roi1.min_xyz.min_x.get(),
+                            detector.roi1.min_xyz.min_y.get(),
+                            detector.roi2.min_xyz.min_y.get(),
+                            detector.roi3.min_xyz.min_y.get(),
+                            detector.roi2.size.x.get(),
+                            detector.roi2.size.y.get()],
+                'geo_param': [geo.L1.get(), geo.L2.get(), geo.L3.get(), geo.L4.get()],
+                'slit_s1': [S1.top.position - S1.bottom.position, S1.outb.position - S1.inb.position],
+                'slit_s2': [S2.vg.position, S2.hg.position],
+                'x2': [geo.stblx2.position],
+                'tilt stage': tilt_stage,
+                }
+        base_md.update(md or {})
+        bec.disable_plots()
+        # Bluesky command to start the document
+        # moved this line so we get a single UID per sub-scan
+        yield from bps.open_run(md=base_md)
+        x2_nominal= geo.stblx2.position
+        blocky_nominal= block.y.position ## add blocky pos (HZ, 06102022)
 
-    for i in range(N):
-        # yield from bps.open_run(md=base_md)
-        print('%sst set starting'%i)
-        yield from bps.sleep(3) 
-  #      print(scan_param)
-        yield from reflection_scan(scan_param,i, detector=detector, md=md, tilt_stage=tilt_stage, usekibron = usekibron, trough = trough, compress = compress, target_pressure=target_pressure, x2_nominal=x2_nominal,blocky_nominal=blocky_nominal)                      
-        print('%sst set done'%i)
-        # yield from bps.close_run()
+        for i in range(N):
+            # yield from bps.open_run(md=base_md)
+            print('%sst set starting'%i)
+            yield from bps.sleep(3) 
+    #      print(scan_param)
+            yield from reflection_scan(scan_param,i, detector=detector, md=md, tilt_stage=tilt_stage, usekibron = usekibron, trough = trough, compress = compress, target_pressure=target_pressure, x2_nominal=x2_nominal,blocky_nominal=blocky_nominal)                      
+            print('%sst set done'%i)
+            # yield from bps.close_run()
 
 
-    # Bluesky command to stop recording metadata
-    #moved this to inside the loop
-    yield from bps.close_run()
-    bec.enable_plots()
-    # puts in absorber to protect the detctor      
-    yield from bps.mv(abs2, 5)
-    quadem.averaging_time.put(1)
-    print('The reflectivity scan is over')
-    hinted_ref() ## change hinted settings
+        # Bluesky command to stop recording metadata
+        #moved this to inside the loop
+        yield from bps.close_run()
+        bec.enable_plots()
+        # puts in absorber to protect the detctor      
+        yield from bps.mv(abs2, 5)
+        quadem.averaging_time.put(1)
+        print('The reflectivity scan is over')
+    finally:
+        hinted_ref() ## change hinted settings
 
 print(f'Loading {__file__}')
-all_area_dets = [quadem, lambda_det, AD1, AD2, o2_per]
+all_area_dets = [quadem, lambda_det, AD1, AD2, o2_per, chiller_T]
 
 
 
@@ -326,7 +328,7 @@ def reflection_scan_full_old(scan_param, md=None, detector=lambda_det, tilt_stag
     hinted_ref() ## change hinted settings
 
 #print(f'Loading {__file__}')
-all_area_dets = [quadem, lambda_det, AD1, AD2, o2_per]
+all_area_dets = [quadem, lambda_det, AD1, AD2, o2_per, chiller_T]
 
 
 
