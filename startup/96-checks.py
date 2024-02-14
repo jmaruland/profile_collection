@@ -88,6 +88,7 @@ def sample_height_set_fine_pilatus(detector = pilatus300k):
 def check_phi():
     '''Align the deflector crystal phi
     '''
+    yield from det_set_exposure([quadem], exposure_time=1.0, exposure_number = 1)
     yield from bps.mv(geo.det_mode,1)  #move lamda detector in ?
     yield from bps.mv(abs2,6)   #move the second absorber in 
     yield from mabt(0,0,0)    # don't understand???, 
@@ -96,7 +97,7 @@ def check_phi():
     yield from bps.mv(shutter,1) # open shutter
     print('resetting phi') 
     local_peaks = PeakStats(phi.user_readback.name, quadem.current2.mean_value.name)
-    yield from bpp.subs_wrapper(bp.rel_scan([quadem],phi,-0.01,0.01,21), local_peaks)
+    yield from bpp.subs_wrapper(bp.rel_scan([quadem],phi,-0.015,0.015,21), local_peaks)
     tmp = local_peaks.cen  #get the height for roi2 of quadem with a max intens
     yield from bps.mv(phi,tmp)  #move the XtalDfl to this height
     yield from set_phi(tmp1)  #set this height as 0
@@ -108,6 +109,7 @@ def check_ih():
     '''Align the Align the spectrometer stage height
     '''
     yield from bps.mv(geo.det_mode,1)  #move lamda detector in ?
+    yield from det_set_exposure([quadem], exposure_time=0.5, exposure_number = 1)
     yield from bps.mv(abs2,6)   #move the second absorber in 
     yield from mabt(0,0,0)    # don't understand???, 
     yield from bps.mv(sh,-1)  # move the Sample vertical translation to -1
@@ -116,7 +118,8 @@ def check_ih():
     #yield from bp.rel_scan([quadem],ih,-0.1,0.15,16)  #scan the quadem detector against XtalDfl-height
     #tmp=peaks.cen['quadem_current3_mean_value']  #get the height for roi2 of quadem with a max intensity 
     local_peaks = PeakStats(ih.user_readback.name, quadem.current3.mean_value.name)
-    yield from bpp.subs_wrapper(bp.rel_scan([quadem],ih,0.10,-0.10,21), local_peaks)
+    # yield from bpp.subs_wrapper(bp.rel_scan([quadem],ih,0.06,-0.06,13), local_peaks)
+    yield from bpp.subs_wrapper(bp.rel_scan([quadem],ih,0.1,-0.1,21), local_peaks)
     tmp = local_peaks.cen  #get the height for roi2 of quadem with a max intens
     yield from bps.mv(ih,tmp)  #move the XtalDfl to this height
     yield from set_ih(0)  #set this height as 0
