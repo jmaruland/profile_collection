@@ -70,7 +70,7 @@ def reflection_fluorescence_scan_full(scan_param, md=None, detector=xs, tilt_sta
     quadem.averaging_time.put(1)
     
 print(f'Loading {__file__}')
-all_area_dets_fluo = [saturate, quadem, xs, AD1, AD2, o2_per]
+all_area_dets_fluo = [saturate, quadem, xs, AD1, AD2, o2_per, chiller_T]
 # all_area_dets_fluo = [quadem, AD1, AD2, o2_per]
 
  

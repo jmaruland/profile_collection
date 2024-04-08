@@ -1,4 +1,4 @@
-def gid_scan_stitch(scan_dict={}, md=None, detector = pilatus300k, alphai = 0.1 ):
+def gid_scan_stitch(scan_dict={}, md=None, detector = pilatus300k, alphai = 0.1, sh_offset = 0 ):
     """
     Run GID scans
 
@@ -25,7 +25,7 @@ def gid_scan_stitch(scan_dict={}, md=None, detector = pilatus300k, alphai = 0.1 
     
 
     @bpp.stage_decorator([quadem, detector])
-    def gid_method(md, detector, alphai, scan_dict):
+    def gid_method(md, detector, alphai, scan_dict, sh_offset):
         # Bluesky command to record metadata
         base_md = {'plan_name': 'gid',
                 'cycle': RE.md['cycle'],
@@ -84,6 +84,11 @@ def gid_scan_stitch(scan_dict={}, md=None, detector = pilatus300k, alphai = 0.1 
    
         # Move to the good geometry position
             yield from mabt(alphai, 0, stth_list[i]) # gid poistion with beam stop
+
+            sh_nomimal= geo.sh.position
+            if sh_offset != 0:
+                 yield from bps.mv(sh, sh_nomimal+sh_offset)
+
             y3 = det_saxs_y_list[i]-4.3*det_saxs_y_offset_list[i]
             y1,y2 = GID_fp( det_saxs_y_list[i]+45)
             x2_new = x2_nominal+x2_offset_list[i]
@@ -98,11 +103,14 @@ def gid_scan_stitch(scan_dict={}, md=None, detector = pilatus300k, alphai = 0.1 
         # Open shutter, sleep to initiate quadEM, collect data, close shutter
             yield from bps.mv(shutter,1)
             yield from bps.sleep(0.5)
-            yield from bps.trigger_and_read([quadem] + [detector] +  [geo] + [attenuation_factor_signal] + 
+            yield from bps.trigger_and_read([quadem] + [detector] +  [geo] + [AD1] + [AD2] + [o2_per] + [chiller_T] + [attenuation_factor_signal] + 
                                             [exposure_time_signal] + [detsaxs.y], 
                                             name='primary')
             
             yield from bps.mv(shutter,0)
+
+            if sh_offset != 0:
+                 yield from bps.mv(sh, sh_nomimal)
 
         # End the databroker document and re-enable plots
         yield from close_run()
@@ -117,4 +125,5 @@ def gid_scan_stitch(scan_dict={}, md=None, detector = pilatus300k, alphai = 0.1 
     yield from gid_method(md=md,
                           detector=detector,
                           alphai=alphai,
-                          scan_dict=scan_dict)
+                          scan_dict=scan_dict,
+                          sh_offset = sh_offset)

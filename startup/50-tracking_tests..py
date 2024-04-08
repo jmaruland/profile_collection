@@ -47,7 +47,7 @@ def ih_track(alpha_ini, alpha_stop, num_alpha):
         print(i, alpha_ini, alpha_re)
         yield from bps.mv(geo, alpha_re)
         #yield from bp.rel_scan([tetramm], geo.phi, -0.010, 0.010, 20)
-        yield from bp.rel_scan([quadem], geo.phi, -0.010, 0.010, 20)
+        yield from bp.rel_scan([quadem], geo.phi, -0.010, 0.010, 21)
 
         #yield from bps.mv(geo.phi, peaks.cen["tetramm_current2_mean_value"])
         yield from bps.mv(geo.phi, peaks.cen["quadem_current2_mean_value"])
@@ -56,7 +56,7 @@ def ih_track(alpha_ini, alpha_stop, num_alpha):
         #dif[2, i] = peaks.cen["tetramm_current2_mean_value"] - geo.forward(alpha=alpha_re).phi
 
         #yield from bp.rel_scan([tetramm], geo.ih, -0.4, 0.4, 20)
-        yield from bp.rel_scan([quadem], geo.ih, -0.4, 0.4, 20)
+        yield from bp.rel_scan([quadem], geo.ih, -0.3, 0.3, 21)
 
         # is the next line corrct, geo.forward(alpha=alpha_re)
         #print(peaks.cen["tetramm_current3_mean_value"] - geo.forward(alpha=alpha_re).ih)

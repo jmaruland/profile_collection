@@ -1,6 +1,6 @@
 from ophyd import Signal
 
-exposure_time_signal = Signal(name='exposure_time', value=1)
+exposure_time_signal = Signal(name='expo_time', value=1)
 
 def det_set_exposure(detectors, exposure_time, exposure_period = None, exposure_number = 1):
     '''
@@ -9,6 +9,7 @@ def det_set_exposure(detectors, exposure_time, exposure_period = None, exposure_
     exposure_period (float): the period for multiple frames; default is exposure_time+0.1
     exposure_number (int):   total frame number for multiple frames; default is 1 (single frame)
     '''
+   # print("set_exposure",detectors,exposure_time)
     if exposure_period == None:
         exposure_period = exposure_time+0.1
 

@@ -20,6 +20,7 @@ phix=geo.phix
 ia=geo.ia
 ih=geo.ih
 sh=geo.sh
+#sh2=geo.sh2
 astth=geo.astth
 #asth=geo.asth
 oh=geo.oh
@@ -120,6 +121,7 @@ def one_dppc(sam,start_pos):
 offset_counter =1
 
 def save_offsets():
+    print("in offsets")
     global offset_counter
     motor_file = open('/nsls2/xf12id1/bsui_parameters/offsets','a')
     e = str(datetime.datetime.now())
@@ -153,12 +155,42 @@ def offset_read():
     tmp=motor_file1.read()
     print(tmp)
   
-    
+    # class PhiOffsets(Device):
+    # phi_mode= Cpt(
+    #     EpicsSignal,
+    #     "XF:12ID1:PhiMode",
+    #     add_prefix=(),
+    #     kind="config",
+    #     )
+    # phix_1= Cpt(
+    #     EpicsSignal,
+    #     "XF:12ID1:L_16",
+    #     add_prefix=(),
+    #     kind="config"
+    #     )
+    # phix_2= Cpt(
+    #     EpicsSignal,
+    #     "XF:12ID1:L_17",
+    #     add_prefix=(),
+    #     kind="config"
+    #     )
+    # phi_1= Cpt(
+    #     EpicsSignal,
+    #     "XF:12ID1:L_18",
+    #     add_prefix=(),
+    #     kind="config"
+    #     )
+    # chi_1= Cpt(
+    #     EpicsSignal,
+    #     "XF:12ID1:L_19",
+    #     add_prefix=(),
+    #     kind="config"
+    #     )
 old_paras = ''   
 def save_param():
     global old_paras
-   
-    new_paras = " {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f}  {:6.4f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f}\n".format(
+    print("in save parameters")
+    new_paras = " {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f}  {:6.4f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f}\n".format(
         energy.position.energy,
         geo.L1.get(),
         geo.L2.get(),
@@ -166,10 +198,17 @@ def save_param():
         geo.L4.get(),
         geo.Eta.get(),
         geo.SH_OFF.get(),
+        geo.SOLLER_OFF.get(),
         geo.detector_offsets.det_1.get(),
         geo.detector_offsets.det_2.get(),
         geo.detector_offsets.det_3.get(),
         geo.detector_offsets.det_4.get(),
+        geo.detector_offsets.det_5.get(),
+        geo.phi_offsets.phix_1.get(),
+        geo.phi_offsets.phix_2.get(),
+        geo.phi_offsets.phi_1.get(),
+        geo.phi_offsets.chi_1.get(),
+
         )    
     if old_paras == new_paras:
         pass  
@@ -178,8 +217,9 @@ def save_param():
         parameter_file = open('/nsls2/xf12id1/bsui_parameters/geo_parameters','a')
         etime = str(datetime.datetime.now())
         parameter_file .write(etime[0:19])
+
         if offset_counter%10 == 0:
-            parameter_file .write(" Energy    L01     L02     L03      L04    L05     L06    L11    L12     L13     L14\n")
+            parameter_file .write(" Energy    L01     L02     L03      L04    L05     L06     L08    L11    L12     L13     L14      L15     L16    L17     L18     L19 \n")
             parameter_file .write(etime[0:19])
         parameter_file.write( new_paras )     
 
@@ -240,24 +280,49 @@ def plot_scans(a):
 
 
 def safe_scan():
-    def inner():
-        yield from bps.mv(x2, 30)
+    def inner(x2_start,x2_end,oh_start,oh_end,npts,exp_time,overhead_time):
+        velocity_old = x2.velocity
+        yield from bps.mv(x2, x2_start)
         print(0)
-        yield from bps.mv(x2.velocity, 0.1)
+        time_scan=npts*(exp_time+overhead_time)
+        velocity= np.abs(x2_start-x2_end)/time_scan
+        detectors = [quadem, pilatus100k]
+        yield from det_set_exposure(detectors, exposure_time=1, exposure_number = 1)
+        yield from bps.mv(x2.velocity, velocity)
         #wait is for the vibration to damp
         yield from bps.sleep(5)
         print(1)
-        yield from bps.abs_set(x2, 40, group='get_new_target')
-        
-        yield from bp.scan([quadem],oh,-1,1,20)
-        
+        yield from bps.abs_set(x2,x2_end, group='get_new_target') 
+        yield from bp.scan([pilatus100k],oh,oh_start,oh_end,npts)
         yield from bps.wait(group='get_new_target')
-
-    yield from bpp.reset_positions_wrapper(inner(), devices=[x2.velocity])
-
+        yield from bps.mv(x2.velocity, velocity_old)
 
 
+    yield from bpp.reset_positions_wrapper(inner(30,40,-1,1,21,1,1), devices=[x2.velocity])
 
 
+
+
+
+
+
+def test_sample_height_set_fine_o(value=0,detector=lambda_det):
+    geo.sh.user_readback.kind = 'hinted'
+    yield from bps.mv(geo.det_mode,1)
+    yield from bps.mv(abs2,5)
+    yield from mabt(0.05,0.05,0)
+    tmp1=geo.sh.position
+    print('Start the height scan')
+    yield from det_set_exposure([detector], exposure_time=1, exposure_number = 1)
+    local_peaks = PeakStats(sh.user_readback.name, '%s_stats2_total'%detector.name)
+    yield from bpp.subs_wrapper(bp.rel_scan([detector],sh,-0.1,0.1,21,per_step=shutter_flash_scan), local_peaks)
+    # yield from bpp.subs_wrapper(bp.rel_scan([detector],sh,-0.1,0.1,20), local_peaks)
+    print("at #1")
+    
+
+def test_sh():
+    for x in range(100):
+        print("cycle #",x)
+        yield from test_sample_height_set_fine_o()
 
 
