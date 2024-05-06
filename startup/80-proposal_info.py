@@ -18,7 +18,15 @@
 
 # proposal_id("2023_2","311915_opls")
 # proposal_id("2023_2","311053_dutta")
+
 # proposal_id("2023_3","312622_satija")
+
+# proposal_id("2024_1","312622_satija")
+
+# proposal_id("2024_1","314053_venkatesan")
+
+#proposal_id("2024_1","313704_tu")
+
 
 
 
@@ -27,17 +35,32 @@ def proposal_id(cycle_id, proposal_id):
     RE.md['cycle'] = cycle_id
     RE.md['proposal_number'] = proposal_id.split('_')[0]
     RE.md['main_proposer'] = proposal_id.split('_')[1]
+    print(f'Currently working in the cycle of {cycle_id} and the proposal of {proposal_id}')
 
     # 2018-04-10: Maksim asked Tom about why this 'put' does not create the folder,
     # Tom suggested to ask PoC to update AD installation.
     import stat
-    newDir = "/nsls2/xf12id1/users/" + str(cycle_id) + "/" + str(proposal_id) + "/scan_plots"
+    # newDir = "/nsls2/xf12id1/users/" + str(cycle_id) + "/" + str(proposal_id) + "/scan_plots"
+    # try:
+    #     os.stat(newDir)
+    # except FileNotFoundError:
+    #     os.makedirs(newDir)
+    #     os.chmod(newDir, stat.S_IRWXU + stat.S_IRWXG + stat.S_IRWXO)
+
+    newDir = "/nsls2/xf12id1/users/" + str(cycle_id) + "/" + str(proposal_id) + "/GISAXS_data"
     try:
         os.stat(newDir)
     except FileNotFoundError:
         os.makedirs(newDir)
         os.chmod(newDir, stat.S_IRWXU + stat.S_IRWXG + stat.S_IRWXO)
     
+    newDir = "/nsls2/xf12id1/users/" + str(cycle_id) + "/" + str(proposal_id) + "/GISAXS_analysis"
+    try:
+        os.stat(newDir)
+    except FileNotFoundError:
+        os.makedirs(newDir)
+        os.chmod(newDir, stat.S_IRWXU + stat.S_IRWXG + stat.S_IRWXO)
+
     newDir = "/nsls2/xf12id1/users/" + str(cycle_id) + "/" + str(proposal_id) + "/GID_data"
     try:
         os.stat(newDir)
@@ -126,7 +149,14 @@ def proposal_id(cycle_id, proposal_id):
         os.chmod(newDir, stat.S_IRWXU + stat.S_IRWXG + stat.S_IRWXO)
 
 
-    newDir = "/nsls2/xf12id1/users/" + str(cycle_id) + "/" + str(proposal_id) + "/kibron"
+    # newDir = "/nsls2/xf12id1/users/" + str(cycle_id) + "/" + str(proposal_id) + "/kibron"
+    # try:
+    #     os.stat(newDir)
+    # except FileNotFoundError:
+    #     os.makedirs(newDir)
+    #     os.chmod(newDir, stat.S_IRWXU + stat.S_IRWXG + stat.S_IRWXO)
+
+    newDir = "/nsls2/xf12id1/users/" + str(cycle_id) + "/" + str(proposal_id) + "/Jupyter_notebooks"
     try:
         os.stat(newDir)
     except FileNotFoundError:
