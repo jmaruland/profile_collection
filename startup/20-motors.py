@@ -36,3 +36,13 @@ AD2 = EpicsSignal("XF:12ID1:TrufA2", name="AD2")
 o2_per = EpicsSignal("XF:12ID1:O2", name = "o2_per")
 chiller_T = EpicsSignal("XF:12ID1-ES{Chiller}BathT_RBV", name = "chiller_T")
 
+class ROT(Device):
+    rot = Cpt(EpicsMotor, "Smpl-Ax:Th}Mtr")
+
+asth =  ROT("XF:12ID1-ES{", name ="asth")
+
+
+
+
+
+#asth = Cpt(EpicsMotor, "{Smpl-Ax:Th}Mtr", doc="Sample rotation", name = 'asth')
