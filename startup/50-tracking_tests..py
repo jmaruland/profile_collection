@@ -15,11 +15,11 @@ def phi_track(alpha_ini, alpha_stop, num_alpha):
        #yield from bp.rel_scan([tetramm], geo.phi, -0.01, 0.01, 40)
         yield from bp.rel_scan([quadem], geo.phi, -0.01, 0.01, 40)
         #print(peaks.cen["tetramm_current2_mean_value"] - geo.forward(alpha=alpha_re).phi)
-        print(peaks.cen["quadem_current3_mean_value"] - geo.forward(alpha=alpha_re).phi)
+        print(peaks.cen["monitor_3"] - geo.forward(alpha=alpha_re).phi)
         dif[0, i] = alpha_re
 
         #dif[1, i] = peaks.cen["tetramm_current2_mean_value"] - geo.forward(alpha=alpha_re).phi
-        dif[1, i] = peaks.cen["quadem_current3_mean_value"] - geo.forward(alpha=alpha_re).phi
+        dif[1, i] = peaks.cen["monitor_3"] - geo.forward(alpha=alpha_re).phi
 
     print(dif)
 
@@ -50,9 +50,9 @@ def ih_track(alpha_ini, alpha_stop, num_alpha):
         yield from bp.rel_scan([quadem], geo.phi, -0.010, 0.010, 21)
 
         #yield from bps.mv(geo.phi, peaks.cen["tetramm_current2_mean_value"])
-        yield from bps.mv(geo.phi, peaks.cen["quadem_current2_mean_value"])
+        yield from bps.mv(geo.phi, peaks.cen["monitor_2"])
 
-        dif[2, i] = peaks.cen["quadem_current2_mean_value"] - geo.forward(alpha=alpha_re).phi
+        dif[2, i] = peaks.cen["monitor_2"] - geo.forward(alpha=alpha_re).phi
         #dif[2, i] = peaks.cen["tetramm_current2_mean_value"] - geo.forward(alpha=alpha_re).phi
 
         #yield from bp.rel_scan([tetramm], geo.ih, -0.4, 0.4, 20)
@@ -60,13 +60,11 @@ def ih_track(alpha_ini, alpha_stop, num_alpha):
 
         # is the next line corrct, geo.forward(alpha=alpha_re)
         #print(peaks.cen["tetramm_current3_mean_value"] - geo.forward(alpha=alpha_re).ih)
-        print(peaks.cen["quadem_current3_mean_value"] - geo.forward(alpha=alpha_re).ih)
+        print(peaks.cen["monitor_3"] - geo.forward(alpha=alpha_re).ih)
 
         dif[0, i] = alpha_re
-        dif[1, i] = peaks.cen["quadem_current3_mean_value"] - geo.forward(alpha=alpha_re).ih
+        dif[1, i] = peaks.cen["monitor_3"] - geo.forward(alpha=alpha_re).ih
         #dif[1, i] = peaks.cen["tetramm_current3_mean_value"] - geo.forward(alpha=alpha_re).ih
-
-
     print(dif)
 
 def ih_track_show():
