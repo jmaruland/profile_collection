@@ -14,13 +14,14 @@ crl2 = CRL2("XF:12ID1-OP{CRL-Ax:", name="crl")
 
 
 
-pos1_y1 = 8.77
-pos1_x1 = 3.52
-pos1_z1 = 130
+pos1_y1 = 8.73
+pos1_x1 = 4.16
+pos1_z1 = 0
 
-pos2_x1 = 0
-pos2_y1 =0
-pos2_z1 = 150
+
+pos2_y1 = 8.79
+pos2_x1 = 3.86
+pos2_z1 = 100
 
 # pos1_x2 = 2.6
 # pos1_y2 = 0.373
