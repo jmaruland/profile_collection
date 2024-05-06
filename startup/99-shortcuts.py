@@ -31,6 +31,7 @@ abs2=S3.absorber1
 abs3=S4.absorber1
 bpmy=S5.position1
 
+
 def set_sh(new_value):
     yield Msg('reset_user_position', geo.sh, new_value)
     save_offsets()
@@ -79,6 +80,15 @@ def set_tilty(new_value):
     yield Msg('reset_user_position', tilt.y, new_value)
     save_offsets()
 
+def set_abs2(new_value):
+    yield Msg('reset_user_position', abs2, new_value)
+    save_offsets()
+
+def set_blocker(new_value):
+    yield Msg('reset_user_position', block.y, new_value)
+    save_offsets()
+
+
 def set_all():
     chi_nom=geo.forward(0,0,0).chi  
     yield from set_chi(chi_nom)
@@ -120,19 +130,20 @@ def one_dppc(sam,start_pos):
 
 offset_counter =1
 
+
 def save_offsets():
     print("in offsets")
     global offset_counter
-    motor_file = open('/nsls2/xf12id1/bsui_parameters/offsets','a')
+    offset_file = open('/nsls2/xf12id1/bsui_parameters/offsets_log','a')
     e = str(datetime.datetime.now())
     offset_counter = offset_counter + 1
     if offset_counter%10 == 0:
-        motor_file.write(e[0:19])
-        motor_file.write("   phi   phix    chi     ih     ia    tth     sh     oh     oa  astth tab1.x tab1.y tilt.y\n")
-    motor_file.write(e[0:19])
+        offset_file.write(e[0:19])
+        offset_file.write("   phi   phix    chi     ih     ia    tth     sh      oh   oa    astth   stblx  tab1.x tab1.y tilt.y crl1.x  crl1.y crl1.z  crl2.x  crl2.y sol.rot sol.tran\n")
+    offset_file.write(e[0:19])
   
     time.sleep(0.1)
-    motor_file.write("{:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f}\n".format(
+    offset_file.write("{:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f}  {:6.3f}\n".format(
     geo.phi.user_offset.value,
     geo.phix.user_offset.value,
     geo.chi.user_offset.value,
@@ -143,15 +154,63 @@ def save_offsets():
     geo.oh.user_offset.value,
     geo.oa.user_offset.value,
     geo.astth.user_offset.value,
+    geo.stblx.user_offset.value,
     tab1.x.user_offset.value,
     tab1.y.user_offset.value,
     tilt.y.user_offset.value,
+    crl1.x.user_offset.value,
+    crl1.y.user_offset.value,
+    crl1.z.user_offset.value,
+    crl2.x.user_offset.value,
+    crl2.x.user_offset.value,
+    soller.rot.user_offset.value,
+    soller.tran.user_offset.value,
+
     ))
-    motor_file.close()
+    offset_file.close()
     save_param()
+    save_positions()
+
+
+def save_positions():
+    global offset_counter
+    print("in saving positions")
+    position_file = open('/nsls2/xf12id1/bsui_parameters/positions_log','a')
+    e = str(datetime.datetime.now())
+    if offset_counter%10 == 0:
+        position_file.write(e[0:19])
+        position_file.write("   phi   phix    chi     ih     ia    tth     sh     oh    oa  astth   stblx tab1.x tab1.y tilt.y  crl1.x  crl1.y crl1.z  crl2.x  crl2.y sol.rot sol.tran\n")
+    position_file.write(e[0:19])
+  
+    time.sleep(0.1)
+    position_file.write("{:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f}  {:6.3f}\n".format(
+    geo.phi.position,
+    geo.phix.position,
+    geo.chi.position,
+    geo.ih.position,
+    geo.ia.position,
+    geo.tth.position,
+    geo.sh.position,
+    geo.oh.position,
+    geo.oa.position,
+    geo.astth.position,
+    geo.stblx.position,
+    tab1.x.position,
+    tab1.y.position,
+    tilt.y.position,
+    crl1.x.position,
+    crl1.y.position,
+    crl1.z.position,
+    crl2.x.position,
+    crl2.x.position,
+    soller.rot.position,
+    soller.tran.position,
+
+    ))
+    position_file.close()
 
 def offset_read():
-    motor_file1 = open('/nsls2/xf12id1/bsui_parameters/offsets','r')
+    motor_file1 = open('/nsls2/xf12id1/bsui_parameters/offsets_log','r')
     tmp=motor_file1.read()
     print(tmp)
   
@@ -214,12 +273,12 @@ def save_param():
         pass  
     else:
         old_paras = new_paras  
-        parameter_file = open('/nsls2/xf12id1/bsui_parameters/geo_parameters','a')
+        parameter_file = open('/nsls2/xf12id1/bsui_parameters/geo_parameters_log','a')
         etime = str(datetime.datetime.now())
         parameter_file .write(etime[0:19])
 
         if offset_counter%10 == 0:
-            parameter_file .write(" Energy    L01     L02     L03      L04    L05     L06     L08    L11    L12     L13     L14      L15     L16    L17     L18     L19 \n")
+            parameter_file .write(" Energy    L01     L02     L03      L04    L05     L06     L08     L11    L12      L13       L14  L15     L16    L17     L18     L19 \n")
             parameter_file .write(etime[0:19])
         parameter_file.write( new_paras )     
 
