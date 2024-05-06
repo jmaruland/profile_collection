@@ -66,19 +66,52 @@ from bluesky.callbacks import LiveTable
 #     yield from plan
 
 def liquids_mode():
-    if geo.track_mode.get() == 0:
+    print("liq_mode #1")
+    liq_mode=geo.track_mode.get()
+    det_mode=geo.det_mode.get()
+    print("liq_mode #2",liq_mode,det_mode)
+    if liq_mode == 0:
         return("Alignment")
-    elif geo.track_mode.get() == 2 and  geo.det_mode.get()== 5:
+    elif liq_mode == 2 and  det_mode== 5:
         return("Soller")
-    elif geo.track_mode.get() == 1 and geo.det_mode.get() == 1:
+    elif liq_mode == 1 and det_mode == 1:
         return("XR")
-    elif  geo.det_mode.get() == 2:
+    # elif  liq_mode== 1 and det_mode == 2:
+    elif det_mode == 2:
        return("GISAXS")
-    elif geo.det_mode.get() == 4:
+    elif liq_mode == 4:
         return("XRF")
     else:
         return("BAD")
     
+
+def set_mode(mode):
+
+    if mode == "Alignment":
+        yield from bps.mv(geo.det_mode,1)
+        yield from bps.mv(geo.track_mode,0)
+
+    elif mode == "XR":
+        yield from bps.mv(geo.det_mode,1)
+        yield from bps.mv(geo.track_mode,1)
+    
+    elif mode == "Soller":
+        yield from bps.mv(geo.det_mode,5)
+        yield from bps.mv(geo.track_mode,2)
+    
+    elif mode == "GISAXS":
+        yield from bps.mv(geo.det_mode,2)
+        # yield from bps.mv(geo.track_mode,1)
+    
+    elif mode == "XRF":
+        yield from bps.mv(geo.det_mode,4)
+        yield from bps.mv(geo.track_mode,1)
+    else:
+        print(f'{mode} is not correct!')
+
+
+
+
 mode_to_det_mapping = {
     "Alignment":    [quadem],
     "Soller":       [pilatus100k,quadem],
@@ -127,6 +160,7 @@ def ascan(motor, position1, position2, npts, time=1):
         bec.enable_plots()
 
 def dscan(motor, position1, position2, npts, time=1):
+    print("in dscan ",type(motor))
     try:
         bec.disable_table()
         bec.disable_plots()
@@ -146,61 +180,90 @@ def dscanr(motor, position1, position2, npts, time=1):
 
 # _opls_scan
 def bsui_scan(motor, position1, position2, npts, time, relative = False, reset = False):
+    printon=False
+    if printon: print("in #1")
     operating_mode = liquids_mode()
-    det_all_auto = mode_to_det_mapping[liquids_mode()]
-    roi_auto = mode_to_roi_mapping[liquids_mode()]
-    plt_all_auto = mode_to_plt_mapping[liquids_mode()]
+    if operating_mode == 'BAD':
+        print("Not a allowed operating mode, exiting scan")
+        return
+    det_all_auto = mode_to_det_mapping[operating_mode]
+   # print(det_all_auto)
+    roi_auto = mode_to_roi_mapping[operating_mode]
+    print(operating_mode,roi_auto)
+    plt_all_auto = mode_to_plt_mapping[operating_mode]
     motor_name=getattr(motor, 'user_readback').name
+    if printon: print("in #2 ",motor_name)
     getattr(motor, 'user_readback').kind = 'hinted'
-    tmp1 = getattr(motor, 'position')
+    position_old = getattr(motor, 'position')
+    if printon: print("in #3")
     yield from det_set_exposure(det_all_auto, exposure_time=time, exposure_number = 1)
-
+    if printon: print("in #4")
     table_cols = [motor_name] + [plt_all_auto]
-
+    if printon: print("in #5")
     # if operating_mode  == "XR":
     #     detector_roi = lambda_det.stats2.total.name
     #     table_cols = [motor_name, quadem.current3.mean_value.name]
     #chaning the names so that the printout isnt so long.
     #quadem.current2.mean_value.name='bob'
-   
+    if printon: print("in #6")
     local_peaks = PeakStats(motor_name,roi_auto)
+    if printon: print("in #7")
     # [motor_name] + [_ for d in detectors_all_auto for _ in d.hints['fields'] ]
     lt = LiveTable(table_cols, min_width=11)
     lp = LivePlot(plt_all_auto, motor_name, ax=lambda: plt.figure(num=operating_mode).gca())
     cbs = [local_peaks, lt, lp]
+    if printon: print("in #8")
     if relative == False:
         print("Absolute scan")
         yield from bpp.subs_wrapper(bp.scan(det_all_auto,motor,position1,position2,npts,per_step=shutter_flash_scan),cbs)
     else:
         print("Relative scan")
+        if printon: print("in #9")
         yield from bpp.subs_wrapper(bp.rel_scan(det_all_auto,motor,position1,position2,npts,per_step=shutter_flash_scan),cbs)
     tmp2 = local_peaks.cen #get the height for roi2 of detector.name with max intensity
-    
+   # yield from bpp.subs_wrapper(bp.rel_scan([detector],sh,-1,1,13,per_step=shutter_flash_scan), local_peaks), ol way of doing it
 
 
     if tmp2 is None:
         print("Could not find the peak, not resetting the motor")
+        return
 
     else:
         print(motor_name, "is centered at %5.3f "%(local_peaks.cen),"with a FWHM of %5.3f"%(local_peaks.fwhm))
         
-    if reset ==   True:
+    if reset ==   True :
         if motor_name == "geo_phi":
-            yield from set_phi(tmp1)
+            yield from bps.mov(geo.phi,tmp2)
+            yield from set_phi(position_old)
         elif motor_name == "geo_ih":
-          yield from set_ih(tmp1)
+          yield from bps.mov(geo.ih,tmp2)
+          yield from set_ih(position_old)
         elif motor_name == "geo_ia":
-            yield from set_ia(tmp1)
+            yield from bps.mov(geo.ia,tmp2)
+            yield from set_ia(position_old)
         elif motor_name == "geo_sh":
-            yield from set_sh(tmp1)
+            yield from bps.mov(geo.sh,tmp2)
+            yield from set_sh(position_old)
         elif motor_name == "geo_oh":
-            yield from set_oh(tmp1)
+            yield from bps.mov(geo.oh,tmp2)
+            yield from set_oh(position_old)
         elif  motor_name == "geo_oa":
-            yield from set_oa(tmp1)
+            yield from bps.mov(geo.oa,tmp2)
+            yield from set_oa(position_old)
+        elif  motor_name == "geo_tth":
+            yield from bps.mov(geo.tth,tmp2)
+            yield from set_tth(position_old)
+        elif  motor_name == "geo_astth":
+            yield from bps.mov(geo.astth,tmp2)
+            yield from set_astth(position_old)
+            
         elif motor_name  == "abs2":
+            yield from bps.mov(abs2,tmp2)
             print("trying to reset",motor_name," and it is not possible")
         else:
             print("Motor ", motor_name, "can not be reset")
+    else:
+        print("Motor ", motor_name, "is not reset")
     
         
 
