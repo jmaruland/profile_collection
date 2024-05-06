@@ -43,15 +43,16 @@ def gid_scan_stitch(scan_dict={}, md=None, detector = pilatus300k, alphai = 0.1,
         #creates a new db documenet
         yield from bps.open_run(md=base_md)
 
-        det_saxs_y_list         = scan_dict["det_saxs_y"]
-        det_saxs_y_offset_list  = scan_dict["det_saxs_y_offset"]
         stth_list               = scan_dict["stth"]
         exp_time_list           = scan_dict["exp_time"]
         x2_offset_list          = scan_dict["x2_offset"]
         atten_2_list            = scan_dict["atten_2"]
         wait_time_list          = scan_dict["wait_time"]
-        beam_stop_x             = scan_dict["beam_stop_x"]
-        beam_stop_y             = scan_dict["beam_stop_y"]
+        if detector is pilatus300k:
+            det_saxs_y_list         = scan_dict["det_saxs_y"]
+            det_saxs_y_offset_list  = scan_dict["det_saxs_y_offset"]
+            beam_stop_x             = scan_dict["beam_stop_x"]
+            beam_stop_y             = scan_dict["beam_stop_y"]
 
         # Tom's way of checking
         N = None
@@ -79,7 +80,7 @@ def gid_scan_stitch(scan_dict={}, md=None, detector = pilatus300k, alphai = 0.1,
            
 
         # Set attenuators and exposure to the corresponding values
-            yield from bps.mv(attenuation_factor_signal, att_bar1['attenuator_aborp'][atten_2_list[i]])
+            # yield from bps.mv(attenuation_factor_signal, att_bar1['attenuator_aborp'][atten_2_list[i]])
             yield from bps.mv(abs2, atten_2_list[i])
    
         # Move to the good geometry position
@@ -89,12 +90,14 @@ def gid_scan_stitch(scan_dict={}, md=None, detector = pilatus300k, alphai = 0.1,
             if sh_offset != 0:
                  yield from bps.mv(sh, sh_nomimal+sh_offset)
 
-            y3 = det_saxs_y_list[i]-4.3*det_saxs_y_offset_list[i]
-            y1,y2 = GID_fp( det_saxs_y_list[i]+45)
-            x2_new = x2_nominal+x2_offset_list[i]
-        #   yield from bps.mv(fp_saxs.y1,y1,fp_saxs.y2,y2,detsaxs.y, y3,geo.stblx2,x2_new)
-            yield from bps.mv(detsaxs.y, y3,geo.stblx2,x2_new)
-            yield from bps.mv(bstop.x,beam_stop_x[i], bstop.y,beam_stop_y[i])
+
+            if detector is pilatus300k:
+                y3 = det_saxs_y_list[i]-4.3*det_saxs_y_offset_list[i]
+                y1,y2 = GID_fp( det_saxs_y_list[i]+45)
+                x2_new = x2_nominal+x2_offset_list[i]
+            #   yield from bps.mv(fp_saxs.y1,y1,fp_saxs.y2,y2,detsaxs.y, y3,geo.stblx2,x2_new)
+                yield from bps.mv(detsaxs.y, y3,geo.stblx2,x2_new)
+                yield from bps.mv(bstop.x,beam_stop_x[i], bstop.y,beam_stop_y[i])
             yield from bps.sleep(wait_time_list[i])
 
         # yield from det_exposure_time_new(detector, exp_time_list[i], exp_time_list[i])
