@@ -1,0 +1,52 @@
+
+1 of 229
+Fwd: bluesky magic commands
+Inbox
+
+Ocko, Benjamin
+2:10 PM (15 minutes ago)
+to me
+
+
+
+Benjamin Ocko (he/him)
+Senior Scientist 
+Brookhaven National Lab
+From: Thorsten Kracht <thorsten.kracht@desy.de>
+Sent: Friday, October 13, 2023 5:57 AM
+To: Ocko, Benjamin <ocko@bnl.gov>; linus.pithan@desy.de <linus.pithan@desy.de>
+Cc: Shen DESY <chen.shen@desy.de>; Andrew Wright <andrew.wright@stonybrook.edu>; Zhang, Honghu <hzhang@bnl.gov>
+Subject: bluesky magic commands
+ 
+
+Hello Ben,
+Linus helped me to set the gitlab visibility of the project
+to public. You should now be able to see this:
+
+https://gitlab.desy.de/fs-ec/blueskydesy
+
+The magics are here:
+
+https://gitlab.desy.de/fs-ec/blueskydesy/-/blob/main/blueskyDESY/magics.py?ref_type=heads
+
+I implemented just a few magic commands, just to see whether I
+could make the Bluesky command line look like spec or spock.
+
+The magic commands are 'activated' for an ipython session by
+editing the 00-start.py of the profile:
+
+#
+# to be executed in ~/.ipython/profile_bluesky/startup/00-start.py
+#
+import blueskyDESY.magics
+
+
+Some details can be found here: 
+
+https://hasyweb.desy.de/services/computing/blueskyDocu/node5.html
+
+Regarding the blueskyDESY environment, handled by e.g. lsenv,
+senv, usenv: it has been made persistent by storing the environment
+dictionary as a json string in a memorized attribute of a Tango server.
+
+Best regards, Thorsten
