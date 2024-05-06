@@ -27,103 +27,44 @@ def direct_beam():
     alphai = 0.11
 
 
-def check_sh_fine(value=0.05,detector=lambda_det):
-    yield from bps.mv(geo.det_mode,1)
-    yield from bps.mv(abs2,5)
-    yield from mabt(value,value,0)
-    tmp1=geo.sh.position
-    print('Start the height scan before GID')
- #  Msg('reset_settle_time', sh.settle_time, value)
- #   yield from bp.rel_scan([detector],sh,-0.1,0.1,21,per_step=shutter_flash_scan)
- #   tmp2=peaks.cen['%s_stats2_total'%detector.name]
-    local_peaks = PeakStats(sh.user_readback.name, '%s_stats2_total'%detector.name)
-    yield from bpp.subs_wrapper(bp.rel_scan([detector],sh,-0.15,0.15,16,per_step=shutter_flash_scan), local_peaks)
-    print("at #1")
-    tmp2 = local_peaks.cen #get the height for roi2 of detector.name with max intens
-    print("at #2")
-    yield from bps.mv(sh,tmp2)
-    yield from set_sh(tmp1)
-    Msg('reset_settle_time', sh.settle_time, 0)
+# def check_phi():
+#     '''Align the deflector crystal phi
+#     '''
+#     yield from det_set_exposure([quadem], exposure_time=1.0, exposure_number = 1)
+#     yield from bps.mv(geo.det_mode,1)  #move lamda detector in ?
+#     yield from bps.mv(abs2,6)   #move the second absorber in 
+#     yield from mabt(0,0,0)    # don't understand???, ih_tra
+#     #yield from det_exposure_time_new([lambda_det], 1,1)
+#     tmp1=geo.phi.position
+#     yield from bps.mv(shutter,1) # open shutter
+#     print('resetting phi') 
+#     local_peaks = PeakStats(phi.user_readback.name, quadem.current2.mean_value.name)
+#     yield from bpp.subs_wrapper(bp.rel_scan([quadem],phi,-0.015,0.015,21), local_peaks)
+#     tmp = local_peaks.cen  #get the height for roi2 of quadem with a max intens
+#     yield from bps.mv(phi,tmp)  #move the XtalDfl to this height
+#     yield from set_phi(tmp1)  #set this height as 0
+#     yield from bps.mv(shutter,0) # close shutter
 
 
-def check_sh_coarse(value=0, detector=lambda_det):
-    '''
-    Aligh the sample height
-    '''
-    yield from bps.mv(geo.det_mode,1)
-    yield from bps.mv(abs2,6)
-    yield from mabt(value,value,0)
-    tmp1=geo.sh.position
-    #Msg('reset_settle_time', sh.settle_time, 2)
-    print('Start the height scan before GID')
-#    yield from bp.rel_scan([detector],sh,-1,1,21,per_step=shutter_flash_scan)
-#    tmp2=peaks.cen['%s_stats2_total'%detector.name] 
-    local_peaks = PeakStats(sh.user_readback.name, '%s_stats2_total'%detector.name)
-    yield from bpp.subs_wrapper(bp.rel_scan([detector],sh,-1,1,21,per_step=shutter_flash_scan), local_peaks)
-    tmp2 = local_peaks.cen  #get the height for roi2 of detector.name with max intens   )
-    yield from bps.mv(sh,tmp2)
-    yield from set_sh(tmp1)
-    Msg('reset_settle_time', sh.settle_time, 0)
-
-    
-
-def sample_height_set_fine_pilatus(detector = pilatus300k):
-    yield from bps.mv(geo.det_mode,3)
-    yield from det_exposure_time_new(detector, 1,1)
-    #yield from bps.mv(detector.roi2.size.y,16)
-    #yield from bps.mv(detector.roi2.min_xyz.min_y,97)
-# with Detsaxy=60, rois set between 80 an 100 in y
-    yield from bps.mv(abs2,5)
-    yield from mabt(0.08,0.08,0)
-    tmp1=geo.sh.position
-   # yield from bps.mov(shutter,1)
-    print('Start the height scan before GID')
-    yield from bp.rel_scan([pilatus300k], sh, -0.2,0.2,21, per_step=sleepy_step) 
-    #yield from bps.mov(shutter,0)
-    tmp2=peaks.cen['pilatus300k_stats2_total'] 
-    yield from bps.mv(sh,tmp2)
-    yield from set_sh(tmp1)
-
-
-def check_phi():
-    '''Align the deflector crystal phi
-    '''
-    yield from det_set_exposure([quadem], exposure_time=1.0, exposure_number = 1)
-    yield from bps.mv(geo.det_mode,1)  #move lamda detector in ?
-    yield from bps.mv(abs2,6)   #move the second absorber in 
-    yield from mabt(0,0,0)    # don't understand???, 
-    #yield from det_exposure_time_new([lambda_det], 1,1)
-    tmp1=geo.phi.position
-    yield from bps.mv(shutter,1) # open shutter
-    print('resetting phi') 
-    local_peaks = PeakStats(phi.user_readback.name, quadem.current2.mean_value.name)
-    yield from bpp.subs_wrapper(bp.rel_scan([quadem],phi,-0.015,0.015,21), local_peaks)
-    tmp = local_peaks.cen  #get the height for roi2 of quadem with a max intens
-    yield from bps.mv(phi,tmp)  #move the XtalDfl to this height
-    yield from set_phi(tmp1)  #set this height as 0
-    yield from bps.mv(shutter,0) # close shutter
-
-
-
-def check_ih():
-    '''Align the Align the spectrometer stage height
-    '''
-    yield from bps.mv(geo.det_mode,1)  #move lamda detector in ?
-    yield from det_set_exposure([quadem], exposure_time=0.5, exposure_number = 1)
-    yield from bps.mv(abs2,6)   #move the second absorber in 
-    yield from mabt(0,0,0)    # don't understand???, 
-    yield from bps.mv(sh,-1)  # move the Sample vertical translation to -1
-    yield from bps.mv(shutter,1) # open shutter
-    print('resetting ih')
-    #yield from bp.rel_scan([quadem],ih,-0.1,0.15,16)  #scan the quadem detector against XtalDfl-height
-    #tmp=peaks.cen['quadem_current3_mean_value']  #get the height for roi2 of quadem with a max intensity 
-    local_peaks = PeakStats(ih.user_readback.name, quadem.current3.mean_value.name)
-    # yield from bpp.subs_wrapper(bp.rel_scan([quadem],ih,0.06,-0.06,13), local_peaks)
-    yield from bpp.subs_wrapper(bp.rel_scan([quadem],ih,0.1,-0.1,21), local_peaks)
-    tmp = local_peaks.cen  #get the height for roi2 of quadem with a max intens
-    yield from bps.mv(ih,tmp)  #move the XtalDfl to this height
-    yield from set_ih(0)  #set this height as 0
-    yield from bps.mv(shutter,0) # close shutter
+# def check_ih():
+#     '''Align the Align the spectrometer stage height
+#     '''
+#     yield from bps.mv(geo.det_mode,1)  #move lamda detector in ?
+#     yield from det_set_exposure([quadem], exposure_time=0.5, exposure_number = 1)
+#     yield from bps.mv(abs2,6)   #move the second absorber in 
+#     yield from mabt(0,0,0)    # don't understand???, 
+#     yield from bps.mv(sh,-1)  # move the Sample vertical translation to -1
+#     yield from bps.mv(shutter,1) # open shutter
+#     print('resetting ih')
+#     #yield from bp.rel_scan([quadem],ih,-0.1,0.15,16)  #scan the quadem detector against XtalDfl-height
+#     #tmp=peaks.cen['quadem_current3_mean_value']  #get the height for roi2 of quadem with a max intensity 
+#     local_peaks = PeakStats(ih.user_readback.name, quadem.current3.mean_value.name)
+#     # yield from bpp.subs_wrapper(bp.rel_scan([quadem],ih,0.06,-0.06,13), local_peaks)
+#     yield from bpp.subs_wrapper(bp.rel_scan([quadem],ih,0.1,-0.1,21), local_peaks)
+#     tmp = local_peaks.cen  #get the height for roi2 of quadem with a max intens
+#     yield from bps.mv(ih,tmp)  #move the XtalDfl to this height
+#     yield from set_ih(0)  #set this height as 0
+#     yield from bps.mv(shutter,0) # close shutter
 
 def check_tth():
     '''Align the spectrometer rotation angle'''
