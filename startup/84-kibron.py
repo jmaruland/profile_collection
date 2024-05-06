@@ -175,7 +175,7 @@ class KibronTrough(Device):
             _pressure = self.getPressure()
             print(f'Current pressure is {_pressure}')
 
-            while _pressure-target_pressure < 0:
+            while abs(_pressure-target_pressure) >= 0.1:
                 time.sleep(1)
                 _data = list(self.getData())
                 _area = _data[mtx.uTArea]
