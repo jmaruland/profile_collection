@@ -597,7 +597,7 @@ class SynGeometry(Geometry):
     oh = Cpt(SynAxis, doc="output arm vertical rotation", value=0.0)
 
 # changed to True to test out PYMCA simulation
-IN_SIM_MODE = False # bool(sim_flag.get() > 0)
+IN_SIM_MODE = True # bool(sim_flag.get() > 0)
 # Prefix the PV with "S" for simulations
 if IN_SIM_MODE:
     geo = SynGeometry("SXF:12ID1-ES", name="geo")

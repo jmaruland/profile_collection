@@ -105,7 +105,7 @@ def set_mode(mode):
     
     elif mode == "XRF":
         yield from bps.mv(geo.det_mode,4)
-        yield from bps.mv(geo.track_mode,1)
+        # yield from bps.mv(geo.track_mode,1)
     else:
         print(f'{mode} is not correct!')
 

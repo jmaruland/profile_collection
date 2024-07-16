@@ -1,21 +1,25 @@
 
-flow3 = EpicsSignal("XF:12ID1-ECAT:EL4104-00-AO3", name="wet_he")
+flow2 = EpicsSignal("XF:12ID1-ECAT:EL4104-00-AO2", name="he_flow2")
+flow3 = EpicsSignal("XF:12ID1-ECAT:EL4104-00-AO3", name="he_flow3")
 #he_pid = EpicsSignal("XF:12ID1-ES{He-Flow}PID1.FBON", name = "feed back on/off")
 #oxygen_percent = EpicsSignal("XF:12ID1:O2", name = "oxygen_percent")
 o2_per = EpicsSignal("XF:12ID1:O2", name = "o2_per")
 he_pid = EpicsSignal("XF:12ID1-ES{He-Flow}PID1.FBON", name = "he_pid")
+# he_pid_setpoint = EpicsSignal("XF:12ID1-ES{He-Flow}PID1.VAL", name = "he_pid_setpoint")
 
 chiller = EpicsSignal("XF:12ID1-ES{Chiller}T-SP", name="chiller")
 
 
 
-def he_on():
+def he_on(constant_rate = 2.4):
     yield from mov(he_pid,1)
     yield from mov(flow3,5)
+    yield from mov(flow2,constant_rate)
 
 def he_off():
     yield from mov(he_pid,0)
     yield from mov(flow3,0)
+    yield from mov(flow2,0)
 
 #sets the dry helium valve opening (5 is the max)
 def dry_he_on(value):
