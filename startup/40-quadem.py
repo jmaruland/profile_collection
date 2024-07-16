@@ -82,7 +82,8 @@ bpm.ch2.kind = 'hinted'
 bpm.ch3.kind = 'hinted'
 bpm.ch4.kind = 'hinted'
 
-
+bpm.sumX.kind = 'hinted'
+bpm.sumY.kind = 'hinted'
 bpm.posX.kind = 'normal'
 bpm.posY.kind = 'normal'
 
