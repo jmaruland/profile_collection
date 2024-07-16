@@ -19,9 +19,29 @@ pos1_x1 = 4.16
 pos1_z1 = 0
 
 
-pos2_y1 = 8.79
-pos2_x1 = 3.86
-pos2_z1 = 100
+# pos2_y1 = 8.79
+# pos2_x1 = 3.86
+# pos2_z1 = 100
+
+# 14.4keV June 2024, FWHM = 12um
+pos2_y1 = 8.95
+pos2_x1 = 3.45
+pos2_z1 = 180
+
+# # 14.4keV June 2024, FWHM = 15.2um
+# pos2_y1 = 8.91
+# pos2_x1 = 3.59
+# pos2_z1 = 140
+
+# # 14.4keV June 2024, FWHM = 18.2um
+# pos2_y1 = 8.88
+# pos2_x1 = 3.71
+# pos2_z1 = 100
+
+# # 14.4keV June 2024, FWHM = 40.4um
+# pos2_y1 = 8.86
+# pos2_x1 = 3.81
+# pos2_z1 = 70
 
 # pos1_x2 = 2.6
 # pos1_y2 = 0.373
@@ -39,6 +59,7 @@ pos2_z1 = 100
 pos1_x2 = 2.8114
 pos1_y2 = 0.46
 pos1_z2 = 150
+
 
 # pos2_x2 = 3.0514
 # pos2_y2 = 0.38
