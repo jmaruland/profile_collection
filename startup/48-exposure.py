@@ -16,6 +16,7 @@ def det_set_exposure(detectors, exposure_time, exposure_period = None, exposure_
     yield from bps.mov(exposure_time_signal, exposure_time)
 
     for det in detectors:
+        # if det in [pilatus100k, pilatus300k, lambda_det]:
         if det in [pilatus100k, pilatus300k, lambda_det]:
             try:
                 yield from bps.mov(

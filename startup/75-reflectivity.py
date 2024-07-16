@@ -71,6 +71,8 @@ def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=Fa
 
 print(f'Loading {__file__}')
 all_area_dets = [quadem, lambda_det, AD1, AD2, o2_per, chiller_T]
+#all_area_dets = [quadem, bpm, lambda_det, AD1, AD2, o2_per, chiller_T]
+
 
 
 
@@ -329,6 +331,7 @@ def reflection_scan_full_old(scan_param, md=None, detector=lambda_det, tilt_stag
 
 #print(f'Loading {__file__}')
 all_area_dets = [quadem, lambda_det, AD1, AD2, o2_per, chiller_T]
+#all_area_dets = [quadem, bpm, lambda_det, AD1, AD2, o2_per, chiller_T]
 
 
 

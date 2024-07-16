@@ -107,11 +107,14 @@ def reflection_fluorescence_scan(scan_param, i, detector='xs', md={}, tilt_stage
             exp_time_set=exp_time
             number_frames= 1.0
             print(exp_time_set,number_frames)
+ 
 
         else:
             exp_time_set=20
             number_frames= math.floor(exp_time/exp_time_set)+1
             print(exp_time_set,number_frames)
+
+            ### The spectra averaged by the number of frames is saved to the database! HZ, 2024-06-14
 
       
         yield from bps.mv(S2.vg,s2_vg)
