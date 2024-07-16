@@ -90,7 +90,8 @@ def shopen(He=True):
     yield from bps.mv(manual_PID_disable_pitch, '0')
     yield from bps.mv(manual_PID_disable_roll, '0')
     if He:
-        yield from he_on()
+        yield from he_on(constant_rate=2.5)
+        # yield from he_start()
     
 
 def shclose():
