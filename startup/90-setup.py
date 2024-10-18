@@ -33,9 +33,15 @@ det_roi_renaming = {
 
     pilatus100k.stats1.total : 'p100k_1',
     pilatus100k.stats2.total : 'p100k_2',
+    
+    pilatus100kA.stats1.total : 'p100kA_1',
+    pilatus100kA.stats2.total : 'p100kA_2',
 
     pilatus300k.stats1.total : 'p300k_1',
     pilatus300k.stats2.total : 'p300k_2',
+
+    pilatus1m.stats1.total : 'p1m_1',
+    pilatus1m.stats2.total : 'p1m_2',
 }
 
 for k,v in det_roi_renaming.items():
