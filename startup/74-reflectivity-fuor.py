@@ -54,7 +54,8 @@ def reflection_fluorescence_scan_full(scan_param, md=None, detector=xs, tilt_sta
         xs.settings.num_images.value=1
         print("number of frame is 1")
         yield from bps.mv(xs.capture_mode, 1)
-        yield from bps.mv(xs.total_points, scan_param["n"][i])
+        # yield from bps.mv(xs.total_points, scan_param["n"][i])
+        yield from bps.mv(xs.total_points, scan_param["n"][i]*np.ceil(scan_param["exp_time"][i]/45))
         
         yield from reflection_fluorescence_scan(scan_param,i, detector=detector, md=md, tilt_stage=tilt_stage, x2_nominal=x2_nominal)                      
         print('%sst set done'%i)
@@ -108,22 +109,42 @@ def reflection_fluorescence_scan(scan_param, i, detector='xs', md={}, tilt_stage
             number_frames= 1.0
             print(exp_time_set,number_frames)
  
-
+            number_loop = 1
+            
         else:
-            exp_time_set=20
-            number_frames= math.floor(exp_time/exp_time_set)+1
-            print(exp_time_set,number_frames)
+            # exp_time_set=30
+            # number_frames= math.floor(exp_time/exp_time_set)+1
+            # print(exp_time_set,number_frames)
 
             ### The spectra averaged by the number of frames is saved to the database! HZ, 2024-06-14
+            
+            # HZ, 2024-08-29, new method to chop long exposure time to short exposure (less than 45)
+            number_frames = 1
+            number_loop = int(np.ceil(exp_time/45))
+            exp_time_set = np.ceil(exp_time/number_loop) 
+            print(exp_time_set,number_loop)
 
+
+        
+        # # Make sure to scale the total number of captured frames to account for
+        # # the number for frames per individual point.
+        # yield from bps.mv(xs.total_points, scan_param["n"][i] * number_frames)
       
         yield from bps.mv(S2.vg,s2_vg)
         yield from bps.mv(geo.stblx2,x2_nominal+x2_fraction)
-        yield from bps.mv(abs2, atten_2)
-        yield from bps.sleep(wait_time)
-        yield from bps.mv(attenuation_factor_signal, att_bar1['attenuator_aborp'][atten_2])
-        yield from bps.mv(attenuator_name_signal, att_bar1['name'][atten_2])
+        # yield from bps.mv(abs2, atten_2)
+        # yield from bps.sleep(wait_time)
+        # yield from bps.mv(attenuation_factor_signal, att_bar1['attenuator_aborp'][atten_2])
+        # yield from bps.mv(attenuator_name_signal, att_bar1['name'][atten_2])
         # print(all_area_dets_fluo)
+
+
+               ##### to use the new attenbank #### 
+        yield from bps.mv(abs2, atten_2)  
+        yield from bps.mv(attenuator_name_signal, f'att{atten_2}')
+        if att_fact_selected != None:
+            yield from bps.mv(attenuation_factor_signal, att_fact_selected[f'att{atten_2}'])
+
 
         # ToDo: is that really usefull now
         # if alpha == alpha_start:
@@ -134,27 +155,27 @@ def reflection_fluorescence_scan(scan_param, i, detector='xs', md={}, tilt_stage
         #     yield from bps.sleep(wait_time)
         #     print("finished dummy count")
 
+        for _ in range(number_loop):
+            yield from bps.mv(shutter, 1)
+            yield from bps.sleep(0.2)
 
-        yield from bps.mv(shutter, 1)
-        yield from bps.sleep(1)
+            # quadem.averaging_time.put(precount_time)
+            # yield from bps.trigger_and_read([quadem], name='precount')
+            # quadem.averaging_time.put(exp_time)
 
-        # quadem.averaging_time.put(precount_time)
-        # yield from bps.trigger_and_read([quadem], name='precount')
-        # quadem.averaging_time.put(exp_time)
-
-        yield from det_set_exposure(detectors_all, exposure_time=precount_time, exposure_number = 1)
-        yield from bps.trigger_and_read([quadem], name='precount')
-        yield from det_set_exposure(detectors_all, exposure_time=exp_time_set, exposure_number = number_frames)
+            yield from det_set_exposure(detectors_all, exposure_time=precount_time, exposure_number = 1)
+            yield from bps.trigger_and_read([quadem], name='precount')
+            yield from det_set_exposure(detectors_all, exposure_time=exp_time_set, exposure_number = number_frames)
 
 
-        yield from bps.trigger_and_read(
-                                        all_area_dets_fluo +
-                                        [geo] + 
-                                        [S2] +
-                                        [attenuation_factor_signal] +
-                                        [attenuator_name_signal] +
-                                        [exposure_time_signal],
-                                        name='primary')
-        yield from bps.mv(shutter, 0)
-        
+            yield from bps.trigger_and_read(
+                                            all_area_dets_fluo +
+                                            [geo] + 
+                                            [S2] +
+                                            [attenuation_factor_signal] +
+                                            [attenuator_name_signal] +
+                                            [exposure_time_signal],
+                                            name='primary')
+            yield from bps.mv(shutter, 0)
+            
 
