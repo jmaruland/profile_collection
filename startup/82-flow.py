@@ -11,7 +11,7 @@ chiller = EpicsSignal("XF:12ID1-ES{Chiller}T-SP", name="chiller")
 
 
 
-def he_on(constant_rate = 2.4):
+def he_on(constant_rate = 2.6):
     yield from mov(he_pid,1)
     yield from mov(flow3,5)
     yield from mov(flow2,constant_rate)
