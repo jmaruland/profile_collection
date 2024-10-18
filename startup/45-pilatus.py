@@ -1,6 +1,7 @@
 
 print(f'Loading {__file__}')
 
+import uuid
 from ophyd import ( Component as Cpt, EpicsSignal, ROIPlugin, TransformPlugin,
                     PilatusDetector, OverlayPlugin, TIFFPlugin )
 from ophyd.areadetector.filestore_mixins import FileStoreTIFFIterativeWrite
@@ -14,10 +15,13 @@ class PilatusDetectorCamV33(PilatusDetectorCam):
 
     wait_for_plugins = Cpt(EpicsSignal, 'WaitForPlugins',
                            string=True, kind='config')
-
+    auto_increment = Cpt(EpicsSignal, 'AutoIncrement', kind='config')
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.stage_sigs['wait_for_plugins'] = 'Yes'
+        self.stage_sigs['auto_increment'] = 1
+        self.stage_sigs['file_number'] = 0
 
     def ensure_nonblocking(self):
         self.stage_sigs['wait_for_plugins'] = 'Yes'
@@ -27,6 +31,10 @@ class PilatusDetectorCamV33(PilatusDetectorCam):
                 continue
             if hasattr(cpt, 'ensure_nonblocking'):
                 cpt.ensure_nonblocking()
+
+    def stage(self):
+        self.file_name.set(f"pil_img_{str(uuid.uuid4())[:8]}")
+        super().stage()
 
     file_path = Cpt(SignalWithRBV, 'FilePath', string=True)
     file_name = Cpt(SignalWithRBV, 'FileName', string=True)
@@ -103,8 +111,6 @@ def set_detector(det):
 try:
     pilatus100k = Pilatus("XF:12ID1-ES{Det:P100k}", name="pilatus100k")
     set_detector(pilatus100k)
-    # pilatus300k.tiff.write_path_template = "/nsls2/xf12id1/data/pilatus300k/%Y/%m/%d/"
-    # pilatus300k.tiff.read_path_template = "/nsls2/xf12id1/data/pilatus300k/%Y/%m/%d/"
 
     pilatus100k.tiff.write_path_template = "/nsls2/data/smi/legacy/xf12id1/data/pilatus100k/%Y/%m/%d/"
     pilatus100k.tiff.read_path_template = "/nsls2/data/smi/legacy/xf12id1/data/pilatus100k/%Y/%m/%d/"
@@ -115,10 +121,32 @@ except:
 
 
 try:
+    pilatus100kA = Pilatus("XF:12ID1-ES{Det:P100K-A}", name="pilatus100kA")
+    set_detector(pilatus100kA)
+
+    pilatus100kA.tiff.write_path_template = "/nsls2/data/smi/legacy/xf12id1/data/pilatus100kA/%Y/%m/%d/"
+    pilatus100kA.tiff.read_path_template = "/nsls2/data/smi/legacy/xf12id1/data/pilatus100kA/%Y/%m/%d/"
+
+except:
+    # pilatus100k=pilatus100k
+    print('Pilatus 100k is not connected')
+
+
+try:
+    pilatus1m = Pilatus("XF:12ID1-ES{Det:P1M}", name="pilatus1m")
+    set_detector(pilatus1m)
+
+    pilatus1m.tiff.write_path_template = "/nsls2/data/smi/legacy/xf12id1/data/pilatus1m/%Y/%m/%d/"
+    pilatus1m.tiff.read_path_template = "/nsls2/data/smi/legacy/xf12id1/data/pilatus1m/%Y/%m/%d/"
+
+except:
+    # pilatus100k=pilatus100k
+    print('Pilatus 100k is not connected')
+
+
+try:
     pilatus300k = Pilatus("XF:12ID1-ES{Det:P300k}", name="pilatus300k")
     set_detector(pilatus300k)
-    # pilatus300k.tiff.write_path_template = "/nsls2/xf12id1/data/pilatus300k/%Y/%m/%d/"
-    # pilatus300k.tiff.read_path_template = "/nsls2/xf12id1/data/pilatus300k/%Y/%m/%d/"
 
     pilatus300k.tiff.write_path_template = "/nsls2/data/smi/legacy/xf12id1/data/pilatus300k/%Y/%m/%d/"
     pilatus300k.tiff.read_path_template = "/nsls2/data/smi/legacy/xf12id1/data/pilatus300k/%Y/%m/%d/"
