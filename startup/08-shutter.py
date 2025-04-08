@@ -90,7 +90,7 @@ def shopen(He=True):
     yield from bps.mv(manual_PID_disable_pitch, '0')
     yield from bps.mv(manual_PID_disable_roll, '0')
     if He:
-        yield from he_on(constant_rate=2.5)
+        yield from he_on(constant_rate=2.1)
         # yield from he_start()
     
 
@@ -106,7 +106,7 @@ def shclose():
 
 def feedback(action=None):
     allowed_actions = ['on', 'off']
-    assert action in allowed_actions, f'Wrong action: {mode}, must choose: {" or ".join(allowed_actions)}'
+    assert action in allowed_actions, f'Wrong action: {action}, must choose: {" or ".join(allowed_actions)}'
     if action == 'off':
         manual_PID_disable_pitch.set('1')
         manual_PID_disable_roll.set('1')
@@ -114,3 +114,13 @@ def feedback(action=None):
         manual_PID_disable_pitch.set('0')
         manual_PID_disable_roll.set('0')
 
+
+
+def feedback_plan_on():
+    yield from bps.mv(manual_PID_disable_pitch,'0')
+    yield from bps.mv(manual_PID_disable_roll,'0')
+
+
+def feedback_plan_off():
+    yield from bps.mv(manual_PID_disable_pitch,'1')
+    yield from bps.mv(manual_PID_disable_roll,'1')
