@@ -1,8 +1,9 @@
-global attenuation_factor_signal, attenuator_name_signal, default_attenuation # exposure_time, 
-attenuator_name_signal = Signal(name='attenuator_name', value='abs1',kind='normal')
-attenuation_factor_signal = Signal(name='attenuation', value=1e-7,kind='normal')
-default_attenuation = Signal(name='default-attenuation', value=1e-7)
+# global attenuation_factor_signal, attenuator_name_signal, default_attenuation # exposure_time, 
+# attenuator_name_signal = Signal(name='attenuator_name', value='abs1',kind='normal')
 
+# attenuation_factor_signal = Signal(name='attenuation', value=1e-7,kind='normal')
+# default_attenuation = Signal(name='default-attenuation', value=1e-7)
+import time
 def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=False, stth_corr_par=None, usekibron = False, trough = None, compress = False, target_pressure=0):
     """
     Macros to set all the parameters in order to record all the required information for further analysis,
@@ -28,12 +29,19 @@ def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=Fa
                 'proposal_number': RE.md['proposal_number'] + '_' + RE.md['main_proposer'],
                 'detectors': [detector.name, quadem.name],
                 'energy': energy.energy.position,
-                'rois': [detector.roi1.min_xyz.min_x.get(),
-                            detector.roi1.min_xyz.min_y.get(),
-                            detector.roi2.min_xyz.min_y.get(),
-                            detector.roi3.min_xyz.min_y.get(),
-                            detector.roi2.size.x.get(),
-                            detector.roi2.size.y.get()],
+                # 'rois': [detector.roi1.min_xyz.min_x.get(), ### before TRANS (rot270)
+                #             detector.roi1.min_xyz.min_y.get(),
+                #             detector.roi2.min_xyz.min_y.get(),
+                #             detector.roi3.min_xyz.min_y.get(),
+                #             detector.roi2.size.x.get(),
+                #             detector.roi2.size.y.get()],
+
+                'rois': [detector.roi1.min_xyz.min_x.get(), ### after TRANS1 (rot270), 2025/03/27, HZ
+                         detector.roi2.min_xyz.min_x.get(),
+                         detector.roi3.min_xyz.min_x.get(),
+                         detector.roi2.min_xyz.min_y.get(),
+                         detector.roi2.size.x.get(),
+                         detector.roi2.size.y.get()],
                 'geo_param': [geo.L1.get(), geo.L2.get(), geo.L3.get(), geo.L4.get()],
                 'slit_s1': [S1.top.position - S1.bottom.position, S1.outb.position - S1.inb.position],
                 'slit_s2': [S2.vg.position, S2.hg.position],
@@ -70,14 +78,14 @@ def reflection_scan_full(scan_param, md=None, detector=lambda_det, tilt_stage=Fa
         hinted_ref() ## change hinted settings
 
 print(f'Loading {__file__}')
-all_area_dets = [quadem, lambda_det, AD1, AD2, o2_per, chiller_T]
+all_area_dets = [quadem, lambda_det, AD1, AD2, o2_per, chiller_T, ls]
 #all_area_dets = [quadem, bpm, lambda_det, AD1, AD2, o2_per, chiller_T]
 
 
 
 
 @bpp.stage_decorator(all_area_dets)
-def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False,x2_nominal=0,blocky_nominal=0, usekibron = False, trough = None, compress = False, target_pressure=0):
+def reflection_scan(scan_param, i, detector=lambda_det, md={}, tilt_stage=False,x2_nominal=0,blocky_nominal=0, usekibron = False, trough = None, compress = False, target_pressure=0):
         
     alpha_start =   scan_param["start"][i]
     alpha_stop =    scan_param["stop"][i]
@@ -115,8 +123,16 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
                 yield from mabt(alpha-0.1, alpha-0.1, 0)
                 yield from bps.sleep(1)
                 yield from mabt(alpha, alpha, 0)
+            
+            ### this is a quick patch for loss the incident angle. 2024/11/22
+            yield from bps.sleep(5)
+            if abs(geo.ia.user_setpoint.value-alpha)>0.001:
+                print(f'Target ia {alpha}, current ia {geo.ia.user_setpoint.value}.')
+                yield from bps.mv(geo.ia, alpha)
 
-
+            if abs(geo.oa.user_setpoint.value-alpha)>0.001:
+                print(f'Target oa {alpha}, current ia {geo.oa.user_setpoint.value}.')
+                yield from bps.mv(geo.oa, alpha)
 
         #yield from mabt(geo.alpha=0,geo.samchi=x,geo.beta=2*x)
         fraction  = (alpha-alpha_start)/(alpha_stop-alpha_start)
@@ -172,9 +188,11 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
             yield from bps.mv(attenuation_factor_signal, att_fact_selected[f'att{atten_2}'])
 
 
-
+        # start_time = time.time()
         yield from bps.mv(shutter, 1)
-        yield from det_set_exposure(detectors_all, exposure_time=precount_time, exposure_number = 1)
+        # print(time.time()-start_time)
+        yield from det_set_exposure([quadem], exposure_time=precount_time, exposure_number = 1)
+        # print(time.time()-start_time)
         # yield from bps.trigger_and_read([quadem]+
         #                                     [geo] + 
         #                                     [S2] +
@@ -182,9 +200,9 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
         #                                     [attenuator_name_signal] +
         #                                     [exposure_time_signal],name='precount')
         yield from bps.trigger_and_read([quadem],name='precount')
-
-        yield from det_set_exposure(detectors_all, exposure_time=exp_time, exposure_number = 1)
-    
+        # print(time.time()-start_time)
+        yield from det_set_exposure([detector, quadem], exposure_time=exp_time, exposure_number = 1)
+        # print(time.time()-start_time)
         yield from bps.trigger_and_read(all_area_dets +
                                             [geo] + 
                                             [S2] +
@@ -192,8 +210,9 @@ def reflection_scan(scan_param, i, detector='lamda_det', md={}, tilt_stage=False
                                             [attenuator_name_signal] +
                                             [exposure_time_signal],
                                             name='primary')
-        
+        # print(time.time()-start_time)
         yield from bps.mv(shutter, 0)
+        # print(time.time()-start_time)
         
     
 

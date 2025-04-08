@@ -1,7 +1,7 @@
-global attenuation_factor_signal, exposure_time, attenuator_name_signal, default_attenuation
-attenuator_name_signal = Signal(name='attenuator_name', value='abs1')
-attenuation_factor_signal = Signal(name='attenuation', value=1e-7)
-default_attenuation = Signal(name='default-attenuation', value=1e-7)
+# global attenuation_factor_signal, exposure_time, attenuator_name_signal, default_attenuation
+# attenuator_name_signal = Signal(name='attenuator_name', value='abs1')
+# attenuation_factor_signal = Signal(name='attenuation', value=1e-7)
+# default_attenuation = Signal(name='default-attenuation', value=1e-7)
 
 saturate = EpicsSignal("XF:12ID1-ES{Xsp:1}:C1_ROI1:Value_RBV", name="xs_sum")
 
@@ -100,6 +100,11 @@ def reflection_fluorescence_scan(scan_param, i, detector='xs', md={}, tilt_stage
         else:
             #print('regular')
             yield from mabt(alpha, alpha, 0)
+### this is a quick patch for loss the incident angle. 2024/11/22
+            yield from bps.sleep(2)
+            if abs(geo.ia.user_setpoint.value-alpha)>0.001:
+                print(f'Target ia {alpha}, current ia {geo.ia.user_setpoint.value}.')
+                yield from bps.mv(geo.ia, alpha)
         #yield from mabt(geo.alpha=0,geo.samchi=x,geo.beta=2*x)
         fraction  = (alpha-alpha_start)/(alpha_stop-alpha_start)
         x2_fraction =fraction*(x2_offset_stop-x2_offset_start)
@@ -157,7 +162,7 @@ def reflection_fluorescence_scan(scan_param, i, detector='xs', md={}, tilt_stage
 
         for _ in range(number_loop):
             yield from bps.mv(shutter, 1)
-            yield from bps.sleep(0.2)
+            yield from bps.sleep(0.5)
 
             # quadem.averaging_time.put(precount_time)
             # yield from bps.trigger_and_read([quadem], name='precount')
@@ -177,5 +182,6 @@ def reflection_fluorescence_scan(scan_param, i, detector='xs', md={}, tilt_stage
                                             [exposure_time_signal],
                                             name='primary')
             yield from bps.mv(shutter, 0)
+            yield from bps.sleep(0.5) # add 0.2s sleep before open it in the next run
             
 
