@@ -13,11 +13,6 @@ crl1 = CRL1("XF:12ID1-OP{CRL-Ax:", name="crl")
 crl2 = CRL2("XF:12ID1-OP{CRL-Ax:", name="crl")
 
 
-
-
-
-
-
 # pos1_y1 = 8.70
 # pos1_x1 = 4.87
 # pos1_z1 = -50
@@ -27,10 +22,21 @@ crl2 = CRL2("XF:12ID1-OP{CRL-Ax:", name="crl")
 # pos2_x1 = 3.86
 # pos2_z1 = 100
 
-# 14.4keV June 2024, FWHM = 12um
-pos2_y1 = 8.90
-pos2_x1 = 4.08
+
+# 14.4keV Nov 2024, FWHM = 13um
+pos2_y1 = 8.9716
+pos2_x1 = 4.2209
 pos2_z1 = 180
+
+pos1_y1 = 8.8416
+pos1_x1 = 4.5509
+pos1_z1 = 50
+
+
+# # 14.4keV June 2024, FWHM = 12um
+# pos2_y1 = 8.90
+# pos2_x1 = 4.08
+# pos2_z1 = 180
 
 # # 14.4keV June 2024, FWHM = 15.2um
 # pos2_y1 = 8.91

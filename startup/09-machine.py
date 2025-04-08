@@ -24,7 +24,6 @@ ivu_permit = EpicsSignalRO('XF:12ID-CT{}Prmt:Remote-Sel', name='ivu_permit')
 smi_shutter_enable = EpicsSignalRO('SR:C12-EPS{PLC:1}Sts:ID_BE_Enbl-Sts', name='smi_shutter_enable')
 
 
-
 class EpicsSignalOverridePrecRO(EpicsSignalRO):
     def __init__(self, *args, precision=4, **kwargs):
         self._precision = precision
