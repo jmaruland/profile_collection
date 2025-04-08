@@ -138,7 +138,7 @@ class Geometry(PseudoPositioner):
     #sh 2 1.8199 mm/rev
     # sh2 = Cpt(EpicsMotor, "{Smpl-Ax:TblY2}Mtr", doc="Sample vertical translation")
     astth = Cpt(EpicsMotor, "{Smpl-Ax:Tth}Mtr", doc="Sample-detector rotation")
-    # asth = Cpt(EpicsMotor, "{Smpl-Ax:Th}Mtr", doc="Sample rotation")
+   # asth = Cpt(EpicsMotor, "{Smpl-Ax:Th}Mtr", doc="Sample rotation")
     stblx = Cpt(EpicsMotor, "{Smpl-Ax:TblX}Mtr", doc="Sample Table X")
     stblx2 = Cpt(EpicsMotor, "{Smpl-Ax:X}Mtr", doc="Sample Table X2")
   #  chi2 = Cpt(EpicsMotor, "{Smpl-Ax:Chi}Mtr", doc="Sample chi")
@@ -326,6 +326,7 @@ class Geometry(PseudoPositioner):
              _beta=_alpha
         # print(track_mode,_alpha*180/np.pi,_beta*180/np.pi)
         _stth = np.deg2rad(pseudo_pos.stth)
+      #  _sth = np.deg2rad(pseudo_pos.sth)
         cE = np.cos(self.Eta.get())
         sE = np.sin(self.Eta.get())
         _phix = self.phix.position
@@ -423,6 +424,7 @@ class Geometry(PseudoPositioner):
         _tth_offset = np.deg2rad(getattr(self.detector_offsets, det_dict[det_mode]).get())
     
         _astth = _tth + _stth + _tth_offset
+      #  _asth =  _tth + _sth
         
 
         ### define the phi mode, 2023-07-24
@@ -472,6 +474,7 @@ class Geometry(PseudoPositioner):
             sh=sh if track_mode else real_pos.sh,
             stblx=stblx if track_mode else real_pos.stblx,
             astth=np.rad2deg(_astth) if track_mode else real_pos.astth,
+      #      asth=np.rad2deg(_asth),
             oh=oh+soller_offset if track_mode else real_pos.oh,
             phix=_phix_offset,
             stblx2=_stblx2,
@@ -597,7 +600,7 @@ class SynGeometry(Geometry):
     oh = Cpt(SynAxis, doc="output arm vertical rotation", value=0.0)
 
 # changed to True to test out PYMCA simulation
-IN_SIM_MODE = True # bool(sim_flag.get() > 0)
+IN_SIM_MODE = False # bool(sim_flag.get() > 0)
 # Prefix the PV with "S" for simulations
 if IN_SIM_MODE:
     geo = SynGeometry("SXF:12ID1-ES", name="geo")
