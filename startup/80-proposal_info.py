@@ -25,7 +25,8 @@
 
 # proposal_id("2024_1","314053_venkatesan")
 
-#proposal_id("2024_1","313704_tu")
+# proposal_id("2024_1","313704_tu")
+# proposal_id("2024_3","315080_wang")
 
 
 
@@ -97,6 +98,34 @@ def proposal_id(cycle_id, proposal_id):
         os.chmod(newDir, stat.S_IRWXU + stat.S_IRWXG + stat.S_IRWXO)
         
     newDir = "/nsls2/xf12id1/users/" + str(cycle_id) + "/" + str(proposal_id) + "/XRF_data"
+    try:
+        os.stat(newDir)
+    except FileNotFoundError:
+        os.makedirs(newDir)
+        os.chmod(newDir, stat.S_IRWXU + stat.S_IRWXG + stat.S_IRWXO)
+
+    newDir = "/nsls2/xf12id1/users/" + str(cycle_id) + "/" + str(proposal_id) + "/PseudoXRR"
+    try:
+        os.stat(newDir)
+    except FileNotFoundError:
+        os.makedirs(newDir)
+        os.chmod(newDir, stat.S_IRWXU + stat.S_IRWXG + stat.S_IRWXO)
+
+    newDir = "/nsls2/xf12id1/users/" + str(cycle_id) + "/" + str(proposal_id) + "/PseudoXRR/gixos"
+    try:
+        os.stat(newDir)
+    except FileNotFoundError:
+        os.makedirs(newDir)
+        os.chmod(newDir, stat.S_IRWXU + stat.S_IRWXG + stat.S_IRWXO)
+
+    newDir = "/nsls2/xf12id1/users/" + str(cycle_id) + "/" + str(proposal_id) + "/PseudoXRR/p100k"
+    try:
+        os.stat(newDir)
+    except FileNotFoundError:
+        os.makedirs(newDir)
+        os.chmod(newDir, stat.S_IRWXU + stat.S_IRWXG + stat.S_IRWXO)
+
+    newDir = "/nsls2/xf12id1/users/" + str(cycle_id) + "/" + str(proposal_id) + "/PseudoXRR/processed"
     try:
         os.stat(newDir)
     except FileNotFoundError:
