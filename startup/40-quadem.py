@@ -1,9 +1,29 @@
 # Borrowed from SMI's profile: https://github.com/NSLS-II-SMI/profile_collection/blob/e745b5d476ff2005977cf070b69ba3e9cc3a850d/startup/16-electrometers.py#L111-L118
 
 from nslsii.ad33 import QuadEMV33
+from ophyd import Signal
+from ophyd import Component as Cpt
 #from ophyd.quadem import TetrAMM
 
-quadem = QuadEMV33("XF:12ID1-BI{EM:1}EM1:", name="quadem")
+class new_qm(QuadEMV33):
+    corrected_signal = Cpt(Signal,name='corrected_signal',value=0.0,kind='hinted')
+    
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args, **kwargs)
+        self.current2.mean_value.subscribe(self.update_monitor)
+        
+    def update_monitor(self,old_value,value,**kwargs):
+
+        atten_2 = int(S3.absorber1.user_readback.value)
+        attenuator_name_signal.set(f'att{atten_2}')
+        attenuation_factor_signal.set(att_fact_selected[f'att{atten_2}'])
+        newvalue = (value) * attenuation_factor_signal.get()
+        # print(newvalue)
+        self.corrected_signal.set(newvalue)
+
+
+
+quadem = new_qm("XF:12ID1-BI{EM:1}EM1:", name="quadem")
 quadem.conf.port_name.put("EM180")
 quadem.stage_sigs["acquire_mode"] = 2
 
@@ -35,6 +55,7 @@ def quadem_clear():
     yield from bps.mv(quadem1_cl,1)
     yield from bps.mv(quadem2_cl,1)
     yield from bps.mv(quadem3_cl,1)
+    
 
 
 
