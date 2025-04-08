@@ -21,10 +21,10 @@ def gid_scan_soller(scan_dict={}, md=None, detector = pilatus100k, alphai = 0.1,
 
 
     """
-    pilatus100k.stats1.kind='normal'
-    pilatus100k.stats2.kind='normal'
-    pilatus100k.stats3.kind='normal'
-    pilatus100k.stats4.kind='normal'
+    detector.stats1.kind='normal'
+    detector.stats2.kind='normal'
+    detector.stats3.kind='normal'
+    detector.stats4.kind='normal'
 
     
     @bpp.stage_decorator([quadem, detector])
@@ -69,6 +69,10 @@ def gid_scan_soller(scan_dict={}, md=None, detector = pilatus100k, alphai = 0.1,
         # x2_nominal= geo.stblx2.position
         for i in range(N):
             yield from mabt(alphai, alphai, stth_start_list[i])
+            yield from bps.sleep(20)
+            ### HZ 2024-12-14, save the start astth and stth
+            astth_start = geo.astth.user_setpoint.value # save the start astth
+            stth_sart = stth_start_list[i]
 
             x2_nominal= geo.stblx2.position
             sh_nomimal= geo.sh.position ### has to include inside loop as mabt move sh!!! HZ @ Dec2023 
@@ -96,7 +100,9 @@ def gid_scan_soller(scan_dict={}, md=None, detector = pilatus100k, alphai = 0.1,
                         yield from bps.mv(block.y,x2_new+beamstop[0])
 
 
-                yield from bps.mv(geo.stth,stthp)
+                # yield from bps.mv(geo.stth, stthp)
+                ####  HZ 2024-12-14, directly move real motor geo.astth instead of pseudoMotor geo.stth
+                yield from bps.mv(geo.astth, astth_start+stthp-stth_sart) 
 
                 if len(sh_offset_list) > 0:
                     # print(sh_offset_list)
@@ -109,13 +115,13 @@ def gid_scan_soller(scan_dict={}, md=None, detector = pilatus100k, alphai = 0.1,
 
                 yield from bps.mv(shutter, 1)
                 precount_time=0.2
-                yield from det_set_exposure(detectors_all, exposure_time=precount_time, exposure_number = 1)
+                yield from det_set_exposure([quadem], exposure_time=precount_time, exposure_number = 1)
 
                 yield from bps.trigger_and_read([quadem], name='precount')
 
                 
         # yield from det_exposure_time_new(detector, exp_time_list[i], exp_time_list[i])
-                yield from det_set_exposure(detectors_all, exposure_time=exp_time_list[i], exposure_number = 1)
+                yield from det_set_exposure([detector, quadem], exposure_time=exp_time_list[i], exposure_number = 1)
 
         # Open shutter, sleep to initiate quadEM, collect data, close shutter
                 yield from bps.mv(shutter,1)
@@ -323,10 +329,10 @@ def gixos_scan_soller(scan_dict={}, md=None, detector = pilatus100k, alphai = 0.
     :type attenuator: integers
 
     """
-    pilatus100k.stats1.kind='normal'
-    pilatus100k.stats2.kind='normal'
-    pilatus100k.stats3.kind='normal'
-    pilatus100k.stats4.kind='normal'
+    detector.stats1.kind='normal'
+    detector.stats2.kind='normal'
+    detector.stats3.kind='normal'
+    detector.stats4.kind='normal'
 
     
     @bpp.stage_decorator([quadem, detector])
@@ -406,13 +412,13 @@ def gixos_scan_soller(scan_dict={}, md=None, detector = pilatus100k, alphai = 0.
 
                 yield from bps.mv(shutter, 1)
                 precount_time=0.2
-                yield from det_set_exposure(detectors_all, exposure_time=precount_time, exposure_number = 1)
+                yield from det_set_exposure([quadem], exposure_time=precount_time, exposure_number = 1)
 
                 yield from bps.trigger_and_read([quadem], name='precount')
 
                 
         # yield from det_exposure_time_new(detector, exp_time_list[i], exp_time_list[i])
-                yield from det_set_exposure(detectors_all, exposure_time=exp_time_list[i], exposure_number = 1)
+                yield from det_set_exposure([detector,quadem], exposure_time=exp_time_list[i], exposure_number = 1)
 
         # Open shutter, sleep to initiate quadEM, collect data, close shutter
                 yield from bps.mv(shutter,1)

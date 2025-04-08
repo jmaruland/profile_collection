@@ -16,10 +16,10 @@ def gid_scan_stitch(scan_dict={}, md=None, detector = pilatus300k, alphai = 0.1,
     :type attenuator: integers
 
     """
-    pilatus300k.stats1.kind='normal'
-    pilatus300k.stats2.kind='normal'
-    pilatus300k.stats3.kind='normal'
-    pilatus300k.stats4.kind='normal'
+    detector.stats1.kind='normal'
+    detector.stats2.kind='normal'
+    detector.stats3.kind='normal'
+    detector.stats4.kind='normal'
 
 
     
@@ -48,7 +48,7 @@ def gid_scan_stitch(scan_dict={}, md=None, detector = pilatus300k, alphai = 0.1,
         x2_offset_list          = scan_dict["x2_offset"]
         atten_2_list            = scan_dict["atten_2"]
         wait_time_list          = scan_dict["wait_time"]
-        if detector is pilatus300k:
+        if (detector is pilatus300k) or (detector is pilatus1m):
             det_saxs_y_list         = scan_dict["det_saxs_y"]
             det_saxs_y_offset_list  = scan_dict["det_saxs_y_offset"]
             beam_stop_x             = scan_dict["beam_stop_x"]
@@ -91,7 +91,8 @@ def gid_scan_stitch(scan_dict={}, md=None, detector = pilatus300k, alphai = 0.1,
                  yield from bps.mv(sh, sh_nomimal+sh_offset)
 
 
-            if detector is pilatus300k:
+            if (detector is pilatus300k) or (detector is pilatus1m):
+                print('detector moving')
                 y3 = det_saxs_y_list[i]-4.3*det_saxs_y_offset_list[i]
                 y1,y2 = GID_fp( det_saxs_y_list[i]+45)
                 x2_new = x2_nominal+x2_offset_list[i]
@@ -101,7 +102,7 @@ def gid_scan_stitch(scan_dict={}, md=None, detector = pilatus300k, alphai = 0.1,
             yield from bps.sleep(wait_time_list[i])
 
         # yield from det_exposure_time_new(detector, exp_time_list[i], exp_time_list[i])
-            yield from det_set_exposure(detectors_all, exposure_time=exp_time_list[i], exposure_number = 1)
+            yield from det_set_exposure([detector, quadem], exposure_time=exp_time_list[i], exposure_number = 1)
 
         # Open shutter, sleep to initiate quadEM, collect data, close shutter
             yield from bps.mv(shutter,1)
