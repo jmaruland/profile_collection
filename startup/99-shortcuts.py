@@ -132,7 +132,7 @@ offset_counter =1
 
 
 def save_offsets():
-    print("in offsets")
+    # print("in offsets")
     global offset_counter
     offset_file = open('/nsls2/xf12id1/bsui_parameters/offsets_log','a')
     e = str(datetime.datetime.now())
@@ -174,7 +174,7 @@ def save_offsets():
 
 def save_positions():
     global offset_counter
-    print("in saving positions")
+    # print("in saving positions")
     position_file = open('/nsls2/xf12id1/bsui_parameters/positions_log','a')
     e = str(datetime.datetime.now())
     if offset_counter%10 == 0:
@@ -248,7 +248,7 @@ def offset_read():
 old_paras = ''   
 def save_param():
     global old_paras
-    print("in save parameters")
+    # print("in save parameters")
     new_paras = " {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f}  {:6.4f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f} {:6.3f}\n".format(
         energy.position.energy,
         geo.L1.get(),
@@ -383,5 +383,14 @@ def test_sh():
     for x in range(100):
         print("cycle #",x)
         yield from test_sample_height_set_fine_o()
+
+def shopen_new():
+    feedback("off")
+    yield from sleep(500)
+    yield from bps.mv(dcm_config.pitch,1.1305)
+    yield from bps.mv(dcm_config.roll,0.2114)
+    yield from shopen()
+    
+
 
 
