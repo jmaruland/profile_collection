@@ -72,10 +72,10 @@ from bluesky.callbacks import LiveTable
 #     yield from plan
 
 def liquids_mode():
-    print("liq_mode #1")
+   # print("liq_mode #1")
     liq_mode=geo.track_mode.get()
     det_mode=geo.det_mode.get()
-    print("liq_mode #2",liq_mode,det_mode)
+  #  print("liq_mode #2",liq_mode,det_mode)
     if liq_mode == 0:
         return("Alignment")
     elif liq_mode == 2 and  det_mode== 5:
@@ -85,6 +85,10 @@ def liquids_mode():
     # elif  liq_mode== 1 and det_mode == 2:
     elif det_mode == 2:
        return("GISAXS")
+    
+    elif det_mode == 3:
+       return("GIWAXS")
+
     elif liq_mode == 4:
         return("XRF")
     else:
@@ -105,6 +109,10 @@ def set_mode(mode):
         yield from bps.mv(geo.det_mode,5)
         yield from bps.mv(geo.track_mode,2)
     
+    elif mode == "GIWAXS":
+        yield from bps.mv(geo.det_mode,3)
+        # yield from bps.mv(geo.track_mode,1)
+
     elif mode == "GISAXS":
         yield from bps.mv(geo.det_mode,2)
         # yield from bps.mv(geo.track_mode,1)
@@ -120,18 +128,20 @@ def set_mode(mode):
 
 mode_to_det_mapping = {
     "Alignment":    [quadem],
-    "Soller":       [pilatus100k,quadem],
+    "Soller":       [pilatus100kA,quadem],
     "XR":           [lambda_det,quadem],
-    "GISAXS":       [pilatus300k,quadem],
+    "GISAXS":       [pilatus1m,quadem], #[pilatus1m,quadem],
+    "GIWAXS":       [pilatus300k,quadem], #[pilatus300k,quadem],
     "XRF":          [xs,quadem],
     "BAD":          [],
     }
 
 mode_to_roi_mapping = {
     "Alignment":    quadem.current3.mean_value.name,
-    "Soller":       pilatus100k.stats2.total.name,
+    "Soller":       pilatus100kA.stats2.total.name,
     "XR":           lambda_det.stats2.total.name,
-    "GISAXS":       pilatus300k.stats2.total.name,
+    "GISAXS":       pilatus1m.stats2.total.name, #pilatus1m.stats2.total.name,
+    "GIWAXS":       pilatus300k.stats2.total.name, #pilatus300k.stats2.total.name,
     "XRF":          lambda_det.stats2.total.name,
     "BAD":          None,
     }
@@ -147,9 +157,10 @@ mode_to_roi_mapping = {
     
 mode_to_plt_mapping = {
     "Alignment":    quadem.current3.mean_value.name,
-    "Soller":       pilatus100k.stats2.total.name,
+    "Soller":       pilatus100kA.stats2.total.name,
     "XR":           lambda_det.stats2.total.name,
-    "GISAXS":       pilatus300k.stats2.total.name,
+    "GISAXS":       pilatus1m.stats2.total.name,
+    "GIWAXS":       pilatus300k.stats2.total.name, # pilatus300k.stats2.total.name,
     "XRF":          lambda_det.stats2.total.name,
     "BAD":          None,
     }
@@ -195,7 +206,7 @@ def bsui_scan(motor, position1, position2, npts, time, relative = False, reset =
     det_all_auto = mode_to_det_mapping[operating_mode]
    # print(det_all_auto)
     roi_auto = mode_to_roi_mapping[operating_mode]
-    print(operating_mode,roi_auto)
+    print(f'Current mode is {operating_mode} using roi of {roi_auto}.')
     plt_all_auto = mode_to_plt_mapping[operating_mode]
     motor_name=getattr(motor, 'user_readback').name
     if printon: print("in #2 ",motor_name)
