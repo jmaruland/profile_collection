@@ -60,6 +60,7 @@ def shutter_flash_scan(*args, **kwargs):
         # yield from bps.sleep(3)
         yield from bps.mov(shutter, 1)
         yield from bps.sleep(0.2)
+        # yield from bps.sleep(1)
         # quadem.averaging_time.put(0.2)
         # yield from bps.trigger_and_read([quadem], name='precount')
         # quadem.averaging_time.put(0.2)

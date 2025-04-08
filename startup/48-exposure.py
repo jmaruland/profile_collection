@@ -47,7 +47,7 @@ def det_test(detectors=None):
     test all the all detectors
     '''
     if detectors is None:
-        detectors = [quadem, lambda_det, pilatus100k, pilatus300k, xs, pilatus1m]
+        detectors = [quadem, lambda_det, pilatus100k, xs, pilatus1m]
     yield from det_set_exposure(detectors, exposure_time=1, exposure_number = 1)
     for det in detectors:
         print(f'Currently running {det.name}...')
@@ -55,4 +55,6 @@ def det_test(detectors=None):
         yield from bps.sleep(0.1)  
 
 
-detectors_all = [quadem, lambda_det, pilatus100k, pilatus300k, xs]
+detectors_all = [quadem, lambda_det, pilatus100k, pilatus1m, xs]
+
+# [quadem, lambda_det, pilatus100k, pilatus300k, pilatus100kA, pilatus1m, xs]
