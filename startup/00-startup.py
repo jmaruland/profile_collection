@@ -16,9 +16,10 @@ EpicsSignalRO.set_defaults(connection_timeout=10, timeout=60)
 
 configure_base(
     get_ipython().user_ns,
-    "opls",
-    publish_documents_with_kafka=True
-)
+    broker_name="opls",
+    publish_documents_with_kafka=True,
+    redis_url = "info.smi.nsls2.bnl.gov",
+    redis_prefix = "opls-")
 
 publisher = Publisher("xf12id1-ws2:5577")
 RE.subscribe(publisher)
@@ -128,12 +129,6 @@ except ImportError:
         def reload(self):
             """Force a reload from disk, overwriting current cache"""
             self._cache = dict(super().items())
-
-runengine_metadata_dir = appdirs.user_data_dir(appname="bluesky") / Path("runengine-metadata")
-
-# PersistentDict will create the directory if it does not exist
-RE.md = PersistentDict(runengine_metadata_dir)
-
 
 #this replaces RE() <
 from bluesky.utils import register_transform
