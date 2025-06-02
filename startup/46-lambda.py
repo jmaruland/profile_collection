@@ -28,13 +28,13 @@ class LambdaDetector(DetectorBase):
     cam = Cpt(Lambda750kCam, 'cam1:')
 
 class Lambda(SingleTriggerV33, LambdaDetector):
-    # MR20200122: created all dirs recursively in /nsls2/jpls/data/lambda/
-    # from 2020 to 2030 with 777 permissions, owned by xf12id1 user.
-    tiff = Cpt(TIFFPluginWithFileStore,
-               suffix="TIFF1:",
-               write_path_template="/nsls2/data/smi/legacy/xf12id1/data/lambda/%Y/%m/%d/",
-               read_path_template="/nsls2/data/smi/legacy/xf12id1/data/lambda/%Y/%m/%d/",
-               root='/nsls2/data/smi/legacy/xf12id1/data') 
+    # # MR20200122: created all dirs recursively in /nsls2/jpls/data/lambda/
+    # # from 2020 to 2030 with 777 permissions, owned by xf12id1 user.
+    # tiff = Cpt(TIFFPluginWithFileStore,
+    #            suffix="TIFF1:",
+    #            write_path_template="/nsls2/data/smi/legacy/xf12id1/data/lambda/%Y/%m/%d/",
+    #            read_path_template="/nsls2/data/smi/legacy/xf12id1/data/lambda/%Y/%m/%d/",
+    #            root='/nsls2/data/smi/legacy/xf12id1/data')
 
     roi1 = Cpt(ROIPlugin, 'ROI1:')
     roi2 = Cpt(ROIPlugin, 'ROI2:')
@@ -55,10 +55,22 @@ class Lambda(SingleTriggerV33, LambdaDetector):
     hig_thr = Cpt(EpicsSignal, 'cam1:HighEnergyThreshold')
     oper_mode = Cpt(EpicsSignal, 'cam1:OperatingMode')
 
-lambda_det = Lambda('XF:12ID1-ES{Det:Lambda}', name='lambda_det')
+    tiff = Cpt(
+        TIFFPluginWithFileStore,
+        suffix="TIFF1:",
+        write_path_template = "",
+    )
+
+    def stage(self, *args, **kwargs):
+        folder_name = f"opls-{self.name.lower()}"    # e.g. 'opls-lambda250k'
+        self.tiff.write_path_template = assets_path() + f'{folder_name}/%Y/%m/%d/'
+        self.tiff.read_path_template = assets_path() + f'{folder_name}/%Y/%m/%d/'
+        self.tiff.reg_root = assets_path() + f'{folder_name}'
+        return super().stage(*args, **kwargs)
+
+
+lambda_det = Lambda('XF:12ID1-ES{Det:Lambda}', name='lambda250k')
 lambda_det.tiff.kind = 'hinted'
-
-
 
 lambda_det.roi1.kind = 'hinted'
 lambda_det.stats1.kind = 'hinted'

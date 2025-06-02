@@ -38,12 +38,18 @@ class StandardProsilica(SingleTrigger, ProsilicaDetector):
 class StandardProsilicaWithTIFF(StandardProsilica):
     tiff = Cpt(TIFFPluginWithFileStore,
                suffix='TIFF1:',
-               write_path_template='/camera_data/',
-               read_path_template='/camera_data/',
+               write_path_template='',
                root='/')
+    
+    def stage(self, *args, **kwargs):
+        folder_name = f"opls-{self.name.lower()}"
+        self.tiff.write_path_template = assets_path() + f'{folder_name}/%Y/%m/%d/'
+        self.tiff.read_path_template = assets_path() + f'{folder_name}/%Y/%m/%d/'
+        self.tiff.reg_root = assets_path() + f'{folder_name}'
+        return super().stage(*args, **kwargs)
 
 
-FS = StandardProsilicaWithTIFF('XF:12ID1-BI{Scr:1}', name='FS')
+FS = StandardProsilicaWithTIFF('XF:12ID1-BI{Scr:1}', name='webcam-1')
 
 FS.image.kind = 'hinted'
 
