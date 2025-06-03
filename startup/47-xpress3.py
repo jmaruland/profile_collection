@@ -202,7 +202,7 @@ class OPLSXspress3Detector(XspressTriggerFlyable, Xspress3Detector):
         self.hdf5.stop(success=success)
         return ret
 
-    def stage(self, *args, **kwargs):
+    def stage(self):
         # do the latching
         if self.fly_next.get():
             self.fly_next.put(False)
@@ -211,8 +211,7 @@ class OPLSXspress3Detector(XspressTriggerFlyable, Xspress3Detector):
         folder_name = f"opls-{self.name.lower()}"
         self.hdf5.write_path_template = assets_path() + f'{folder_name}/%Y/%m/%d/'
         self.hdf5.read_path_template = assets_path() + f'{folder_name}/%Y/%m/%d/'
-        # self.hdf5.root = assets_path() + f'{folder_name}'
-        return super().stage(*args, **kwargs)
+        return super().stage()
 
     def unstage(self):
         try:
