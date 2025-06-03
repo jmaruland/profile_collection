@@ -67,3 +67,16 @@ class SOLLER(Device):
 soller =  SOLLER('XF:12ID1-ES{Mdrive-Ax:', name='soller')
 
 
+
+class SampleSlit(Device):
+    x2 = Cpt(EpicsMotor, 'X2}Mtr')
+
+sample_slit = SampleSlit("XF:12ID1-ES{Smpl-Slit:", name='sampl_slit')
+
+slit_x2 = sample_slit.x2
+
+# 2025-06-02, edge slit_x2 = 53.2
+
+
+
+
