@@ -75,8 +75,10 @@ sample_slit = SampleSlit("XF:12ID1-ES{Smpl-Slit:", name='sampl_slit')
 
 slit_x2 = sample_slit.x2
 
-# 2025-06-02, edge slit_x2 = 53.2
-
+# 2025-06-02, edge slit_x2 = 53.2 at x2 = -10
+# 2025-06-03, edge slit_x2 = 15.88 at x2 = 30
+# 2025-06-03, edge slit_x2 = 73.61 at x2 = -30
+# 57.73/60 = 0.9621666666666666
 
 
 
