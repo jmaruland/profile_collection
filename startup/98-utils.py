@@ -95,7 +95,7 @@ def ps(uid='-1',det='default',suffix='default',shift=.5,logplot='off', der  = Fa
         elif db[uid].start.detectors[0] == 'elm':
             intensity_field='elm'+suffix
         elif suffix == 'default':
-            intensity_field= db[uid].start.detectors[0]+'_stats4_total'
+            intensity_field= db[uid].start.detectors[0]+'_stats2_total'
         else:
             intensity_field= db[uid].start.detectors[0]+suffix
     else:
@@ -104,7 +104,7 @@ def ps(uid='-1',det='default',suffix='default',shift=.5,logplot='off', der  = Fa
         elif det=='elm':
             intensity_field = 'elm'+suffix
         elif suffix == 'default':
-            intensity_field=det+'_stats4_total'
+            intensity_field=det+'_stats2_total'
         else:
             intensity_field=det+suffix
 

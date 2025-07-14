@@ -94,14 +94,15 @@ def shopen(He=True):
         # yield from he_start()
     
 
-def shclose():
+def shclose(He=True):
     yield from bps.mv(manual_PID_disable_pitch,'1')
     yield from bps.mv(manual_PID_disable_roll, '1')
     yield from bps.sleep(3)
     yield from bps.mv(ph_shutter.close_cmd, 1)
     yield from bps.sleep(2)
     yield from bps.mv(ph_shutter.close_cmd, 1)
-    yield from he_off()
+    if He:
+        yield from he_off()
 
 
 def feedback(action=None):

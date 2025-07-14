@@ -55,6 +55,6 @@ def det_test(detectors=None):
         yield from bps.sleep(0.1)  
 
 
-detectors_all = [quadem, lambda_det, pilatus100k, pilatus1m, xs]
-
+# detectors_all = [quadem, lambda_det, pilatus100k, pilatus1m, xs]
+detectors_all = [quadem, lambda_det, pilatus100kA, pilatus300k, pilatus1m, xs]
 # [quadem, lambda_det, pilatus100k, pilatus300k, pilatus100kA, pilatus1m, xs]

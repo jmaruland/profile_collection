@@ -35,7 +35,7 @@ def ps(uid='-1',det='default',suffix='default',shift=.5,logplot='off',figure_num
         elif det=='elm':
             intensity_field = 'elm'+suffix
         elif suffix == 'default':
-            intensity_field=det+'_stats1_total'
+            intensity_field=det+'_stats2_total'
         else:
             intensity_field=det+suffix
            

@@ -273,6 +273,12 @@ def bsui_scan(motor, position1, position2, npts, time, relative = False, reset =
         elif  motor_name == "geo_astth":
             yield from bps.mov(geo.astth,tmp2)
             yield from set_astth(position_old)
+
+        elif  motor_name == 'sampl_slit_x2': # only go to the center
+            yield from bps.mov(slit_x2,tmp2-10)
+            yield from bps.sleep(1)
+            yield from bps.mov(slit_x2,tmp2)
+            print('Move slit_x2 to the center')
             
         elif motor_name  == "abs2":
             yield from bps.mov(abs2,tmp2)

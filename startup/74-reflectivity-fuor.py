@@ -101,7 +101,7 @@ def reflection_fluorescence_scan(scan_param, i, detector='xs', md={}, tilt_stage
             #print('regular')
             yield from mabt(alpha, alpha, 0)
 ### this is a quick patch for loss the incident angle. 2024/11/22
-            yield from bps.sleep(2)
+            yield from bps.sleep(5)
             if abs(geo.ia.user_setpoint.value-alpha)>0.001:
                 print(f'Target ia {alpha}, current ia {geo.ia.user_setpoint.value}.')
                 yield from bps.mv(geo.ia, alpha)

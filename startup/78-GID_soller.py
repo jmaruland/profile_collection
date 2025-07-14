@@ -69,7 +69,7 @@ def gid_scan_soller(scan_dict={}, md=None, detector = pilatus100k, alphai = 0.1,
         # x2_nominal= geo.stblx2.position
         for i in range(N):
             yield from mabt(alphai, alphai, stth_start_list[i])
-            yield from bps.sleep(20)
+   #         yield from bps.sleep(20)
             ### HZ 2024-12-14, save the start astth and stth
             astth_start = geo.astth.user_setpoint.value # save the start astth
             stth_sart = stth_start_list[i]
