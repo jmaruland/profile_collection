@@ -10,7 +10,7 @@ Serializer = suitcaseSpecfile.Serializer
 
 
 def spec_factory(name, doc):
-    directory = "/nsls2/data/smi/shared/xf12id1/specfiles/"
+    directory = "/nsls2/data/smi/opls/shared/config/operations/specfiles/"
     file_prefix = "opls_spec_" + time.strftime("%Y_%m_%d")
     
 # # skip multiple motor scans
