@@ -8,7 +8,7 @@ class ProposalIDPrompt(Prompts):
             (Token.CursorLine, f"{datetime.datetime.isoformat(datetime.datetime.now(), timespec='seconds')} - "),
             (
                 Token.Prompt,
-                f"{RE.md.get('data_session', 'N/A')} [",
+                f"{RE.md.get('data_session', 'N/A')} - {RE.md.get('project_name', 'N/A')} [",
             ),
             (Token.PromptNum, str(self.shell.execution_count)),
             (Token.Prompt, '] ' + u"\u25B6" + ' '),
