@@ -210,7 +210,7 @@ def reflection_scan(scan_param, i, detector=lambda_det, md={}, tilt_stage=False,
         # yield from bps.trigger_and_read([quadem],name='precount')
         if auto_atten:
             print('Start running automate attenuator')
-            yield from automate_attenuator() ## set the abs2 based an automatica attenuation macro.
+            yield from automate_attenuator() ## set the abs2 based an automatic attenuation macro.
             atten_2 = abs2.position
             # yield from bps.mv(abs2, atten_2)  
             yield from bps.mv(attenuator_name_signal, f'att{int(atten_2)}')
@@ -552,14 +552,14 @@ def reflection_scan_old(scan_param, i, detector='lambda_det', md={}, tilt_stage=
         
 
 
-def automate_attenuator(precount_time=1,detector=lambda_det, upper_limit=2e5, total_threshold=[1e4, 2e5], abs_range =[0, 6], exposure_time_limit=[10,30]):
+def automate_attenuator_v1(precount_time=1,detector=lambda_det, upper_limit=2e5, total_threshold=[1e4, 2e5], abs_range =[0, 6], exposure_time_limit=[10,30]):
     '''
     Developed by Juan and Honghu.
-    Frist test with beam on 04/08/2025
+    First test with beam on 04/08/2025
 
     precount_time: Exposure time to get a frame based on the current attenuator for further calculation
     detector: Detector object to take the shot and calculate the intensity in ROI2 and ROI4
-    upper_limit: Maximum intensity allowed for a pixel in ROI4
+    upper_limit: Maximum intensity allowed for a single pixel in ROI4
     total_threshold: Lower and upper bound for desired intensity in ROI2
     abs_range: Lower and upper bound for allowed attenuator
     exposure_time_limit: 0: exposure_time limit for using current attenuator to increase statistics
@@ -585,7 +585,8 @@ def automate_attenuator(precount_time=1,detector=lambda_det, upper_limit=2e5, to
 
         # i_max = ret['%s_stats5_max'%detector]['value'] # Maximum intensity of one pixel
         # i_max = ret['%s_stats4_max_value'%detector.name]['value'] # Maximum intensity of one pixel
-        i_max = ret[f'{detector.name.split("_")[0]}_4']['value'] # Total intensity of i4
+        # i_max = ret[f'{detector.name.split("_")[0]}_4']['value'] # Total intensity of i4
+        i_max = ret[f'{detector.name.split("_")[0]}_4_max']['value'] # Max pixel intensity of i4
         print(f'Max pixel intensity of ROI4 {i_max}')
 
         # att_keys = list(att_fact_selected.keys())
@@ -594,10 +595,15 @@ def automate_attenuator(precount_time=1,detector=lambda_det, upper_limit=2e5, to
         print(f'Current abs2 position: {abs2_current_position:.2f}')
 
         if i_max > upper_limit: # check the max_int for a pixel
+            print(f'Pixel intensity higher than upper limit! NOT SAFE!')
             abs_target_position = abs2_current_position+1 
             # TODO: keep the count rate per pixel less than 200k based on the lambda parameter; need to think about the exposure!
+
+            
         elif i_total > total_threshold[1]: #check the roi intensity
+            print(f'Integrated intensity of ROI2 higher than the Upper threshold! Counts are too high!')
             abs_target_position = abs2_current_position+1
+
         else:
             # check lower limit of abs_range
             if abs(abs2_current_position - abs_range[0]) < 0.1: # stay at the current
@@ -613,6 +619,7 @@ def automate_attenuator(precount_time=1,detector=lambda_det, upper_limit=2e5, to
                 yield from det_set_exposure([detector, quadem], exposure_time=exp_time_target, exposure_number = 1)
 
             elif  i_total > total_threshold[0]:
+                print(f'Integrated intensity of ROI2 higher than the Lower threshold, which is good!')
                 abs_target_position = abs2_current_position
                 print(f'To get better statistics')
                 exp_time_target = int(total_threshold[1]/i_total)
@@ -623,8 +630,142 @@ def automate_attenuator(precount_time=1,detector=lambda_det, upper_limit=2e5, to
                 yield from det_set_exposure([detector, quadem], exposure_time=exp_time_target, exposure_number = 1)
 
             else:
+                print(f'Integrated intensity of ROI2 lower than the Lower threshold! Need to remove attenuator!')
                 abs_target_position = abs2_current_position-1
 
-        yield from bps.mv(abs2, abs_target_position)
-        print(f'change the abs2 to a new pos {abs_target_position}')
-        yield from bps.sleep(2)
+        if abs_target_position == abs2_current_position:
+            print(f'Keep the current abs2 pos at {abs_target_position}')
+        else:
+            yield from bps.mv(abs2, abs_target_position)
+            print(f'change the abs2 to a new pos {abs_target_position}')
+            yield from bps.sleep(2)
+
+
+def automate_attenuator(precount_time=1,detector=lambda_det, upper_limit=2e5, total_threshold=[1e4, 2e5], abs_range =[0, 6], exposure_time_limit=[10,30]):
+    '''
+    Developed by Juan and Honghu.
+    Second test with beam on 09/29/2025
+
+    precount_time: Exposure time to get a frame based on the current attenuator for further calculation
+    detector: Detector object to take the shot and calculate the intensity in ROI2 and ROI4
+    upper_limit: Maximum intensity allowed for a single pixel in ROI4
+    total_threshold: Lower and upper bound for desired intensity in ROI2
+    abs_range: Lower and upper bound for allowed attenuator
+    exposure_time_limit: 0: exposure_time limit for using current attenuator to increase statistics
+                         1: exposure_time limit for using lowest attenuator while protecting the samples
+
+    
+    '''
+
+    def atten_cal_and_move():
+        '''To determine if the attenator needs to move recursively
+
+            NOT working yet.
+
+            TODO: need to change to a while-loop to check the position until we reach the condition where no attenator is needed to move.
+
+        '''
+
+        yield from det_set_exposure([detector,quadem], exposure_time=precount_time, exposure_number = 1)
+        # Take the pre-count data
+        yield from bps.mv(shutter, 1)
+        ret = yield from bps.trigger_and_read([detector, quadem], name='precount')
+        yield from bps.mv(shutter, 0)
+        
+        if ret is None:
+            print('No count on the detector')
+        else:
+            # Read the maximum count on a pixel from the detector
+            # i_total = ret['%s_stats2_total'%detector.name]['value'] # Total intensity of i2
+            i_total = ret[f'{detector.name.split("_")[0]}_2']['value'] # Total intensity of i2
+            print(f'Total intensity of ROI2 {i_total}')
+
+            # i_max = ret['%s_stats5_max'%detector]['value'] # Maximum intensity of one pixel
+            # i_max = ret['%s_stats4_max_value'%detector.name]['value'] # Maximum intensity of one pixel
+            # i_max = ret[f'{detector.name.split("_")[0]}_4']['value'] # Total intensity of i4
+            i_max = ret[f'{detector.name.split("_")[0]}_4_max']['value'] # Max pixel intensity of i4
+            print(f'Max pixel intensity of ROI4 {i_max}')
+
+            # att_keys = list(att_fact_selected.keys())
+
+            abs2_current_position = abs2.position
+            print(f'Current abs2 position: {abs2_current_position:.2f}')
+
+            if i_max > upper_limit: # check the max_int for a pixel
+                print(f'Pixel intensity higher than upper limit! NOT SAFE!')
+                abs_target_position = abs2_current_position+1 
+                # TODO: keep the count rate per pixel less than 200k based on the lambda parameter; need to think about the exposure!
+                
+                yield from bps.mv(abs2, abs_target_position)
+                print(f'Change the abs2 to a new pos {abs_target_position}')
+                yield from bps.sleep(2)
+                print(f'Count one more time')
+                return atten_cal_and_move()
+                
+            elif i_total > total_threshold[1]: #check the roi intensity
+                print(f'Integrated intensity of ROI2 higher than the Upper threshold! Counts are too high!')
+                abs_target_position = abs2_current_position+1
+                
+                yield from bps.mv(abs2, abs_target_position)
+                print(f'Change the abs2 to a new pos {abs_target_position}')
+                yield from bps.sleep(2)
+                print(f'Count one more time')
+                return atten_cal_and_move()
+
+            else:
+                # check lower limit of abs_range
+                if abs(abs2_current_position - abs_range[0]) < 0.1: # stay at the current
+                    abs_target_position = abs2_current_position
+                    print(f'Approaching the low limit of abs2')
+                    exp_time_target = int(np.ceil(total_threshold[0]/i_total)) # protect the sample while sacrefice the statistics
+
+                    if exp_time_target > exposure_time_limit[1]:
+                        exp_time_target = exposure_time_limit[1]
+
+                    print(f'Target exposure time: {exp_time_target} s')
+                    yield from det_set_exposure([detector, quadem], exposure_time=exp_time_target, exposure_number = 1)
+
+                    return
+
+                elif  i_total > total_threshold[0]:
+                    print(f'Integrated intensity of ROI2 higher than the Lower threshold, which is good!')
+                    abs_target_position = abs2_current_position
+                    print(f'To get better statistics')
+                    exp_time_target = int(total_threshold[1]/i_total)
+                    if exp_time_target > exposure_time_limit[0]:
+                        exp_time_target = exposure_time_limit[0]
+                    print(f'Target exposure time: {exp_time_target} s')
+                    yield from det_set_exposure([detector, quadem], exposure_time=exp_time_target, exposure_number = 1)
+
+                    return
+
+                else:
+                    print(f'Integrated intensity of ROI2 lower than the Lower threshold! Need to remove attenuator!')
+                    abs_target_position = abs2_current_position-1
+
+                    yield from bps.mv(abs2, abs_target_position)
+                    print(f'Change the abs2 to a new pos {abs_target_position}')
+                    yield from bps.sleep(2)
+                    print(f'Count one more time')
+                    return atten_cal_and_move()
+
+        
+    yield from atten_cal_and_move()
+
+
+'''There is bug for change atten from 1 back to 2 at alpha =0.8. It should keep at 1'''
+
+
+'''
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        '''
+
+    
