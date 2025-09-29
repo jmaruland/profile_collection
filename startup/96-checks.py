@@ -1,3 +1,5 @@
+print(f'Loading {__file__}')
+
 from bluesky.callbacks.fitting import PeakStats
 import bluesky.preprocessors as bpp
 

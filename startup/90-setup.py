@@ -261,6 +261,9 @@ def bsui_scan(motor, position1, position2, npts, time, relative = False, reset =
         elif motor_name == "geo_sh":
             yield from bps.mov(geo.sh,tmp2)
             yield from set_sh(position_old)
+        elif motor_name == "geo_sh2":
+            yield from bps.mov(geo.sh2,tmp2)
+            yield from set_sh2(position_old)
         elif motor_name == "geo_oh":
             yield from bps.mov(geo.oh,tmp2)
             yield from set_oh(position_old)

@@ -20,7 +20,7 @@ phix=geo.phix
 ia=geo.ia
 ih=geo.ih
 sh=geo.sh
-#sh2=geo.sh2
+sh2=geo.sh2
 astth=geo.astth
 #asth=geo.asth
 oh=geo.oh
@@ -34,6 +34,10 @@ bpmy=S5.position1
 
 def set_sh(new_value):
     yield Msg('reset_user_position', geo.sh, new_value)
+    save_offsets()
+
+def set_sh2(new_value):
+    yield Msg('reset_user_position', geo.sh2, new_value)
     save_offsets()
 
 def set_ih(new_value):
@@ -394,3 +398,21 @@ def shopen_new():
 
 
 
+def astth_test():
+    for i in np.linspace(0,20,21):
+        yield from bps.mv(astth,22)
+        print('target 22:', astth.position)
+        yield from bps.sleep(5)
+        yield from bps.mv(astth,-8)
+        print('target -8:', astth.position)
+        yield from bps.sleep(5)
+
+
+def oh_test():
+    for i in np.linspace(0,100,101):
+        yield from bps.mv(oh,-175)
+        print('target -175:', oh.position)
+        yield from bps.sleep(2)
+        yield from bps.mv(oh,0)
+        print('target 0:', oh.position)
+        yield from bps.sleep(5)

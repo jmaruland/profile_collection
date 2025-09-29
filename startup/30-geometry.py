@@ -136,7 +136,7 @@ class Geometry(PseudoPositioner):
     # Sample-detector motors
     sh = Cpt(EpicsMotor, "{Smpl-Ax:TblY}Mtr", doc="Sample vertical translation")
     #sh 2 1.8199 mm/rev
-    # sh2 = Cpt(EpicsMotor, "{Smpl-Ax:TblY2}Mtr", doc="Sample vertical translation")
+    sh2 = Cpt(EpicsMotor, "{Smpl-Ax:TblY2}Mtr", doc="Sample vertical translation")
     astth = Cpt(EpicsMotor, "{Smpl-Ax:Tth}Mtr", doc="Sample-detector rotation")
    # asth = Cpt(EpicsMotor, "{Smpl-Ax:Th}Mtr", doc="Sample rotation")
     stblx = Cpt(EpicsMotor, "{Smpl-Ax:TblX}Mtr", doc="Sample Table X")
@@ -271,7 +271,15 @@ class Geometry(PseudoPositioner):
         kind="config",
         doc="offsets of phi and phix",
     )
-   
+
+    sh_mode = Cpt(
+        EpicsSignal,
+        "XF:12ID1:SmplHtMode",
+        add_prefix=(),
+        kind="config",
+        doc="sh mode",
+    )
+
 
     def __init__(self, prefix, **kwargs):
         # self.wlength = 0.77086  # x-ray wavelength, A
@@ -390,20 +398,34 @@ class Geometry(PseudoPositioner):
         # 'th', 'phi', 'chi', 'tth', 'ih', and 'ir'
 
 
-        #SH_OFFSET IS TURNED OFF FOR NOW SINCE IT IS MULTIUPLIED BY ZERO.
-        sh = ( 
-            -(self.L2.get() + self.L4.get()) * np.tan(_alpha) / np.cos(_tth)
-        ) + 0*self.SH_OFF.get()
+        #SmplHtMode_OFFSET IS TURNED OFF FOR NOW SINCE IT IS MULTIUPLIED BY ZERO.
+        sh_mode = int(self.sh_mode.get())
+
+        if sh_mode == 1:
+            sh = ( 
+             -(self.L2.get() + self.L4.get()) * np.tan(_alpha) / np.cos(_tth)
+            ) + 0*self.SH_OFF.get()
+            sh2 =0
+            oh = sh + (self.L3.get() - self.L4.get()) * np.tan(_beta)
+
+        if sh_mode == 2:
+            sh2 = ( 
+             -(self.L2.get() + self.L4.get()) * np.tan(_alpha) / np.cos(_tth)
+            ) + 0*self.SH_OFF.get()
+            sh =0
+            oh = sh2 + (self.L3.get() - self.L4.get()) * np.tan(_beta)
 
         # tmp=  -(self.L2.get() + self.L4.get()) * np.tan(_alpha) / np.cos(_tth)
-        # sh_user= tmp-geo.sh.user_offset.get() 
+        # SmplHtMode_user= tmp-geo.sh.user_offset.get() 
         # sh= tmp + 0.003*np.sin(np.pi*2*(sh_user/0.254)+self.sh_phase.get())
 
         # sh = self.sh.position
         
         stblx = self.L2.get() * np.tan(_tth)
         # todo check degree vs radian
-        oh = sh + (self.L3.get() - self.L4.get()) * np.tan(_beta)
+        #oh = sh + (self.L3.get() - self.L4.get()) * np.tan(_beta)
+       # oh = sh2 + (self.L3.get() - self.L4.get()) * np.tan(_beta)
+
 
         # actually output theta
         det_mode = int(self.detector_offsets.det_mode.get())
@@ -471,6 +493,7 @@ class Geometry(PseudoPositioner):
             ih=ih,
             ia=np.rad2deg(_alpha),
             oa=pseudo_pos.beta if track_mode else real_pos.oa,
+            sh2=sh2 if track_mode else real_pos.sh2,
             sh=sh if track_mode else real_pos.sh,
             stblx=stblx if track_mode else real_pos.stblx,
             astth=np.rad2deg(_astth) if track_mode else real_pos.astth,
@@ -578,7 +601,7 @@ class SynAxis(_SynAxis):
         return st
 
 class SynGeometry(Geometry):
-    _real = ['th', 'phi', 'chi', 'tth', 'ih', 'ia', 'phix', 'sh', 'astth', 'stblx', 'stblx2', 'oa', 'oh']
+    _real = ['th', 'phi', 'chi', 'tth', 'ih', 'ia', 'phix', 'sh','sh2', 'astth', 'stblx', 'stblx2', 'oa', 'oh']
     # input motors
     th = Cpt(SynAxis, doc="Θ 3-circle theta for mono", value=0.0)
     #
@@ -591,6 +614,7 @@ class SynGeometry(Geometry):
     phix = Cpt(SynAxis, value=0.0)
     # Sample-detector motors
     sh = Cpt(SynAxis, doc="Sample vertical translation", value=0.0)
+    sh2 = Cpt(SynAxis, doc="Sample vertical translation",value=0.0)
     astth = Cpt(SynAxis, doc="Sample-detector rotation", value=0.0)
     # asth = Cpt(EpicsMotor, "{Smpl-Ax:Th}Mtr", doc="Sample rotation")
     stblx = Cpt(SynAxis, doc="Sample Table X", value=200.0)
