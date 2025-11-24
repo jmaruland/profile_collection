@@ -401,6 +401,7 @@ class Geometry(PseudoPositioner):
         #SmplHtMode_OFFSET IS TURNED OFF FOR NOW SINCE IT IS MULTIUPLIED BY ZERO.
         sh_mode = int(self.sh_mode.get())
 
+      # Uses the main sample height stage
         if sh_mode == 1:
             sh = ( 
              -(self.L2.get() + self.L4.get()) * np.tan(_alpha) / np.cos(_tth)
@@ -408,12 +409,30 @@ class Geometry(PseudoPositioner):
             sh2 =0
             oh = sh + (self.L3.get() - self.L4.get()) * np.tan(_beta)
 
+      # Uses the fine sample height stage
         if sh_mode == 2:
             sh2 = ( 
              -(self.L2.get() + self.L4.get()) * np.tan(_alpha) / np.cos(_tth)
             ) + 0*self.SH_OFF.get()
             sh =0
             oh = sh2 + (self.L3.get() - self.L4.get()) * np.tan(_beta)
+
+      # Uses the both sample height stage
+        if sh_mode == 3:
+            sh_total = ( 
+             -(self.L2.get() + self.L4.get()) * np.tan(_alpha) / np.cos(_tth)
+            ) + 0*self.SH_OFF.get()
+            if sh_total >= -20 and sh_total < 1:
+                sh=0
+                sh2 = sh_total
+            if sh_total < -20:
+                sh = sh_total +20
+                sh2 = -20
+            if sh_total >= -1:
+                sh = 1
+                sh2 =sh_total+1
+
+            oh = sh_total + (self.L3.get() - self.L4.get()) * np.tan(_beta)
 
         # tmp=  -(self.L2.get() + self.L4.get()) * np.tan(_alpha) / np.cos(_tth)
         # SmplHtMode_user= tmp-geo.sh.user_offset.get() 
@@ -574,7 +593,6 @@ class Geometry(PseudoPositioner):
         # _phix_offset = getattr(self.phi_offsets, phi_dict[phi_mode][1]).get()
     
 
-
         # TODO compute beta from the other motors
         #this failed on oct 5 2023
         #return self.PseudoPosition(alpha=_alpha, beta=real_pos.oa, stth=stth)
@@ -626,6 +644,7 @@ class SynGeometry(Geometry):
 # changed to True to test out PYMCA simulation
 IN_SIM_MODE = False # bool(sim_flag.get() > 0)
 # Prefix the PV with "S" for simulations
+
 if IN_SIM_MODE:
     geo = SynGeometry("SXF:12ID1-ES", name="geo")
     for atr in SynGeometry._real:
@@ -649,11 +668,45 @@ else:
 # this is how to add additional aliases
 # ih = geo.ih
 
+    
+track_mode_name = {
+        0: "Deflector only (alignment)",
+        1: "Regular Tracking, Lambda Detector",
+        2: "Regular Tracking, Pilatus 100k Detector",
+        3: "Beta = Alpha"
+    }
+
+phi_mode_name = {
+        0: "Pin",
+        1: "Asymmetric Ge(111)",
+        2: "Symmetric Ge(111)",
+        3: "Name 3"
+    }
+det_mode_name = {
+        0: "Lambda Detector offset",
+        1: "GiSAXS Detector offset",
+        2: "GiWAXS Detector offset",
+        3: "XRF Detector offset",
+        4: "Soller Configuration offset",
+    }
+
+sh_mode_name = {
+        1: "Coarse stage",
+        2: "Fine stage",
+        3: "Both stages"
+    }
+
+
+
 
 def cabt(*args, **kwargs):
     ret = geo.forward(*args, **kwargs)
     print("\n")
-    print(f"Energy     = {0.001 * energy.energy.position: .2f} keV")
+    print(f"Track Mode         = {int(geo.track_mode.get()): d}: {track_mode_name.get(int(geo.track_mode.get()))}")
+    print(f"Phi Mode           = {int(geo.phi_mode.get()): d}: {phi_mode_name.get(int(geo.phi_mode.get()))}")
+    print(f"stth Offset Mode   = {int(geo.det_mode.get()): d}: {det_mode_name.get(int(geo.det_mode.get()))}")
+    print(f"Sample Height Mode = {int(geo.sh_mode.get()): d}: {sh_mode_name.get(int(geo.sh_mode.get()))}")
+    print(f"\nEnergy     = {0.001 * energy.energy.position: .2f} keV")
     print(f"Wavelength =  {geo.wlength:.3f} \u212B") 
     print(
         f"Footprint  = {S2.vg.user_readback.get() / ((args[0] + 0.001) * 3.14159 / 180): .1f} mm"
@@ -661,7 +714,7 @@ def cabt(*args, **kwargs):
     print(f"qz         = {(4 * np.pi / geo.wlength.real) * np.sin(args[0] * 3.14159 / 180): .4f} \u212B\u207B\u00B9")
 
     cur = geo.real_position
-    print("|" + "-" * 30 + "|")
+    print("\n|" + "-" * 30 + "|")
     print("| {:<6s} |{:>9s} |{:>9s} |".format("MOTOR", "TARGET", "CURRENT"))
     print("|" + "-" * 30 + "|")
     for k in ret._fields:

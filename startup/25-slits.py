@@ -76,6 +76,19 @@ sample_slit = SampleSlit("XF:12ID1-ES{Smpl-Slit:", name='sampl_slit')
 slit_x2 = sample_slit.x2
 
 
+class OutputSlit(Device):
+    x = Cpt(EpicsMotor, 'lex14}Mtr')
+
+output_slit = OutputSlit("XF:12ID1-ES{Mdrive-Ax:", name="output_lsit")
+
+op_slitx = output_slit.x
+
+
+
+
+
+
+
 # updated, x2 = 0, slit_x2 = 45.2
 
 
