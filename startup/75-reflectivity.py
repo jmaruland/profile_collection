@@ -183,6 +183,7 @@ def reflection_scan(scan_param, i, detector=lambda_det, md={}, tilt_stage=False,
     
        ##### to use the new attenbank #### 
         yield from bps.mv(abs2, atten_2)  
+        # print(f"attenuation is {atten_2}")
         yield from bps.mv(attenuator_name_signal, f'att{atten_2}')
         if att_fact_selected != None:
             yield from bps.mv(attenuation_factor_signal, att_fact_selected[f'att{atten_2}'])
@@ -206,6 +207,7 @@ def reflection_scan(scan_param, i, detector=lambda_det, md={}, tilt_stage=False,
         yield from bps.trigger_and_read(all_area_dets +
                                             [geo] + 
                                             [S2] +
+                                            [abs2] +
                                             [attenuation_factor_signal] +
                                             [attenuator_name_signal] +
                                             [exposure_time_signal],
@@ -214,7 +216,7 @@ def reflection_scan(scan_param, i, detector=lambda_det, md={}, tilt_stage=False,
         yield from bps.mv(shutter, 0)
         # print(time.time()-start_time)
         
-    
+    yield from bps.sleep(2)
 
 def calc_att_from_ai(alphai):
     if alphai<0.15:

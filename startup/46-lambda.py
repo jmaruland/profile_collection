@@ -14,6 +14,24 @@ class Lambda750kCam(CamBase):
     
     https://x-spectrum.de/products/lambda-350k750k/
     """
+    ### added by Juan and Honghu to enable non-blocking, 12/15/2025
+
+    wait_for_plugins = Cpt(EpicsSignal, 'WaitForPlugins',
+                           string=True, kind='config')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.stage_sigs['wait_for_plugins'] = 'Yes'
+
+    def ensure_nonblocking(self):
+        self.stage_sigs['wait_for_plugins'] = 'Yes'
+        for c in self.parent.component_names:
+            cpt = getattr(self.parent, c)
+            if cpt is self:
+                continue
+            if hasattr(cpt, 'ensure_nonblocking'):
+                cpt.ensure_nonblocking()
+
     _html_docs = ['Lambda750kCam.html']
 
     config_file_path = ADCpt(EpicsSignal, 'ConfigFilePath')
@@ -91,6 +109,8 @@ lambda_det.stats4.kind = 'hinted'
 lambda_det.stats5.kind = 'hinted'
 lambda_det.stats5.total.kind = 'hinted'
 lambda_det.stats5.max_value.kind = 'hinted' ## HZ
+
+lambda_det.cam.ensure_nonblocking()
 
 
 # Impose Stats4 to be ROI4 if in the future we need to exclude bad pixels

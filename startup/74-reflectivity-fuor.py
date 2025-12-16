@@ -145,7 +145,7 @@ def reflection_fluorescence_scan(scan_param, i, detector='xs', md={}, tilt_stage
 
 
                ##### to use the new attenbank #### 
-        yield from bps.mv(abs2, atten_2)  
+        yield from bps.mv(abs2, atten_2)
         yield from bps.mv(attenuator_name_signal, f'att{atten_2}')
         if att_fact_selected != None:
             yield from bps.mv(attenuation_factor_signal, att_fact_selected[f'att{atten_2}'])
@@ -177,6 +177,7 @@ def reflection_fluorescence_scan(scan_param, i, detector='xs', md={}, tilt_stage
                                             all_area_dets_fluo +
                                             [geo] + 
                                             [S2] +
+                                            [abs2] +
                                             [attenuation_factor_signal] +
                                             [attenuator_name_signal] +
                                             [exposure_time_signal],

@@ -683,11 +683,11 @@ phi_mode_name = {
         3: "Name 3"
     }
 det_mode_name = {
-        0: "Lambda Detector offset",
-        1: "GiSAXS Detector offset",
-        2: "GiWAXS Detector offset",
-        3: "XRF Detector offset",
-        4: "Soller Configuration offset",
+        1: "XR mode",
+        2: "GiSAXS mode",
+        3: "GiWAXS mode",
+        4: "XRF mode",
+        5: "Soller mode",
     }
 
 sh_mode_name = {
@@ -704,7 +704,7 @@ def cabt(*args, **kwargs):
     print("\n")
     print(f"Track Mode         = {int(geo.track_mode.get()): d}: {track_mode_name.get(int(geo.track_mode.get()))}")
     print(f"Phi Mode           = {int(geo.phi_mode.get()): d}: {phi_mode_name.get(int(geo.phi_mode.get()))}")
-    print(f"stth Offset Mode   = {int(geo.det_mode.get()): d}: {det_mode_name.get(int(geo.det_mode.get()))}")
+    print(f"Technique          = {int(geo.det_mode.get()): d}: {det_mode_name.get(int(geo.det_mode.get()))}")
     print(f"Sample Height Mode = {int(geo.sh_mode.get()): d}: {sh_mode_name.get(int(geo.sh_mode.get()))}")
     print(f"\nEnergy     = {0.001 * energy.energy.position: .2f} keV")
     print(f"Wavelength =  {geo.wlength:.3f} \u212B") 
