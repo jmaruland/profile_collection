@@ -51,13 +51,18 @@ class TIFFPluginWithFileStore(TIFFPlugin, FileStoreTIFFIterativeWrite):
 
 
 class Pilatus(SingleTriggerV33, PilatusDetector):
-    tiff = Cpt(TIFFPluginWithFileStore,
-               suffix="TIFF1:",
-               write_path_template="/nsls2/xf12id1/data/pilatus100k/%Y/%m/%d/",
-               read_path_template= "/nsls2/xf12id1/data/pilatus100k/%Y/%m/%d/",
-            #    root='/nsls2/xf12id1/data'
-               root='/nsls2/data/smi/legacy/xf12id1/data'
-               )
+    tiff = Cpt(
+        TIFFPluginWithFileStore,
+        suffix="TIFF1:",
+        write_path_template = "",
+    )
+
+    def stage(self, *args, **kwargs):
+        folder_name = f"opls-{self.name.lower()}"    # e.g. 'opls-pilatus100k'
+        self.tiff.write_path_template = assets_path() + f'{folder_name}/%Y/%m/%d/'
+        self.tiff.read_path_template = assets_path() + f'{folder_name}/%Y/%m/%d/'
+        self.tiff.reg_root = assets_path() + f'{folder_name}'
+        return super().stage(*args, **kwargs)
 
     roi1 = Cpt(ROIPlugin, 'ROI1:')
     roi2 = Cpt(ROIPlugin, 'ROI2:')
@@ -101,89 +106,30 @@ def set_detector(det):
 
     det.cam.ensure_nonblocking()
 
-# on 10/10/22 we commented out the following 4 lines since the 100k server was not working
-#pilatus100k = Pilatus("XF:12ID1-ES{Det:P100k}", name="pilatus100k")
-#set_detector(pilatus100k)
-#pilatus100k.tiff.write_path_template = "/nsls2/xf12id1/data/pilatus100k/%Y/%m/%d/"
-#pilatus100k.tiff.read_path_template = "/nsls2/xf12id1/data/pilatus100k/%Y/%m/%d/"
-
 
 try:
     pilatus100k = Pilatus("XF:12ID1-ES{Det:P100k}", name="pilatus100k")
     set_detector(pilatus100k)
-
-    pilatus100k.tiff.write_path_template = "/nsls2/data/smi/legacy/xf12id1/data/pilatus100k/%Y/%m/%d/"
-    pilatus100k.tiff.read_path_template = "/nsls2/data/smi/legacy/xf12id1/data/pilatus100k/%Y/%m/%d/"
-
 except:
-    # pilatus100k=pilatus100k
     print('Pilatus 100k is not connected')
 
 
 try:
     pilatus100kA = Pilatus("XF:12ID1-ES{Det:P100K-A}", name="pilatus100kA")
     set_detector(pilatus100kA)
-
-    pilatus100kA.tiff.write_path_template = "/nsls2/data/smi/legacy/xf12id1/data/pilatus100kA/%Y/%m/%d/"
-    pilatus100kA.tiff.read_path_template = "/nsls2/data/smi/legacy/xf12id1/data/pilatus100kA/%Y/%m/%d/"
-
 except:
-    # pilatus100k=pilatus100k
     print('Pilatus 100k is not connected')
 
 
 try:
     pilatus1m = Pilatus("XF:12ID1-ES{Det:P1M}", name="pilatus1m")
     set_detector(pilatus1m)
-
-    pilatus1m.tiff.write_path_template = "/nsls2/data/smi/legacy/xf12id1/data/pilatus1m/%Y/%m/%d/"
-    pilatus1m.tiff.read_path_template = "/nsls2/data/smi/legacy/xf12id1/data/pilatus1m/%Y/%m/%d/"
-
 except:
-    # pilatus100k=pilatus100k
     print('Pilatus 100k is not connected')
 
 
 try:
     pilatus300k = Pilatus("XF:12ID1-ES{Det:P300k}", name="pilatus300k")
     set_detector(pilatus300k)
-
-    pilatus300k.tiff.write_path_template = "/nsls2/data/smi/legacy/xf12id1/data/pilatus300k/%Y/%m/%d/"
-    pilatus300k.tiff.read_path_template = "/nsls2/data/smi/legacy/xf12id1/data/pilatus300k/%Y/%m/%d/"
-
 except:
-    # pilatus300k=pilatus100k
     print('Pilatus 300k is not connected')
-
-
-# def det_exposure_time_pilatus(exp_t, meas_t=1):
-#     yield from bps.mov(
-#         pilatus100k.cam.acquire_time, exp_t,
-#         pilatus100k.cam.acquire_period, exp_t+0.2,
-#         pilatus100k.cam.num_images, int(meas_t/exp_t))
-#     try:
-#         yield from bps.mov(
-#             pilatus300k.cam.acquire_time, exp_t,
-#             pilatus300k.cam.acquire_period, exp_t+0.2,
-#             pilatus300k.cam.num_images, int(meas_t/exp_t))
-#     except:
-#         print('Pilatus 300KW is not connected')
-
-
-# def det_exposure_time_new(detector, exp_t, meas_t=1):
-#     yield from bps.mov(
-#         detector.cam.acquire_time, exp_t,
-#         detector.cam.acquire_period, exp_t+0.2,
-#         detector.cam.num_images, int(meas_t/exp_t))
-
-'''
-def sample_id(*, user_name, sample_name, tray_number=None):
-    # DIRTY HACK, do not copy
-    pilatus100k.cam.file_name.put(fname)
-    pilatus100k.cam.file_number.put(1)
-'''
-pil1m_roi2 = EpicsSignal('XF:12ID1-ES{Det:P100k}Stats1:Total_RBV', name= 'test')                                                                                   
-#pilatus100k.set_primary_roi(2)        
-
-
-

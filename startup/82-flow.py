@@ -1,4 +1,4 @@
-
+flow1 = EpicsSignal("XF:12ID1-ECAT:EL4104-00-AO1", name="he_flow1")
 flow2 = EpicsSignal("XF:12ID1-ECAT:EL4104-00-AO2", name="he_flow2")
 flow3 = EpicsSignal("XF:12ID1-ECAT:EL4104-00-AO3", name="he_flow3")
 #he_pid = EpicsSignal("XF:12ID1-ES{He-Flow}PID1.FBON", name = "feed back on/off")

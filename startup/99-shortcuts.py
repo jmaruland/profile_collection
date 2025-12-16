@@ -138,7 +138,7 @@ offset_counter =1
 def save_offsets():
     # print("in offsets")
     global offset_counter
-    offset_file = open('/nsls2/xf12id1/bsui_parameters/offsets_log','a')
+    offset_file = open('/nsls2/data/smi/opls/shared/config/operations/bsui_parameters/offsets_log','a')
     e = str(datetime.datetime.now())
     offset_counter = offset_counter + 1
     if offset_counter%10 == 0:
@@ -179,7 +179,7 @@ def save_offsets():
 def save_positions():
     global offset_counter
     # print("in saving positions")
-    position_file = open('/nsls2/xf12id1/bsui_parameters/positions_log','a')
+    position_file = open('/nsls2/data/smi/opls/shared/config/operations/bsui_parameters/positions_log','a')
     e = str(datetime.datetime.now())
     if offset_counter%10 == 0:
         position_file.write(e[0:19])
@@ -214,7 +214,7 @@ def save_positions():
     position_file.close()
 
 def offset_read():
-    motor_file1 = open('/nsls2/xf12id1/bsui_parameters/offsets_log','r')
+    motor_file1 = open('/nsls2/data/smi/opls/shared/config/operations/bsui_parameters/offsets_log','r')
     tmp=motor_file1.read()
     print(tmp)
   
@@ -277,7 +277,7 @@ def save_param():
         pass  
     else:
         old_paras = new_paras  
-        parameter_file = open('/nsls2/xf12id1/bsui_parameters/geo_parameters_log','a')
+        parameter_file = open('/nsls2/data/smi/opls/shared/config/operations/bsui_parameters/geo_parameters_log','a')
         etime = str(datetime.datetime.now())
         parameter_file .write(etime[0:19])
 

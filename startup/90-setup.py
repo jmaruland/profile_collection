@@ -28,6 +28,7 @@ det_roi_renaming = {
     lambda_det.stats2.total: 'lambda_2',
     lambda_det.stats3.total: 'lambda_3',
     lambda_det.stats4.total: 'lambda_4',
+    lambda_det.stats4.max_value: 'lambda_4_max',
     lambda_det.stats5.total: 'lambda_sum',
     lambda_det.stats5.max_value: 'lambda_max',
 

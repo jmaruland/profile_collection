@@ -14,7 +14,7 @@ class new_qm(QuadEMV33):
         
     def update_monitor(self,old_value,value,**kwargs):
 
-        atten_2 = int(S3.absorber1.user_readback.value)
+        atten_2 = int(S3.absorber1.user_readback.value) # the int is not good for this value
         attenuator_name_signal.set(f'att{atten_2}')
         attenuation_factor_signal.set(att_fact_selected[f'att{atten_2}'])
         newvalue = (value) * attenuation_factor_signal.get()
@@ -23,7 +23,10 @@ class new_qm(QuadEMV33):
 
 
 
-quadem = new_qm("XF:12ID1-BI{EM:1}EM1:", name="quadem")
+# quadem = new_qm("XF:12ID1-BI{EM:1}EM1:", name="quadem") 
+# The new_qm is from Eliot; suspect that it cause the attenuator problem, switch back to the previous one
+# HZ, 2025-12-13
+quadem = QuadEMV33("XF:12ID1-BI{EM:1}EM1:", name="quadem")
 quadem.conf.port_name.put("EM180")
 quadem.stage_sigs["acquire_mode"] = 2
 

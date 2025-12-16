@@ -153,18 +153,9 @@ class OPLSXspress3Detector(XspressTriggerFlyable, Xspress3Detector):
     hdf5 = Cpt(
         Xspress3FileStoreFlyable,
         "HDF5:",
-    # #    read_path_template="/nsls2/xf12id1/data/xpress3",
-    #     read_path_template="/nsls2/xf12id1/data/xpress3/%Y/%m/%d/",
-    # #    write_path_template="/nsls2/xf12id1/data/xpress3",
-    #     write_path_template="/nsls2/xf12id1/data/xpress3/%Y/%m/%d/",
-
-
-        read_path_template="/nsls2/data/smi/legacy/xf12id1/data/xpress3/%Y/%m/%d/",
-        write_path_template="/nsls2/data/smi/legacy/xf12id1/data/xpress3/%Y/%m/%d/",
-
-        # root="/",
-        root='/nsls2/data/smi/legacy/xf12id1/data',
-    #    root="/home/xspress3/data",
+        read_path_template="",
+        write_path_template="",
+        root='/nsls2/data/smi',
     )
 
     # this is used as a latch to put the xspress3 into 'bulk' mode
@@ -216,6 +207,10 @@ class OPLSXspress3Detector(XspressTriggerFlyable, Xspress3Detector):
         if self.fly_next.get():
             self.fly_next.put(False)
             self._mode = ScanMode.fly
+
+        folder_name = f"opls-{self.name.lower()}"
+        self.hdf5.write_path_template = assets_path() + f'{folder_name}/%Y/%m/%d/'
+        self.hdf5.read_path_template = assets_path() + f'{folder_name}/%Y/%m/%d/'
         return super().stage()
 
     def unstage(self):
@@ -227,8 +222,7 @@ class OPLSXspress3Detector(XspressTriggerFlyable, Xspress3Detector):
 
 
 try:
-    xs = OPLSXspress3Detector("XF:12ID1-ES{Xsp:1}:",
-                              name="xs")
+    xs = OPLSXspress3Detector("XF:12ID1-ES{Xsp:1}:", name="xpress3")
     xs.channel1.rois.read_attrs = ["roi{:02}".format(j)
                                    for j in [1, 2, 3, 4]]
     

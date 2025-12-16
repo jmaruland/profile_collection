@@ -14,6 +14,24 @@ class Lambda750kCam(CamBase):
     
     https://x-spectrum.de/products/lambda-350k750k/
     """
+    ### added by Juan and Honghu to enable non-blocking, 12/15/2025
+
+    wait_for_plugins = Cpt(EpicsSignal, 'WaitForPlugins',
+                           string=True, kind='config')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.stage_sigs['wait_for_plugins'] = 'Yes'
+
+    def ensure_nonblocking(self):
+        self.stage_sigs['wait_for_plugins'] = 'Yes'
+        for c in self.parent.component_names:
+            cpt = getattr(self.parent, c)
+            if cpt is self:
+                continue
+            if hasattr(cpt, 'ensure_nonblocking'):
+                cpt.ensure_nonblocking()
+
     _html_docs = ['Lambda750kCam.html']
 
     config_file_path = ADCpt(EpicsSignal, 'ConfigFilePath')
@@ -28,13 +46,13 @@ class LambdaDetector(DetectorBase):
     cam = Cpt(Lambda750kCam, 'cam1:')
 
 class Lambda(SingleTriggerV33, LambdaDetector):
-    # MR20200122: created all dirs recursively in /nsls2/jpls/data/lambda/
-    # from 2020 to 2030 with 777 permissions, owned by xf12id1 user.
-    tiff = Cpt(TIFFPluginWithFileStore,
-               suffix="TIFF1:",
-               write_path_template="/nsls2/data/smi/legacy/xf12id1/data/lambda/%Y/%m/%d/",
-               read_path_template="/nsls2/data/smi/legacy/xf12id1/data/lambda/%Y/%m/%d/",
-               root='/nsls2/data/smi/legacy/xf12id1/data') 
+    # # MR20200122: created all dirs recursively in /nsls2/jpls/data/lambda/
+    # # from 2020 to 2030 with 777 permissions, owned by xf12id1 user.
+    # tiff = Cpt(TIFFPluginWithFileStore,
+    #            suffix="TIFF1:",
+    #            write_path_template="/nsls2/data/smi/legacy/xf12id1/data/lambda/%Y/%m/%d/",
+    #            read_path_template="/nsls2/data/smi/legacy/xf12id1/data/lambda/%Y/%m/%d/",
+    #            root='/nsls2/data/smi/legacy/xf12id1/data')
 
     roi1 = Cpt(ROIPlugin, 'ROI1:')
     roi2 = Cpt(ROIPlugin, 'ROI2:')
@@ -55,10 +73,22 @@ class Lambda(SingleTriggerV33, LambdaDetector):
     hig_thr = Cpt(EpicsSignal, 'cam1:HighEnergyThreshold')
     oper_mode = Cpt(EpicsSignal, 'cam1:OperatingMode')
 
-lambda_det = Lambda('XF:12ID1-ES{Det:Lambda}', name='lambda_det')
+    tiff = Cpt(
+        TIFFPluginWithFileStore,
+        suffix="TIFF1:",
+        write_path_template = "",
+    )
+
+    def stage(self, *args, **kwargs):
+        folder_name = f"opls-{self.name.lower()}"    # e.g. 'opls-lambda250k'
+        self.tiff.write_path_template = assets_path() + f'{folder_name}/%Y/%m/%d/'
+        self.tiff.read_path_template = assets_path() + f'{folder_name}/%Y/%m/%d/'
+        self.tiff.reg_root = assets_path() + f'{folder_name}'
+        return super().stage(*args, **kwargs)
+
+
+lambda_det = Lambda('XF:12ID1-ES{Det:Lambda}', name='lambda250k')
 lambda_det.tiff.kind = 'hinted'
-
-
 
 lambda_det.roi1.kind = 'hinted'
 lambda_det.stats1.kind = 'hinted'
@@ -74,11 +104,13 @@ lambda_det.stats3.total.kind = 'hinted'
 
 lambda_det.stats4.total.kind = 'hinted'
 lambda_det.stats4.kind = 'hinted'
-# lambda_det.stats4.max_value.kind = 'hinted'
+lambda_det.stats4.max_value.kind = 'hinted'
 
 lambda_det.stats5.kind = 'hinted'
 lambda_det.stats5.total.kind = 'hinted'
 lambda_det.stats5.max_value.kind = 'hinted' ## HZ
+
+lambda_det.cam.ensure_nonblocking()
 
 
 # Impose Stats4 to be ROI4 if in the future we need to exclude bad pixels

@@ -18,7 +18,7 @@ import pandas as pd
 import numpy as np
 
 
-path = '/nsls2/data/smi/legacy/xf12id1/bsui_parameters/attenuators/'
+path = '/nsls2/data/smi/opls/shared/config/operations/bsui_parameters/attenuators/'
 att_file = 'opls_attenuators_database.csv'
 
 class Attenuator():
